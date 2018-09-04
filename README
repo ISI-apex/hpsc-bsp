@@ -1,0 +1,25 @@
+The "hpsc-bsp" repository includes the Yocto BSP for the HPSC Chiplet.  It then can download the needed source code, build it, and then generate the needed files for running QEMU in the following directory:
+
+poky/build/tmp/deploy/images/zcu102-zynqmp
+
+The above directory includes the following generated files:
+1.  arm-trusted-firmware.elf
+	- The Arm Trusted Firmware binary
+2.  core-image-minimal-zcu102-zynqmp.cpio.gz.u-boot
+	- The Linux root file system for booting the dual A53 cluster
+3.  Image
+	- The Linux kernel binary image
+4.  zynqmp-zcu102.dtb
+	- The Chiplet device tree for SMP Linux
+5.  qemu-hw-devicetrees/hpsc.dtb
+	- The HPSC Chiplet device tree for QEMU
+6.  u-boot.elf
+	- The U-boot bootloader for the dual A53 cluster
+
+The build process can be started by appropriately modifying the yocto_hpsc.sh file, then executing the following:
+
+sh yocto_hpsc.sh
+
+The actual build directories for these files are located in the directory:
+
+poky/build/tmp/work
