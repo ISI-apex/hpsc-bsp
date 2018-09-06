@@ -1,8 +1,10 @@
-The "hpsc-bsp" repository includes the Yocto BSP for the HPSC Chiplet.  It then can download the needed source code, build it, and then generate the needed files for running QEMU in the following directory:
+The "hpsc-bsp" repository includes the Yocto BSP for the HPSC Chiplet.  It then can download the needed source code, build it, and then generate the needed files for running QEMU.  The QEMU executable is:
+poky/build/tmp/work/x86_64-linux/qemu-xilinx-native/v2.8.1-xilinx-v2017.3+gitAUTOINC+3ccd3bdaa4-r0/image/usr/local/bin/qemu-system-aarch64
 
+In addition, several of the other needed files are located in the following directory:
 poky/build/tmp/deploy/images/zcu102-zynqmp
 
-The above directory includes the following generated files:
+Specifically, the above directory includes the following generated files:
 1.  arm-trusted-firmware.elf
 	- The Arm Trusted Firmware binary
 2.  core-image-minimal-zcu102-zynqmp.cpio.gz.u-boot
@@ -16,10 +18,52 @@ The above directory includes the following generated files:
 6.  u-boot.elf
 	- The U-boot bootloader for the dual A53 cluster
 
-The build process can be started by appropriately modifying the yocto_hpsc.sh file, then executing the following:
+The actual build directories for these files are located in the directory:
+poky/build/tmp/work
 
+Before starting the build process, verify that your system has python3 installed, which is needed to run bitbake.  The build process can then be started by appropriately modifying the yocto_hpsc.sh file, then executing the following:
 sh yocto_hpsc.sh
 
-The actual build directories for these files are located in the directory:
+The Yocto BSP is designed to download from the github repositories located at:
+https://github.com/orgs/ISI-apex/teams/hpsc/repositories
 
-poky/build/tmp/work
+Currently, it uses the "hpsc-0.9" tag for each of the github repositories.  However, for each repo, this can be changed by modifying the following files:
+
+1.  Arm Trusted Firmware
+    In directory:
+    poky/meta-hpsc/meta-xilinx-bsp/recipes-bsp/arm-trusted-firmware
+    Modify the following:
+    SRCREV in arm-trusted-firmware_2017.3.bb
+    SRC_URI in arm-trusted-firmware.inc
+
+2.  Linux
+    In directory:
+    poky/meta-hpsc/meta-xilinx-bsp/recipes-kernel/linux
+    Modify the following:
+    SRCREV in linux-xlnx_2017.3.bb
+    SRCREV in linux-xlnx-dev.bb
+    SRC_URI in linux-xlnx.inc
+
+3.  QEMU
+    In directory:
+    poky/meta-hpsc/meta-xilinx-bsp/recipes-devtools/qemu
+    Modify the following:
+    SRCREV in qemu_2.11.1.bb
+    SRC_URI in qemu-xilinx.inc
+
+4.  QEMU Devicetrees
+    In directory:
+    poky/meta-hpsc/meta-xilinx-bsp/recipes-devtools/qemu
+    Modify the following:
+    SRCREV in qemu-devicetrees_2017.3.bb
+    SRC_URI in qemu-devicetrees.inc
+
+5.  U-boot
+    In directory:
+    poky_working/meta-hpsc/meta-xilinx-bsp/recipes-bsp/u-boot
+    Modify the following:
+    SRCREV in u-boot-xlnx_2017.3.bb
+    SRCREV in u-boot-xlnx-dev.bb
+    SRC_URI in u-boot-xlnx.inc
+
+Finally, when running run-qemu.sh, the user should verify that pre-built versions of a53fsb.bin and m4resetA53.bin are first placed within the "qemu_test" directory.  In addition, the yocto_hpsc.sh script should have completed and generated the necessary files.

@@ -3,11 +3,11 @@
 #
 # To enable this recipe, set PREFERRED_PROVIDER_virtual/kernel = "linux-xlnx-dev"
 
-# Use the SRCREV for the last tagged revision of linux-xlnx.
-#SRCREV = "${AUTOREV}"
-
-# this is for tag "hpsc-0.9"
+# SRCREV can be either a tag (e.g. "hpsc-0.9"), a commit hash,
+# or "${AUTOREV}" if the user wants the head of the hpsc branch.
+# SRCREV should be coordinated with SRC_URI in linux-xlnx.inc.
 SRCREV = "hpsc-0.9"
+#SRCREV = "${AUTOREV}"
 
 # skip version sanity, because the version moves with AUTOREV
 KERNEL_VERSION_SANITY_SKIP = "1"

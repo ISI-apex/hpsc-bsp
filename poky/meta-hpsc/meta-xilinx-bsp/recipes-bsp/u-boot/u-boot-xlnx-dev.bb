@@ -10,8 +10,11 @@ include u-boot-spl-zynq-init.inc
 LICENSE = "GPLv2+"
 LIC_FILES_CHKSUM = "file://README;beginline=1;endline=6;md5=157ab8408beab40cd8ce1dc69f702a6c"
 
-#SRCREV = "${AUTOREV}"
+# SRCREV can be either a tag (e.g. "hpsc-0.9"), a commit hash,
+# or "${AUTOREV}" if the user wants the head of the hpsc branch.
+# SRCREV should be coordinated with SRC_URI in u-boot-xlnx.inc.
 SRCREV = "hpsc-0.9"
+#SRCREV = "${AUTOREV}"
 
 PV = "${UBRANCH}-xilinx-dev+git${SRCPV}"
 

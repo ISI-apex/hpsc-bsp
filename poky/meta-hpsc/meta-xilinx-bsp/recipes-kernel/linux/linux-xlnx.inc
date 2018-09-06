@@ -8,7 +8,11 @@ KERNEL_VERSION_SANITY_SKIP="1"
 
 FILESOVERRIDES_append = ":${XILINX_RELEASE_VERSION}"
 
+# SRC_URI should be coordinated with SRCREV in linux-xlnx_2017.3.bb.
+# If using "hpsc-0.9", set SRC_URI to use "nobranch"
+# Otherwise, use "branch=hpsc"
 SRC_URI = "git://github.com/ISI-apex/linux-hpsc.git;protocol=git;nobranch=1"
+#SRC_URI = "git://github.com/ISI-apex/linux-hpsc.git;protocol=git;branch=hpsc"
 
 SRCREV_machine ?= "${SRCREV}"
 

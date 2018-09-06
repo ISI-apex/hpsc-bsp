@@ -2,7 +2,11 @@ require recipes-bsp/u-boot/u-boot.inc
 
 DEPENDS += "bc-native dtc-native"
 
+# SRC_URI should be coordinated with SRCREV in u-boot-xlnx_2017.3.bb.
+# If using "hpsc-0.9", set SRC_URI to use "nobranch"
+# Otherwise, use "branch=hpsc"
 SRC_URI = "git://github.com/ISI-apex/u-boot.git;protocol=git;nobranch=1"
+#SRC_URI = "git://github.com/ISI-apex/u-boot.git;protocol=git;branch=hpsc"
 
 S = "${WORKDIR}/git"
 

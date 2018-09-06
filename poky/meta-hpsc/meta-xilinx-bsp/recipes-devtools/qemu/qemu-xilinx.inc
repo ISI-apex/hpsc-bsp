@@ -12,32 +12,18 @@ LIC_FILES_CHKSUM = " \
 
 PV = "${XILINX_QEMU_VERSION}-xilinx-${XILINX_RELEASE_VERSION}+git${SRCPV}"
 
+# SRC_URI should be coordinated with SRCREV in qemu-xilinx_2017.3.bb.
+# If using "hpsc-0.9", set SRC_URI to use "nobranch"
+# Otherwise, use "branch=hpsc"
 SRC_URI = "git://github.com/ISI-apex/qemu.git;protocol=git;nobranch=1"
+#SRC_URI = "git://github.com/ISI-apex/qemu.git;protocol=git;branch=hpsc"
 
 S = "${WORKDIR}/git"
-
-# Disable KVM completely
-# PACKAGECONFIG_remove = "kvm"
-
-# Enable fdt
-# PACKAGECONFIG_append = " fdt"
 
 DISABLE_STATIC_pn-${PN} = ""
 
 PTEST_ENABLED = ""
 
-# append a suffix dir, to allow multiple versions of QEMU to be installed
-#EXTRA_OECONF_append = " \
-#		--bindir=${bindir}/qemu-xilinx \
-#		--libexecdir=${libexecdir}/qemu-xilinx \
-#		"
-
 do_configure() {
 	${S}/configure --target-list="aarch64-softmmu" --enable-fdt --disable-kvm --disable-xen 
 }
-
-#do_install_append() {
-#	# Prevent QA warnings about installed ${localstatedir}/run
-#	if [ -d ${D}${localstatedir}/run ]; then rmdir ${D}${localstatedir}/run; fi
-#}
-

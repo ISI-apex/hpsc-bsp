@@ -12,7 +12,11 @@ DEPENDS += "u-boot-mkimage-native"
 S = "${WORKDIR}/git"
 B = "${WORKDIR}/build"
 
+# SRC_URI should be coordinated with SRCREV in arm-trusted-firmware_2017.3.bb.
+# If using "hpsc-0.9", set SRC_URI to use "nobranch"
+# Otherwise, use "branch=hpsc"
 SRC_URI = "git://github.com/ISI-apex/arm-trusted-firmware.git;protocol=git;nobranch=1"
+#SRC_URI = "git://github.com/ISI-apex/arm-trusted-firmware.git;protocol=git;branch=hpsc"
 
 ATF_BASE_NAME ?= "${PN}-${PKGE}-${PKGV}-${PKGR}-${DATETIME}"
 ATF_BASE_NAME[vardepsexclude] = "DATETIME"

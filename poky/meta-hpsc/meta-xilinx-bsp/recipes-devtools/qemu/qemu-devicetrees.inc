@@ -9,7 +9,11 @@ LIC_FILES_CHKSUM = "file://Makefile;beginline=1;endline=27;md5=7348b6cbcae69912c
 
 PV = "xilinx-${XILINX_RELEASE_VERSION}+git${SRCPV}"
 
+# SRC_URI should be coordinated with SRCREV in qemu_devicetrees_2017.3.bb.
+# If using "hpsc-0.9", set SRC_URI to use "nobranch"
+# Otherwise, use "branch=hpsc"
 SRC_URI = "git://github.com/ISI-apex/qemu-devicetrees.git;protocol=git;nobranch=1"
+#SRC_URI = "git://github.com/ISI-apex/qemu-devicetrees.git;protocol=git;branch=hpsc"
 
 S = "${WORKDIR}/git"
 
