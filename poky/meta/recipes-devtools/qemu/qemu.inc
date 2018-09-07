@@ -47,3 +47,6 @@ S = "${WORKDIR}/git"
 do_configure() {
     ${S}/configure --target-list="aarch64-softmmu" --enable-fdt --disable-kvm --disable-xen
 }
+
+INSANE_SKIP_nativesdk-qemu = "already-stripped"
+FILES_${PN} += "/usr/*"
