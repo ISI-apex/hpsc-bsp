@@ -1,10 +1,9 @@
 #!/bin/bash
 
-pwd=${PWD}
-
 # download the yocto poky git repository
 git clone -b hpsc git@github.com:ISI-apex/poky.git
 cd poky
+POKY_DIR=${PWD}
 
 # now add the meta-hpsc layer
 git clone -b hpsc git@github.com:ISI-apex/meta-hpsc.git
@@ -26,9 +25,9 @@ export BB_ENV_EXTRAWHITE="$BB_ENV_EXTRAWHITE SRCREV_atf SRCREV_linux_hpsc SRCREV
 
 # finally, create build directory and configure it
 . ./oe-init-build-env build
-bitbake-layers add-layer "${pwd}/poky/meta-hpsc/meta-xilinx-bsp"
-bitbake-layers add-layer "${pwd}/poky/meta-hpsc/meta-xilinx-contrib"
-bitbake-layers add-layer "${pwd}/poky/meta-openembedded/meta-oe"
+bitbake-layers add-layer ${POKY_DIR}/meta-hpsc/meta-xilinx-bsp
+bitbake-layers add-layer ${POKY_DIR}/meta-hpsc/meta-xilinx-contrib
+bitbake-layers add-layer ${POKY_DIR}/meta-openembedded/meta-oe
 cd conf
 printf "\nMACHINE = \"zcu102-zynqmp\"\n" >> local.conf
 
