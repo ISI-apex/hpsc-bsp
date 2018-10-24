@@ -14,11 +14,11 @@ git clone -b hpsc git@github.com:ISI-apex/meta-openembedded.git
 
 # The following SRCREV_* env vars can be either a tag (e.g. 'hpsc-0.9'), a
 # commit hash, or '${AUTOREV}' if the user wants the head of the hpsc branch
-export SRCREV_atf='hpsc-0.9'
-export SRCREV_linux_hpsc='hpsc-0.9'
-export SRCREV_qemu_devicetrees='hpsc-0.9'
-export SRCREV_qemu='hpsc-0.9'
-export SRCREV_u_boot='hpsc-0.9'
+export SRCREV_atf='${AUTOREV}'
+export SRCREV_linux_hpsc='${AUTOREV}'
+export SRCREV_qemu_devicetrees='${AUTOREV}'
+export SRCREV_qemu='${AUTOREV}'
+export SRCREV_u_boot='${AUTOREV}'
 
 # BB_ENV_EXTRAWHITE allows additional variables to pass through from
 # the external environment into Bitbake's datastore
