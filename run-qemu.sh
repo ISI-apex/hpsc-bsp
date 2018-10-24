@@ -10,7 +10,7 @@
 #     Once built, adjust the paths to the built artifacts below.
 
 YOCTO_DEPLOY_DIR=${PWD}/poky/build/tmp/deploy/images/zcu102-zynqmp
-YOCTO_QEMU_DIR=${PWD}/poky/build/tmp/work/x86_64-linux/qemu-xilinx-native/v2.8.1-xilinx-v2017.3+gitAUTOINC+3ccd3bdaa4-r0/image/usr/local/bin
+YOCTO_QEMU_DIR=${PWD}/poky/build/tmp/work/x86_64-linux/qemu-native/2.11.1-r0/image/usr/local/bin
 
 ARM_TF_FILE=${YOCTO_DEPLOY_DIR}/arm-trusted-firmware.elf # TODO: consider renaming this to bl31.elf or atf-bl31.elf to show that we're only using stage 3.1
 ROOTFS_FILE=${YOCTO_DEPLOY_DIR}/core-image-minimal-zcu102-zynqmp.cpio.gz.u-boot
