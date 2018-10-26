@@ -1,16 +1,5 @@
 #!/bin/bash
 
-# download the yocto poky git repository
-git clone -b hpsc git@github.com:ISI-apex/poky.git
-cd poky
-POKY_DIR=${PWD}
-
-# now add the meta-hpsc layer
-git clone -b hpsc git@github.com:ISI-apex/meta-hpsc.git
-
-# now add the meta-openembedded layer (for the mpich package)
-git clone -b hpsc git@github.com:ISI-apex/meta-openembedded.git
-
 # The following SRCREV_* env vars can be either a tag (e.g. 'hpsc-0.9'), a
 # commit hash, or '${AUTOREV}' if the user wants the head of the hpsc branch
 export SRCREV_atf='${AUTOREV}'
@@ -18,6 +7,22 @@ export SRCREV_linux_hpsc='${AUTOREV}'
 export SRCREV_qemu_devicetrees='${AUTOREV}'
 export SRCREV_qemu='${AUTOREV}'
 export SRCREV_u_boot='${AUTOREV}'
+
+# download the yocto poky git repository
+git clone -b hpsc git@github.com:ISI-apex/poky.git
+cd poky
+POKY_DIR=${PWD}
+
+# now add the meta-hpsc layer
+if [ "${SRCREV_linux_hpsc}" = 'hpsc-0.9' ]
+then
+    git clone git@github.com:ISI-apex/meta-hpsc.git -b hpsc-0.9
+else
+    git clone git@github.com:ISI-apex/meta-hpsc.git -b hpsc
+fi
+
+# now add the meta-openembedded layer (for the mpich package)
+git clone -b hpsc git@github.com:ISI-apex/meta-openembedded.git
 
 # BB_ENV_EXTRAWHITE allows additional variables to pass through from
 # the external environment into Bitbake's datastore
