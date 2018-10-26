@@ -8,6 +8,10 @@ export SRCREV_qemu_devicetrees='${AUTOREV}'
 export SRCREV_qemu='${AUTOREV}'
 export SRCREV_u_boot='${AUTOREV}'
 
+# BB_ENV_EXTRAWHITE allows additional variables to pass through from
+# the external environment into Bitbake's datastore
+export BB_ENV_EXTRAWHITE="$BB_ENV_EXTRAWHITE SRCREV_atf SRCREV_linux_hpsc SRCREV_qemu_devicetrees SRCREV_qemu SRCREV_u_boot"
+
 # download the yocto poky git repository
 git clone -b hpsc git@github.com:ISI-apex/poky.git
 cd poky
@@ -23,10 +27,6 @@ fi
 
 # now add the meta-openembedded layer (for the mpich package)
 git clone -b hpsc git@github.com:ISI-apex/meta-openembedded.git
-
-# BB_ENV_EXTRAWHITE allows additional variables to pass through from
-# the external environment into Bitbake's datastore
-export BB_ENV_EXTRAWHITE="$BB_ENV_EXTRAWHITE SRCREV_atf SRCREV_linux_hpsc SRCREV_qemu_devicetrees SRCREV_qemu SRCREV_u_boot"
 
 # finally, create build directory and configure it
 . ./oe-init-build-env build
