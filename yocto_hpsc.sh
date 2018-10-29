@@ -34,7 +34,9 @@ bitbake-layers add-layer ${POKY_DIR}/meta-hpsc/meta-xilinx-bsp
 bitbake-layers add-layer ${POKY_DIR}/meta-hpsc/meta-xilinx-contrib
 bitbake-layers add-layer ${POKY_DIR}/meta-openembedded/meta-oe
 cd conf
-printf "\nMACHINE = \"zcu102-zynqmp\"\n" >> local.conf
+printf "\nMACHINE = \"zcu102-zynqmp\"" >> local.conf
+printf "\nIMAGE_INSTALL_append = \" libgomp libgomp-dev libgomp-staticdev mpich libc-staticdev gdbserver openssh openssh-sftp-server libstdc++ util-linux\"\n" >> local.conf
+cd ..
 
 # One or more of the following options should be enabled to start the download and/or build
 
