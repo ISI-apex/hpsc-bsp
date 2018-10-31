@@ -13,20 +13,20 @@ export SRCREV_u_boot='${AUTOREV}'
 export BB_ENV_EXTRAWHITE="$BB_ENV_EXTRAWHITE SRCREV_atf SRCREV_linux_hpsc SRCREV_qemu_devicetrees SRCREV_qemu SRCREV_u_boot"
 
 # download the yocto poky git repository
-git clone -b hpsc git@github.com:ISI-apex/poky.git
+git clone -b hpsc https://github.com/ISI-apex/poky.git
 cd poky
 POKY_DIR=${PWD}
 
 # now add the meta-hpsc layer
 if [ "${SRCREV_linux_hpsc}" = 'hpsc-0.9' ]
 then
-    git clone git@github.com:ISI-apex/meta-hpsc.git -b hpsc-0.9
+    git clone -b hpsc-0.9 https://github.com/ISI-apex/meta-hpsc.git
 else
-    git clone git@github.com:ISI-apex/meta-hpsc.git -b hpsc
+    git clone -b hpsc https://github.com/ISI-apex/meta-hpsc.git
 fi
 
 # now add the meta-openembedded layer (for the mpich package)
-git clone -b hpsc git@github.com:ISI-apex/meta-openembedded.git
+git clone -b hpsc https://github.com/ISI-apex/meta-openembedded.git
 
 # finally, create build directory and configure it
 . ./oe-init-build-env build
