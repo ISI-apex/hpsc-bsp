@@ -26,7 +26,7 @@ RTPS_FILE=$DEV_PATH/Cortex-M4/rtps/bld/rtps.elf
 
 KERNEL_ADDR=0x80080000
 LINUX_DT_ADDR=0x84000000
-ROOTFS_ADDR=0x86000000
+ROOTFS_ADDR=0x90000000
 
 # See QEMU User Guide in HPSC release for explanation of the command line arguments
 # NOTE: order of -device args may matter, must load ATF last, because loader also sets PC
