@@ -22,7 +22,7 @@ if [ "${SRCREV_linux_hpsc}" = 'hpsc-0.9' ]
 then
     git clone -b hpsc-0.9 https://github.com/ISI-apex/meta-hpsc.git
 else
-    git clone -b hpsc https://github.com/ISI-apex/meta-hpsc.git
+    git clone -b hpsc_u-boot https://github.com/ISI-apex/meta-hpsc.git
 fi
 
 # now add the meta-openembedded layer (for the mpich package)
@@ -34,7 +34,7 @@ bitbake-layers add-layer ${POKY_DIR}/meta-hpsc/meta-xilinx-bsp
 bitbake-layers add-layer ${POKY_DIR}/meta-hpsc/meta-xilinx-contrib
 bitbake-layers add-layer ${POKY_DIR}/meta-openembedded/meta-oe
 cd conf
-printf "\nMACHINE = \"zcu102-zynqmp\"" >> local.conf
+printf "\nMACHINE = \"hpsc-chiplet\"" >> local.conf
 printf "\nIMAGE_INSTALL_append = \" libgomp libgomp-dev libgomp-staticdev mpich libc-staticdev gdb gdbserver openssh openssh-sftp-server libstdc++ util-linux watchdog mtd-utils\"\n" >> local.conf
 cd ..
 
