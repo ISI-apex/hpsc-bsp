@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# The following SRCREV_* env vars can be either a tag (e.g. 'hpsc-0.9'), a
-# commit hash, or '${AUTOREV}' if the user wants the head of the hpsc branch
+# The following SRCREV_* env vars allow the user to specify the commit hash or
+# tag (e.g. 'hpsc-0.9') that will be checked out for each of the repositories
+# below.  Alternatively, the user can specify '${AUTOREV}' to check out the
+# head of the hpsc branch.
 export SRCREV_atf='${AUTOREV}'
 export SRCREV_linux_hpsc='${AUTOREV}'
 export SRCREV_qemu_devicetrees='${AUTOREV}'
@@ -17,7 +19,7 @@ git clone -b hpsc https://github.com/ISI-apex/poky.git
 cd poky
 POKY_DIR=${PWD}
 
-# now add the meta-hpsc layer
+# add the meta-hpsc layer
 if [ "${SRCREV_linux_hpsc}" = 'hpsc-0.9' ]
 then
     git clone -b hpsc-0.9 https://github.com/ISI-apex/meta-hpsc.git
@@ -25,10 +27,10 @@ else
     git clone -b hpsc https://github.com/ISI-apex/meta-hpsc.git
 fi
 
-# now add the meta-openembedded layer (for the mpich package)
+# add the meta-openembedded layer (for the mpich package)
 git clone -b hpsc https://github.com/ISI-apex/meta-openembedded.git
 
-# finally, create build directory and configure it
+# create build directory and configure it
 . ./oe-init-build-env build
 bitbake-layers add-layer ${POKY_DIR}/meta-hpsc/meta-xilinx-bsp
 bitbake-layers add-layer ${POKY_DIR}/meta-openembedded/meta-oe
