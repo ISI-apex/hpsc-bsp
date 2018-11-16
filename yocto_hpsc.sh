@@ -31,7 +31,6 @@ git clone -b hpsc https://github.com/ISI-apex/meta-openembedded.git
 # finally, create build directory and configure it
 . ./oe-init-build-env build
 bitbake-layers add-layer ${POKY_DIR}/meta-hpsc/meta-xilinx-bsp
-bitbake-layers add-layer ${POKY_DIR}/meta-hpsc/meta-xilinx-contrib
 bitbake-layers add-layer ${POKY_DIR}/meta-openembedded/meta-oe
 cd conf
 printf "\nMACHINE = \"hpsc-chiplet\"" >> local.conf
