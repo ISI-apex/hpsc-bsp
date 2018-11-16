@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # The following toolchain path needs to be updated:
-BAREMETAL_TOOLCHAIN_DIR=/home/kdatta/Documents/gcc-arm-none-eabi-7-2018-q2-update
+BAREMETAL_TOOLCHAIN_DIR=/path/to/gcc-arm-none-eabi-toolchain
 
 # Add the toolchain to the path
 PATH=${PATH}:${BAREMETAL_TOOLCHAIN_DIR}/bin
