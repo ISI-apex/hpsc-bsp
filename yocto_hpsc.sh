@@ -22,7 +22,7 @@ if [ "${SRCREV_linux_hpsc}" = 'hpsc-0.9' ]
 then
     git clone -b hpsc-0.9 https://github.com/ISI-apex/meta-hpsc.git
 else
-    git clone -b hpsc_u-boot https://github.com/ISI-apex/meta-hpsc.git
+    git clone -b hpsc https://github.com/ISI-apex/meta-hpsc.git
 fi
 
 # now add the meta-openembedded layer (for the mpich package)
