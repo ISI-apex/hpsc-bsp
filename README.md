@@ -7,7 +7,7 @@ The "hpsc-bsp" repository includes:
 3.  The "run-qemu.sh" script, which uses the output from the build scripts above to boot QEMU.
 
 HPSC Yocto Build
-================
+----------------
 
 Before starting the Yocto build:
 1.  Verify that your system has python3 installed, which is needed to run bitbake.
@@ -40,13 +40,13 @@ The Yocto BSP is designed to download from the github repositories located at:
 https://github.com/orgs/ISI-apex/teams/hpsc/repositories
 
 hpsc-baremetal Build
-====================
+--------------------
 
 Before starting the hpsc-baremetal build, verify that the BAREMETAL_TOOLCHAIN_DIR variable in the script is properly set.  The script will then build the following files:
 1.  trch/bld/trch.elf
 2.  rtps/bld/rtps.elf
 
 Booting QEMU
-============
+------------
 
 Finally, after the build completes, the user can run the "run-qemu.sh" script (with some additional files that need to be built manually) in order to boot QEMU.
