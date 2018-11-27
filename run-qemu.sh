@@ -28,6 +28,24 @@ BAREMETAL_DIR=${PWD}/hpsc-baremetal
 TRCH_FILE=${BAREMETAL_DIR}/trch/bld/trch.elf
 RTPS_FILE=${BAREMETAL_DIR}/rtps/bld/rtps.elf
 
+# External storage (NAND, SRAM) devices
+# how to use:
+#	-drive file=$HPPS_NAND_IMAGE,if=pflash,format=raw,index=3 \
+#	-drive file=$HPPS_SRAM_FILE,if=pflash,format=raw,index=2 \
+#	-drive file=$TRCH_SRAM_FILE,if=pflash,format=raw,index=0 \
+
+HPPS_NAND_IMAGE=${YOCTO_DEPLOY_DIR}/rootfs_nand.bin
+HPPS_SRAM_FILE=${YOCTO_DEPLOY_DIR}/hpps_sram.bin
+TRCH_SRAM_FILE=${YOCTO_DEPLOY_DIR}/trch_sram.bin
+
+# Controlling boot mode of HPPS (ramdisk or rootfs in NAND)
+# how to use:
+#	-device loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE,data-len=4,cpu-num=3 \
+
+BOOT_MODE_ADDR=0x80000000	# memory location to store boot mode code for U-boot
+BOOT_MODE=0x00000000	# rootfs in RAM
+#BOOT_MODE=0x0000f000	# rootfs in NAND (MTD device)
+
 # See QEMU User Guide in HPSC release for explanation of the command line arguments
 # NOTE: order of -device args may matter, must load ATF last, because loader also sets PC
 KERNEL_ADDR=0x80080000
