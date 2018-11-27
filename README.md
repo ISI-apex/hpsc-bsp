@@ -5,6 +5,7 @@ The "hpsc-bsp" repository includes:
 1.  The "build-hpsc-yocto.sh" script, which uses the Yocto framework to build the necessary files for running the QEMU emulation of the Chiplet.  In the process, it downloads the needed source code from the ISI Github webpage.  Note the user can specify which commit of each repo should be downloaded within the script.
 2.  The "build-hpsc-baremetal.sh" script, which uses a separate toolchain to build the firmware for the TRCH and R52.
 3.  The "run-qemu.sh" script, which uses the output from the build scripts above to boot QEMU.
+4.  The "create_rootfs_nand.sh" script, which creates nand image file and put root filesystem in the nand image file.
 
 HPSC Yocto Build
 ----------------
@@ -50,3 +51,25 @@ Booting QEMU
 ------------
 
 Finally, after the build completes, the user can run the "run-qemu.sh" script (with some additional files that need to be built manually) in order to boot QEMU.
+
+Creating nand image with root file system
+------------
+
+Nand image generation can be done when all the above steps are done. 
+Several of the other needed files are located in the following directory:
+1.  arm-trusted-firmware.elf
+	- The Arm Trusted Firmware binary
+2.  core-image-minimal-hpsc-chiplet.cpio.gz.u-boot
+	- The Linux root file system for booting the dual A53 cluster
+3.  Image
+	- The Linux kernel binary image
+4.  hpsc.dtb
+	- The Chiplet device tree for SMP Linux
+5.  qemu-hw-devicetrees/hpsc-arch.dtb
+	- The HPSC Chiplet device tree for QEMU
+6.  u-boot.elf
+	- The U-boot bootloader for the dual A53 cluster
+7. rootfs.cpio file 
+	- The archive file of the root file system
+8. qemu-nand-creator
+	- The binary file which generates empty nand image
