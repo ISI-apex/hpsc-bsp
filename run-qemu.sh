@@ -52,6 +52,8 @@ KERNEL_ADDR=0x80080000
 LINUX_DT_ADDR=0x84000000
 ROOTFS_ADDR=0x90000000
 
+# Note: If you want to see instructions at a large performance cost, then add "in_asm" into
+# the following command as such: "-D /tmp/qemu.log -d fdt,guest_errors,unimp,cpu_reset,in_asm \"
 #gdb --args \
 ${YOCTO_QEMU_DIR}/qemu-system-aarch64 \
 	-machine arm-generic-fdt \
@@ -59,7 +61,7 @@ ${YOCTO_QEMU_DIR}/qemu-system-aarch64 \
 	-serial udp:${MY_IP_ADDR}:4442@:4452 \
 	-serial udp:${MY_IP_ADDR}:4443@:4453 \
 	-nographic \
-	-s -D /tmp/qemu.log -d fdt,guest_errors,unimp,cpu_reset,in_asm \
+	-s -D /tmp/qemu.log -d fdt,guest_errors,unimp,cpu_reset \
 	-hw-dtb ${QEMU_DT_FILE} \
 	-device loader,addr=${ROOTFS_ADDR},file=${ROOTFS_FILE},force-raw,cpu-num=3 \
 	-device loader,addr=${LINUX_DT_ADDR},file=${LINUX_DT_FILE},force-raw,cpu-num=3 \
