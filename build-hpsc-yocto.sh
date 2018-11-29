@@ -34,9 +34,11 @@ git clone -b hpsc https://github.com/ISI-apex/meta-openembedded.git
 . ./oe-init-build-env build
 bitbake-layers add-layer ${POKY_DIR}/meta-hpsc/meta-xilinx-bsp
 bitbake-layers add-layer ${POKY_DIR}/meta-openembedded/meta-oe
+bitbake-layers add-layer ${POKY_DIR}/meta-openembedded/meta-python
 cd conf
 printf "\nMACHINE = \"hpsc-chiplet\"" >> local.conf
-printf "\nIMAGE_INSTALL_append = \" libgomp libgomp-dev libgomp-staticdev mpich libc-staticdev gdb gdbserver openssh openssh-sftp-server libstdc++ util-linux watchdog mtd-utils\"\n" >> local.conf
+printf "\nIMAGE_INSTALL_append = \" libgomp libgomp-dev libgomp-staticdev mpich libc-staticdev gdb gdbserver openssh openssh-sftp-server libstdc++ util-linux watchdog mtd-utils python-numpy\"" >> local.conf
+printf "\nCORE_IMAGE_EXTRA_INSTALL = \"python-core\"\n" >> local.conf
 cd ..
 
 # One or more of the following options should be enabled to start the download and/or build
