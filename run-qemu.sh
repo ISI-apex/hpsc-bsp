@@ -7,11 +7,6 @@
 #
 # 2.  Run the "build-hpsc-baremetal.sh" script (with the proper toolchain
 #     path) to create the baremetal firmware files "trch.elf" and "rtps.elf".
-#
-# 3.  Update the MY_IP_ADDR variable below.
-
-# The following variable needs to be updated:
-MY_IP_ADDR=192.168.122.1
 
 # Output files from the Yocto build
 YOCTO_DEPLOY_DIR=${PWD}/poky/build/tmp/deploy/images/hpsc-chiplet
@@ -46,23 +41,134 @@ BOOT_MODE_ADDR=0x80000000	# memory location to store boot mode code for U-boot
 BOOT_MODE=0x00000000	# rootfs in RAM
 #BOOT_MODE=0x0000f000	# rootfs in NAND (MTD device)
 
-# See QEMU User Guide in HPSC release for explanation of the command line arguments
-# NOTE: order of -device args may matter, must load ATF last, because loader also sets PC
 KERNEL_ADDR=0x80080000
 LINUX_DT_ADDR=0x84000000
 ROOTFS_ADDR=0x90000000
 
-# Note: If you want to see instructions at a large performance cost, then add "in_asm" into
-# the following command as such: "-D /tmp/qemu.log -d fdt,guest_errors,unimp,cpu_reset,in_asm \"
-#gdb --args \
-${YOCTO_QEMU_DIR}/qemu-system-aarch64 \
+# Labels are created by Qemu with the convention 'serialN'
+SERIAL_PORTS=(serial0 serial1 serial2)
+for port in ${SERIAL_PORTS[*]}
+do
+    SERIAL_PORT_ARGS+=" -serial pty "
+done
+
+CONSOLE_SCREEN_SESSION=hpsc-qemu-consoles
+QMP_PORT=4433
+
+function setup_consoles()
+{
+	screen -q -list $CONSOLE_SCREEN_SESSION
+	if [ $? != 10 ]
+	then
+	    echo "Created screen session with consoles: $CONSOLE_SCREEN_SESSION"
+	    screen -d -m -S $CONSOLE_SCREEN_SESSION
+
+	    # Create split regions in the new screen session
+	    # NOTE: The split command works only while the screen session is attached, so have to wait
+	    echo "Waiting for you to attach to screen session from another window with: screen -r $CONSOLE_SCREEN_SESSION"
+	    while true
+	    do
+		if screen -list $CONSOLE_SCREEN_SESSION | grep -q Attached
+		then
+			break
+		fi
+	    done
+	    for port in $(seq 2 ${#SERIAL_PORTS[@]}) # -1
+	    do
+		screen -S $CONSOLE_SCREEN_SESSION -X split -v
+	    done
+	else
+	    echo "Will add consoles to existing screen session: $CONSOLE_SCREEN_SESSION"
+	fi
+}
+
+function attach_consoles()
+{
+	#while test $(lsof -ti :$QMP_PORT | wc -l) -eq 0
+	while true
+	do
+		PTYS=$(./get-qemu-ptys.py localhost $QMP_PORT ${SERIAL_PORTS[*]} 2>/dev/null)
+		if [ -z "$PTYS" ]
+		then
+			#echo "Waiting for Qemu to open QMP port..."
+			sleep 1
+			ATTEMPTS+=" 1 "
+			if [ $(echo $ATTEMPTS | wc -w) -eq 10 ]
+			then
+				exit # give up to not accumulate waiting processes
+			fi
+		else
+			break
+		fi
+	done
+
+	for pty in $PTYS
+	do
+	    echo Adding console $pty to screen session $CONSOLE_SCREEN_SESSION
+	    screen -S $CONSOLE_SCREEN_SESSION -X screen $pty
+	    screen -S $CONSOLE_SCREEN_SESSION -X focus # switch to next region
+	done
+}
+
+# We accept a optional command argument in order to call this script from GDB
+# to setup consoles.
+if [ -n "$1" ]
+then
+    CMD=$1
+else # default
+    CMD=run
+fi
+
+echo Command: $CMD
+case "$CMD" in
+run)
+setup_consoles
+attach_consoles &
+# keep going to the qemu launch cmd below
+;;
+gdb)
+# setup/attach_consoles are called when gdb runs this script with 'console'
+# cmd from the hook to the 'run' command defined below:
+# NOTE: have to go through an actual file because -ex doesn't work since no way
+# to give a multiline command (incl. multiple -ex), and bash-created file -x
+# <(echo -e ...) doesn't work either (issue only with gdb).
+GDB_CMD_FILE=$(mktemp)
+cat >/$GDB_CMD_FILE <<EOF
+define hook-run
+shell $0 console
+end
+EOF
+GDB_ARGS="gdb -x $GDB_CMD_FILE --args "
+# keep going to the qemu launch cmd below
+;;
+console)
+setup_consoles
+attach_consoles &
+exit # don't run qemu
+;;
+esac
+
+function finish {
+	if [ -n "$GDB_CMD_FILE" ]
+	then
+	    rm "$GDB_CMD_FILE"
+	fi
+}
+trap finish EXIT
+
+# See QEMU User Guide in HPSC release for explanation of the command line arguments
+# Note: order of -device args may matter, must load ATF last, because loader also sets PC
+# Note: If you want to see instructions and exceptions at a large performance cost, then add
+# "in_asm,int" to the list of categories in -d.
+
+$GDB_ARGS ${YOCTO_QEMU_DIR}/qemu-system-aarch64 \
 	-machine arm-generic-fdt \
-	-serial udp:${MY_IP_ADDR}:4441@:4451 \
-	-serial udp:${MY_IP_ADDR}:4442@:4452 \
-	-serial udp:${MY_IP_ADDR}:4443@:4453 \
 	-nographic \
+	-monitor stdio \
+	-qmp telnet::$QMP_PORT,server,nowait \
 	-s -D /tmp/qemu.log -d fdt,guest_errors,unimp,cpu_reset \
 	-hw-dtb ${QEMU_DT_FILE} \
+	$SERIAL_PORT_ARGS \
 	-device loader,addr=${ROOTFS_ADDR},file=${ROOTFS_FILE},force-raw,cpu-num=3 \
 	-device loader,addr=${LINUX_DT_ADDR},file=${LINUX_DT_FILE},force-raw,cpu-num=3 \
 	-device loader,addr=${KERNEL_ADDR},file=${KERNEL_FILE},force-raw,cpu-num=3 \
