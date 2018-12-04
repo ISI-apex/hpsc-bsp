@@ -116,4 +116,5 @@ case "$ACTION" in
     *)
         echo "Unknown ACTION"
         exit 1
+        ;;
 esac
