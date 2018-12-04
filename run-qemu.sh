@@ -58,7 +58,7 @@ QMP_PORT=4433
 function setup_consoles()
 {
 	screen -q -list $CONSOLE_SCREEN_SESSION
-	if [ $? != 10 ]
+	if [ $? -le 10 ] # 10 = no sessions to resume, >=11 n-10 sessions to resume
 	then
 	    echo "Created screen session with consoles: $CONSOLE_SCREEN_SESSION"
 	    screen -d -m -S $CONSOLE_SCREEN_SESSION
