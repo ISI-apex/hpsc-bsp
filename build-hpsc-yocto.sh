@@ -51,6 +51,7 @@ else
             echo "    populate_sdk: download source code, then build cross-compiler toolchain installer"
             echo "    taskexp: after the previous builds have completed, run the task dependency explorer"
             exit 1
+            ;;
     esac
 fi
 
