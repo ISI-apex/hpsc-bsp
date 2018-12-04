@@ -37,7 +37,7 @@ TRCH_SRAM_FILE=${YOCTO_DEPLOY_DIR}/trch_sram.bin
 # how to use:
 #	-device loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE,data-len=4,cpu-num=3 \
 
-BOOT_MODE_ADDR=0x80000000	# memory location to store boot mode code for U-boot
+BOOT_MODE_ADDR=0x9f000000	# memory location to store boot mode code for U-boot
 BOOT_MODE=0x00000000	# rootfs in RAM
 #BOOT_MODE=0x0000f000	# rootfs in NAND (MTD device)
 
