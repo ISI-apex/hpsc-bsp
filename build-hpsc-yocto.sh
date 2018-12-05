@@ -94,10 +94,15 @@ BITBAKE_LAYERS=("meta-hpsc/meta-xilinx-bsp"
 for layer in "${BITBAKE_LAYERS[@]}"; do
     bitbake-layers add-layer "${POKY_DIR}/$layer"
 done
+
 # TODO: Don't keep appending to file, replace text that's already been modified?
 {
     printf "\nMACHINE = \"%s\"" "${MACHINE_NAME}"
     printf "\nCORE_IMAGE_EXTRA_INSTALL = \"%s\"\n" "${YOCTO_INSTALL[*]}"
+
+    printf "\nDISTRO_FEATURES_append = \" systemd\""
+    printf "\nVIRTUAL-RUNTIME_init_manager = \"systemd\""
+    printf "\nDISTRO_FEATURES_BACKFILL_CONSIDERED = \"sysvinit\"\n"
 } >> conf/local.conf
 
 # finally, execute the requested action
