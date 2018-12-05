@@ -18,8 +18,7 @@ export BB_ENV_EXTRAWHITE="$BB_ENV_EXTRAWHITE \
                           SRCREV_qemu \
                           SRCREV_u_boot"
 
-# Yocto configurations like hostname and additional packages to install
-MACHINE_NAME="hpsc-chiplet"
+# Yocto packages to install
 YOCTO_INSTALL=(gdb gdbserver
                libc-staticdev
                libgomp libgomp-dev libgomp-staticdev
@@ -97,17 +96,8 @@ done
 
 # TODO: Don't keep appending to file, replace text that's already been modified?
 {
-    printf "\nMACHINE = \"%s\"" "${MACHINE_NAME}"
+    printf "\nMACHINE = \"hpsc-chiplet\""
     printf "\nCORE_IMAGE_EXTRA_INSTALL = \"%s\"\n" "${YOCTO_INSTALL[*]}"
-
-    printf "\nDISTRO_FEATURES_append = \" systemd\""
-    printf "\nVIRTUAL-RUNTIME_init_manager = \"systemd\""
-    printf "\nDISTRO_FEATURES_BACKFILL_CONSIDERED = \"sysvinit\"\n"
-
-    # A hacky way to disable the watchdog daemon from starting at boot
-    # See: https://stackoverflow.com/questions/50651371/disable-a-standard-systemd-service-in-yocto-build
-    # TODO: We should probably override using a bbappend file
-    printf "\nSYSTEMD_AUTO_ENABLE_watchdog=\"disable\"\n"
 } >> conf/local.conf
 
 # finally, execute the requested action
