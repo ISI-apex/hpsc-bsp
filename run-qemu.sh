@@ -57,8 +57,8 @@ QMP_PORT=4433
 
 function setup_consoles()
 {
-	screen -q -list $CONSOLE_SCREEN_SESSION
-	if [ $? -le 10 ] # 10 = no sessions to resume, >=11 n-10 sessions to resume
+	screen -r -q -list $CONSOLE_SCREEN_SESSION
+	if [ $? -lt 10 ] # 10 = running but non-resumable, >=11 = n-10 sessions running and resumeable
 	then
 	    echo "Created screen session with consoles: $CONSOLE_SCREEN_SESSION"
 	    screen -d -m -S $CONSOLE_SCREEN_SESSION
@@ -68,10 +68,12 @@ function setup_consoles()
 	    echo "Waiting for you to attach to screen session from another window with: screen -r $CONSOLE_SCREEN_SESSION"
 	    while true
 	    do
-		if screen -list $CONSOLE_SCREEN_SESSION | grep -q Attached
+		screen -r -q -list $CONSOLE_SCREEN_SESSION
+		if [ $? -eq 10 ] # 10 = running but non-resumable (i.e. attached), >=11 = n-10 sessions running and resumeable
 		then
 			break
 		fi
+		sleep 1
 	    done
 	    for port in $(seq 2 ${#SERIAL_PORTS[@]}) # -1
 	    do
