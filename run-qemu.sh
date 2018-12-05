@@ -57,31 +57,67 @@ QMP_PORT=4433
 
 function setup_consoles()
 {
-	screen -r -q -list $CONSOLE_SCREEN_SESSION
-	if [ $? -lt 10 ] # 10 = running but non-resumable, >=11 = n-10 sessions running and resumeable
-	then
-	    echo "Created screen session with consoles: $CONSOLE_SCREEN_SESSION"
-	    screen -d -m -S $CONSOLE_SCREEN_SESSION
+    screen -r -q -list $CONSOLE_SCREEN_SESSION
+    RC=$?
 
-	    # Create split regions in the new screen session
-	    # NOTE: The split command works only while the screen session is attached, so have to wait
-	    echo "Waiting for you to attach to screen session from another window with: screen -r $CONSOLE_SCREEN_SESSION"
-	    while true
-	    do
-		screen -r -q -list $CONSOLE_SCREEN_SESSION
-		if [ $? -eq 10 ] # 10 = running but non-resumable (i.e. attached), >=11 = n-10 sessions running and resumeable
-		then
-			break
-		fi
-		sleep 1
-	    done
-	    for port in $(seq 2 ${#SERIAL_PORTS[@]}) # -1
-	    do
-		screen -S $CONSOLE_SCREEN_SESSION -X split -v
-	    done
-	else
-	    echo "Will add consoles to existing screen session: $CONSOLE_SCREEN_SESSION"
-	fi
+    local KILL=0
+    if [ $RC -gt 10 ] # >=11 = running but not resumable (i.e. not attached)
+    then
+        # We kill the detached session rather than asking user to attach,
+        # because the splits would be lost. Splits are lost when the
+        # windows die while detached.
+        echo "Found a detached matching screen session: killing..."
+        KILL=1
+    fi
+    if [ $(screen -list $CONSOLE_SCREEN_SESSION | grep $CONSOLE_SCREEN_SESSION | wc -l) -gt 1 ]
+    then
+        # This shouldn't happen, but in case the user somehow ended up with more than one,
+        # screen process, kill them all and create a fresh one.
+        echo "Found more than one matching screen sessions: killing..."
+        KILL=1
+    fi
+
+    if [ $KILL -eq 1 ]
+    then
+        echo "Killing existing screen sessions matching '$CONSOLE_SCREEN_SESSION'"
+        screen -list $CONSOLE_SCREEN_SESSION | grep $CONSOLE_SCREEN_SESSION | \
+            sed -n "s/\([0-9]\+\).$CONSOLE_SCREEN_SESSION\s\+.*/\1/p" | xargs kill
+    fi
+
+    screen -r -q -list $CONSOLE_SCREEN_SESSION
+    RC=$?
+    if [ $RC -lt 10 ] # 10 = running but non-resumable, >=11 = n-10 sessions running and resumeable
+    then
+        echo "Created screen session with consoles: $CONSOLE_SCREEN_SESSION"
+        screen -d -m -S $CONSOLE_SCREEN_SESSION
+
+        # Create split regions in the new screen session
+        # NOTE: The split command works only while the screen session is attached, so have to wait
+        echo "Waiting for you to attach to screen session from another window with: screen -r $CONSOLE_SCREEN_SESSION"
+        while true
+        do
+            screen -r -q -list $CONSOLE_SCREEN_SESSION
+            if [ $? -eq 10 ]
+            then
+                break
+            fi
+            sleep 1
+        done
+        for port in $(seq 2 ${#SERIAL_PORTS[@]}) # -1
+        do
+            screen -S $CONSOLE_SCREEN_SESSION -X split -v
+        done
+    else
+        if [ $RC -gt 10 ] # >=11 means session resumeable (i.e. not attached)
+        then
+            # The kill logic above should make this impossible, but just in case
+            echo "ERROR: matching screen session is detached, kill it please:"
+            screen -list $CONSOLE_SCREEN_SESSION
+            exit
+        else # $RC = 10 (i.e. exists and attached)
+            echo "Will add consoles to attached screen session: $CONSOLE_SCREEN_SESSION"
+        fi
+    fi
 }
 
 function attach_consoles()
