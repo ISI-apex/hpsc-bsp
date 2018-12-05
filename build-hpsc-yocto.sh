@@ -103,6 +103,11 @@ done
     printf "\nDISTRO_FEATURES_append = \" systemd\""
     printf "\nVIRTUAL-RUNTIME_init_manager = \"systemd\""
     printf "\nDISTRO_FEATURES_BACKFILL_CONSIDERED = \"sysvinit\"\n"
+
+    # A hacky way to disable the watchdog daemon from starting at boot
+    # See: https://stackoverflow.com/questions/50651371/disable-a-standard-systemd-service-in-yocto-build
+    # TODO: We should probably override using a bbappend file
+    printf "\nSYSTEMD_AUTO_ENABLE_watchdog=\"disable\"\n"
 } >> conf/local.conf
 
 # finally, execute the requested action
