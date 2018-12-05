@@ -122,37 +122,37 @@ function setup_consoles()
 
 function attach_consoles()
 {
-	echo "Waiting for Qemu to open QMP port and to query for PTY paths..."
-	#while test $(lsof -ti :$QMP_PORT | wc -l) -eq 0
-	while true
-	do
-		PTYS=$(./qmp.py -q localhost $QMP_PORT query-chardev ${SERIAL_PORTS[*]} 2>/dev/null)
-		if [ -z "$PTYS" ]
-		then
-			#echo "Waiting for Qemu to open QMP port..."
-			sleep 1
-			ATTEMPTS+=" 1 "
-			if [ $(echo $ATTEMPTS | wc -w) -eq 10 ]
-			then
-				echo "ERROR: failed to get PTY paths from Qemu via QMP port: giving up."
-				echo "Here is what happened when we tried to get the PTY paths:"
-				./qmp.py -q localhost $QMP_PORT query-chardev ${SERIAL_PORTS[*]}
-				exit # give up to not accumulate waiting processes
-			fi
-		else
-			break
-		fi
-	done
+    echo "Waiting for Qemu to open QMP port and to query for PTY paths..."
+    #while test $(lsof -ti :$QMP_PORT | wc -l) -eq 0
+    while true
+    do
+        PTYS=$(./qmp.py -q localhost $QMP_PORT query-chardev ${SERIAL_PORTS[*]} 2>/dev/null)
+        if [ -z "$PTYS" ]
+        then
+            #echo "Waiting for Qemu to open QMP port..."
+            sleep 1
+            ATTEMPTS+=" 1 "
+            if [ $(echo $ATTEMPTS | wc -w) -eq 10 ]
+            then
+                echo "ERROR: failed to get PTY paths from Qemu via QMP port: giving up."
+                echo "Here is what happened when we tried to get the PTY paths:"
+                ./qmp.py -q localhost $QMP_PORT query-chardev ${SERIAL_PORTS[*]}
+                exit # give up to not accumulate waiting processes
+            fi
+        else
+            break
+        fi
+    done
 
-	for pty in $PTYS
-	do
-	    echo Adding console $pty to screen session $CONSOLE_SCREEN_SESSION
-	    screen -S $CONSOLE_SCREEN_SESSION -X screen $pty
-	    screen -S $CONSOLE_SCREEN_SESSION -X focus # switch to next region
-	done
+    for pty in $PTYS
+    do
+        echo Adding console $pty to screen session $CONSOLE_SCREEN_SESSION
+        screen -S $CONSOLE_SCREEN_SESSION -X screen $pty
+        screen -S $CONSOLE_SCREEN_SESSION -X focus # switch to next region
+    done
 
-        echo "Commanding Qemu to reset the machine..."
-        ./qmp.py localhost $QMP_PORT cont
+    echo "Commanding Qemu to reset the machine..."
+    ./qmp.py localhost $QMP_PORT cont
 }
 
 # We accept a optional command argument in order to call this script from GDB
