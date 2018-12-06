@@ -78,17 +78,19 @@ function usage() { echo "Usage: $0 [-c < run | gdb | consoles >] [-f < dram | na
 
 # Labels are created by Qemu with the convention 'serialN'
 SERIAL_PORTS=(serial0 serial1 serial2)
+SCREEN_SESSIONS=()
 for port in ${SERIAL_PORTS[*]}
 do
     SERIAL_PORT_ARGS+=" -serial pty "
+    SCREEN_SESSIONS+=("hpsc-qemu-$port")
 done
 
-CONSOLE_SCREEN_SESSION=hpsc-qemu-consoles
 QMP_PORT=4433
 
-function setup_consoles()
+function setup_screen()
 {
-    screen -r -q -list $CONSOLE_SCREEN_SESSION
+    local SESSION=$1
+    screen -r -q -list $SESSION
     RC=$?
 
     local KILL=0
@@ -100,7 +102,7 @@ function setup_consoles()
         echo "Found a detached matching screen session: killing..."
         KILL=1
     fi
-    if [ $(screen -list $CONSOLE_SCREEN_SESSION | grep $CONSOLE_SCREEN_SESSION | wc -l) -gt 1 ]
+    if [ $(screen -list "$SESSION" | grep "$SESSION" | wc -l) -gt 1 ]
     then
         # This shouldn't happen, but in case the user somehow ended up with more than one,
         # screen process, kill them all and create a fresh one.
@@ -110,43 +112,39 @@ function setup_consoles()
 
     if [ $KILL -eq 1 ]
     then
-        echo "Killing existing screen sessions matching '$CONSOLE_SCREEN_SESSION'"
-        screen -list $CONSOLE_SCREEN_SESSION | grep $CONSOLE_SCREEN_SESSION | \
-            sed -n "s/\([0-9]\+\).$CONSOLE_SCREEN_SESSION\s\+.*/\1/p" | xargs kill
+        echo "Killing existing screen session matching '$SESSION'"
+        screen -list "$SESSION" | grep "$SESSION" | \
+            sed -n "s/\([0-9]\+\).$SESSION\s\+.*/\1/p" | xargs kill
     fi
 
-    screen -r -q -list $CONSOLE_SCREEN_SESSION
+    screen -r -q -list "$SESSION"
     RC=$?
-    if [ $RC -lt 10 ] # 10 = running but non-resumable, >=11 = n-10 sessions running and resumeable
+    if [ $RC -lt 10 ] # 10 = running but non-resumable, >=11 = n-10 session running and resumeable
     then
-        echo "Created screen session with consoles: $CONSOLE_SCREEN_SESSION"
-        screen -d -m -S $CONSOLE_SCREEN_SESSION
+        echo "Created screen session with console: $SESSION"
+        screen -d -m -S "$SESSION"
 
         # Create split regions in the new screen session
         # NOTE: The split command works only while the screen session is attached, so have to wait
-        echo "Waiting for you to attach to screen session from another window with: screen -r $CONSOLE_SCREEN_SESSION"
+        echo "Waiting for you to attach to screen session from another window with: screen -r $SESSION"
         while true
         do
-            screen -r -q -list $CONSOLE_SCREEN_SESSION
+            screen -r -q -list "$SESSION"
             if [ $? -eq 10 ]
             then
                 break
             fi
             sleep 1
         done
-        for port in $(seq 2 ${#SERIAL_PORTS[@]}) # -1
-        do
-            screen -S $CONSOLE_SCREEN_SESSION -X split -v
-        done
     else
         if [ $RC -gt 10 ] # >=11 means session resumeable (i.e. not attached)
         then
             # The kill logic above should make this impossible, but just in case
             echo "ERROR: matching screen session is detached, kill it please:"
-            screen -list $CONSOLE_SCREEN_SESSION
+            screen -list "$SESSION"
             exit
         else # $RC = 10 (i.e. exists and attached)
-            echo "Will add consoles to attached screen session: $CONSOLE_SCREEN_SESSION"
+            echo "Will add console to attached screen session: $SESSION"
         fi
     fi
 }
@@ -163,7 +161,7 @@ function attach_consoles()
             #echo "Waiting for Qemu to open QMP port..."
             sleep 1
             ATTEMPTS+=" 1 "
-            if [ $(echo $ATTEMPTS | wc -w) -eq 10 ]
+            if [ $(echo "$ATTEMPTS" | wc -w) -eq 10 ]
             then
                 echo "ERROR: failed to get PTY paths from Qemu via QMP port: giving up."
                 echo "Here is what happened when we tried to get the PTY paths:"
@@ -175,11 +173,13 @@ function attach_consoles()
         fi
     done
 
-    for pty in $PTYS
+    read -r -a PTYS_ARR <<< "$PTYS"
+    for ((i = 0; i < ${#PTYS_ARR[@]}; i++))
     do
-        echo Adding console $pty to screen session $CONSOLE_SCREEN_SESSION
-        screen -S $CONSOLE_SCREEN_SESSION -X screen $pty
-        screen -S $CONSOLE_SCREEN_SESSION -X focus # switch to next region
+        local pty=${PTYS_ARR[$i]}
+        local sess=${SCREEN_SESSIONS[$i]}
+        echo "Adding console $pty to screen session $sess"
+        screen -S "$sess" -X screen "$pty"
     done
 
     echo "Commanding Qemu to reset the machine..."
@@ -232,7 +232,10 @@ shift $((OPTIND-1))
 # preparation of environment
 case "$CMD" in
    run)
-        setup_consoles
+        for session in "${SCREEN_SESSIONS[@]}"
+        do
+            setup_screen $session
+        done
         attach_consoles &
         ;;
    gdb)
@@ -253,7 +256,10 @@ EOF
         echo run setup_consoles
         echo run attach_consoles
         exit 
-        setup_consoles
+        for session in "${SCREEN_SESSIONS[@]}"
+        do
+            setup_screen $session
+        done
         attach_consoles &
         exit # don't run qemu
         ;;
