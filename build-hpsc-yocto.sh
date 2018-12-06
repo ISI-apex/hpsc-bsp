@@ -71,6 +71,15 @@ function isi_github_pull()
     cd ..
 }
 
+function conf_replace_or_append()
+{
+    local key=$1
+    local value=$2
+    local file="conf/local.conf"
+    grep -q "^$key =" "$file" && sed -i "s/^$key.*/$key = $value/" "$file" ||\
+        echo "$key = $value" >> "$file"
+}
+
 # download the yocto poky git repository
 isi_github_pull poky hpsc
 cd poky
@@ -94,11 +103,9 @@ for layer in "${BITBAKE_LAYERS[@]}"; do
     bitbake-layers add-layer "${POKY_DIR}/$layer"
 done
 
-# TODO: Don't keep appending to file, replace text that's already been modified?
-{
-    printf "\nMACHINE = \"hpsc-chiplet\""
-    printf "\nCORE_IMAGE_EXTRA_INSTALL = \"%s\"\n" "${YOCTO_INSTALL[*]}"
-} >> conf/local.conf
+# configure local.conf
+conf_replace_or_append "MACHINE" "\"hpsc-chiplet\""
+conf_replace_or_append "CORE_IMAGE_EXTRA_INSTALL" "\"${YOCTO_INSTALL[*]}\""
 
 # finally, execute the requested action
 case "$ACTION" in
