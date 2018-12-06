@@ -100,32 +100,16 @@ function setup_screen()
             sed -n "s/\([0-9]\+\).$SESSION\s\+.*/\1/p" | xargs kill
     fi
 
-    screen -r -q -list "$SESSION"
-    RC=$?
-    # 10 = exists and attached, 11 = exists and not attached
-    # <10 = does not exist, >11 more than one, which shouldn't happen
-    if [ $RC -gt 11 ]
-    then
-        # The kill logic above should make this impossible, but just in case
-        echo "ERROR: matching screen session is detached, kill it please:"
-        screen -list "$SESSION"
-        exit 1
-    elif [ $RC -lt 10 ]
+    # There seem to be some compatibility issues between Linux distros w.r.t.
+    # exit codes and behavior when using -r and -q with -ls for detecting if a
+    # user is attached to a session, so we won't bother trying to wait for them.
+    screen -q -list "$SESSION"
+    # it's at least consistent that no matching screen sessions gives $? < 10
+    if [ $? -lt 10 ]
     then
         echo "Creating screen session with console: $SESSION"
         screen -d -m -S "$SESSION"
     fi
-    echo "Waiting for you to attach to screen session from another window with:"
-    echo "  screen -r $SESSION"
-    while true
-    do
-        screen -r -q -list "$SESSION"
-        if [ $? -eq 10 ]
-        then
-            break
-        fi
-        sleep 1
-    done
 }
 
 function attach_consoles()
@@ -155,10 +139,19 @@ function attach_consoles()
     read -r -a PTYS_ARR <<< "$PTYS"
     for ((i = 0; i < ${#PTYS_ARR[@]}; i++))
     do
+        # Need to start a new single-use $pty_sess screen session outside of the
+        # persistent $sess one, then attach to $pty_sess from within $sess.
+        # This is needed if $sess was previously attached, then detached (but
+        # not terminated) after QEMU exited.
         local pty=${PTYS_ARR[$i]}
         local sess=${SCREEN_SESSIONS[$i]}
+        local pty_sess="hpsc-pts$(basename $pty)"
         echo "Adding console $pty to screen session $sess"
-        screen -S "$sess" -X screen "$pty"
+        screen -d -m -S "$pty_sess" $pty
+        # TODO: Make this work without using "stuff" command
+        screen -S "$sess" -X stuff "^C screen -m -r $pty_sess\r"
+        echo "Attach to screen session from another window with:"
+        echo "  screen -r $sess"
     done
 
     echo "Commanding Qemu to reset the machine..."
