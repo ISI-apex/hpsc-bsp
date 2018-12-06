@@ -90,63 +90,42 @@ QMP_PORT=4433
 function setup_screen()
 {
     local SESSION=$1
-    screen -r -q -list $SESSION
-    RC=$?
 
-    local KILL=0
-    if [ $RC -gt 10 ] # >=11 = running but not resumable (i.e. not attached)
+    if [ $(screen -list "$SESSION" | grep -c "$SESSION") -gt 1 ]
     then
-        # We kill the detached session rather than asking user to attach,
-        # because the splits would be lost. Splits are lost when the
-        # windows die while detached.
-        echo "Found a detached matching screen session: killing..."
-        KILL=1
-    fi
-    if [ $(screen -list "$SESSION" | grep "$SESSION" | wc -l) -gt 1 ]
-    then
-        # This shouldn't happen, but in case the user somehow ended up with more than one,
-        # screen process, kill them all and create a fresh one.
-        echo "Found more than one matching screen sessions: killing..."
-        KILL=1
-    fi
-
-    if [ $KILL -eq 1 ]
-    then
-        echo "Killing existing screen session matching '$SESSION'"
+        # In case the user somehow ended up with more than one screen process,
+        # kill them all and create a fresh one.
+        echo "Found multiple screen sessions matching '$SESSION', killing..."
         screen -list "$SESSION" | grep "$SESSION" | \
             sed -n "s/\([0-9]\+\).$SESSION\s\+.*/\1/p" | xargs kill
     fi
 
     screen -r -q -list "$SESSION"
     RC=$?
-    if [ $RC -lt 10 ] # 10 = running but non-resumable, >=11 = n-10 session running and resumeable
+    # 10 = exists and attached, 11 = exists and not attached
+    # <10 = does not exist, >11 more than one, which shouldn't happen
+    if [ $RC -gt 11 ]
     then
-        echo "Created screen session with console: $SESSION"
+        # The kill logic above should make this impossible, but just in case
+        echo "ERROR: matching screen session is detached, kill it please:"
+        screen -list "$SESSION"
+        exit 1
+    elif [ $RC -lt 10 ]
+    then
+        echo "Creating screen session with console: $SESSION"
         screen -d -m -S "$SESSION"
-
-        # Create split regions in the new screen session
-        # NOTE: The split command works only while the screen session is attached, so have to wait
-        echo "Waiting for you to attach to screen session from another window with: screen -r $SESSION"
-        while true
-        do
-            screen -r -q -list "$SESSION"
-            if [ $? -eq 10 ]
-            then
-                break
-            fi
-            sleep 1
-        done
-    else
-        if [ $RC -gt 10 ] # >=11 means session resumeable (i.e. not attached)
-        then
-            # The kill logic above should make this impossible, but just in case
-            echo "ERROR: matching screen session is detached, kill it please:"
-            screen -list "$SESSION"
-            exit
-        else # $RC = 10 (i.e. exists and attached)
-            echo "Will add console to attached screen session: $SESSION"
-        fi
     fi
+    echo "Waiting for you to attach to screen session from another window with:"
+    echo "  screen -r $SESSION"
+    while true
+    do
+        screen -r -q -list "$SESSION"
+        if [ $? -eq 10 ]
+        then
+            break
+        fi
+        sleep 1
+    done
 }
 
 function attach_consoles()
