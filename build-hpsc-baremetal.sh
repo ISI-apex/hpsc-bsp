@@ -1,7 +1,10 @@
 #!/bin/bash
+#
+# Build sources that require the baremetal toolchain
+#
 
-# The following toolchain path needs to be updated:
-BAREMETAL_TOOLCHAIN_DIR=/path/to/gcc-arm-none-eabi-toolchain
+# The following toolchain path may need to be updated:
+GCC_ARM_NONE_EABI_BINDIR=${PWD}/../gcc-arm-none-eabi-7-2018-q2-update/bin
 
 BAREMETAL_BRANCH_TAG="hpsc"
 UBOOT_R52_BRANCH_TAG="hpsc"
@@ -10,11 +13,10 @@ UBOOT_R52_BRANCH_TAG="hpsc"
 function check_toolchain()
 {
     which arm-none-eabi-gcc > /dev/null 2>&1
-    echo $?
 }
 
 # Checkout repository if not already done, always pull branch/tag
-# $1 = repository name, $2 = branch/tag name
+# $1 = repository name, $2 = branch/tag name, $3 = repository directory
 function isi_github_pull()
 {
     local repo=$1
@@ -31,14 +33,13 @@ function isi_github_pull()
     cd ..
 }
 
-if [ $(check_toolchain) -ne 0 ]; then
-    PATH=${PATH}:${BAREMETAL_TOOLCHAIN_DIR}/bin
-    if [ $(check_toolchain) -ne 0 ]; then
-        echo "Error: update BAREMETAL_TOOLCHAIN_DIR or add toolchain bin directory to PATH"
+if ! check_toolchain; then
+    PATH=${GCC_ARM_NONE_EABI_BINDIR}:${PATH}
+    if ! check_toolchain; then
+        echo "Error: update GCC_ARM_NONE_EABI_BINDIR or add toolchain bin directory to PATH"
         exit 1
     fi
 fi
-
 
 ## hpsc-baremetal
 isi_github_pull hpsc-baremetal "$BAREMETAL_BRANCH_TAG" hpsc-baremetal
