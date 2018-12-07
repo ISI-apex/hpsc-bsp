@@ -44,9 +44,8 @@ fi
 ## hpsc-baremetal
 isi_github_pull hpsc-baremetal "$BAREMETAL_BRANCH_TAG" hpsc-baremetal
 cd hpsc-baremetal
-echo "hpsc-baremetal: cleaning and compiling"
-# clean in case there are changes to the Makefile variables
-make clean all
+echo "hpsc-baremetal: build..."
+make all
 RC=$?
 if [ $RC -eq 0 ]; then
     echo "hpsc-baremetal: build successful"
@@ -59,6 +58,7 @@ cd ..
 ## u-boot-r52
 isi_github_pull u-boot "$UBOOT_R52_BRANCH_TAG" u-boot-r52
 cd u-boot-r52
+echo "u-boot-r52: build..."
 make hpsc_rtps_r52_defconfig
 make -j4 CROSS_COMPILE=arm-none-eabi- CONFIG_LD_GCC=y
 RC=$?
