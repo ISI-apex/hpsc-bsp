@@ -17,13 +17,19 @@ ROOTFS_FILE=${YOCTO_DEPLOY_DIR}/core-image-minimal-hpsc-chiplet.cpio.gz.u-boot
 KERNEL_FILE=${YOCTO_DEPLOY_DIR}/Image
 LINUX_DT_FILE=${YOCTO_DEPLOY_DIR}/hpsc.dtb
 QEMU_DT_FILE=${YOCTO_DEPLOY_DIR}/qemu-hw-devicetrees/hpsc-arch.dtb
-BL_FILE=${YOCTO_DEPLOY_DIR}/u-boot.elf
+BL_FILE=${YOCTO_DEPLOY_DIR}/u-boot
 BL_FILE_BIN=${YOCTO_DEPLOY_DIR}/u-boot.bin
 
 # Output files from the hpsc-baremetal build
 BAREMETAL_DIR=${PWD}/hpsc-baremetal
 TRCH_FILE=${BAREMETAL_DIR}/trch/bld/trch.elf
 RTPS_FILE=${BAREMETAL_DIR}/rtps/bld/rtps.elf
+RTPS_FILE_BIN=${BAREMETAL_DIR}/rtps/bld/rtps.bin
+
+# Output files from the hpsc-R52-uboot build
+R52_UBOOT_DIR=${PWD}/u-boot-r52
+RTPS_BL_FILE=${R52_UBOOT_DIR}/u-boot
+RTPS_BL_FILE_BIN=${R52_UBOOT_DIR}/u-boot.bin
 
 # External storage (NAND, SRAM) devices
 # how to use:
@@ -49,20 +55,27 @@ KERNEL_ADDR=0x80080000
 LINUX_DT_ADDR=0x84000000
 ROOTFS_ADDR=0x90000000
 
-SRAM_IMAGE_UTILS=sram-image-utils.out
-SRAM_SIZE=0x4000000
+# RTPS
+RTPS_FILE_ADDR=0x70000000		# load address for demo baremetal application
+RTPS_BL_ADDR=0x60000000			# load address for R52 u-boot
+
+# TRCH
+HPSC_HOST_UTILS_DIR=${PWD}/hpsc-utils/host
+SRAM_IMAGE_UTILS=${HPSC_HOST_UTILS_DIR}/sram-image-utils
+SRAM_SIZE=0x4000000			# 64MB
 
 # create non-volatile offchip sram image
 function create_nvsram_image()
 {
 	echo create_sram_image...
 	# Create SRAM image to store boot images
-	${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS} create ${TRCH_SRAM_FILE} ${SRAM_SIZE}
-	${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${BL_FILE_BIN} ${BL_ADDRESS}
-	${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${ARM_TF_FILE_BIN} ${ARM_TF_ADDRESS}
-	${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS} show ${TRCH_SRAM_FILE} 
-	#${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${RTPS_FILE_BIN} ${RTPS_ADDRESS}
-	#${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${KERNEL_FILE} ${KERNEL_ADDR}
+	${SRAM_IMAGE_UTILS} create ${TRCH_SRAM_FILE} ${SRAM_SIZE}
+	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${BL_FILE_BIN} ${BL_ADDRESS}
+	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${ARM_TF_FILE_BIN} ${ARM_TF_ADDRESS}
+	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${RTPS_BL_FILE_BIN} ${RTPS_BL_ADDR}
+	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${RTPS_FILE_BIN} ${RTPS_FILE_ADDR}
+	${SRAM_IMAGE_UTILS} show ${TRCH_SRAM_FILE} 
+	#${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${KERNEL_FILE} ${KERNEL_ADDR}
 }
 
 function usage() { echo "Usage: $0 [-c < run | gdb | consoles >] [-f < dram | nand >] [-b < dram | nvram >]" 1>&2; 
@@ -160,8 +173,8 @@ function attach_consoles()
 
 # default values
 CMD="run"
-BOOT_IMAGE_OPTION="dram"
-HPPS_ROOTFS_OPTION="dram"
+BOOT_IMAGE_OPTION='dram'
+HPPS_ROOTFS_OPTION='dram'
 
 # parse options
 while getopts ":b:c:f:" o; do
@@ -211,15 +224,20 @@ case "$CMD" in
         attach_consoles &
         ;;
    gdb)
+        for session in "${SCREEN_SESSIONS[@]}"
+        do
+            setup_screen $session
+        done
+        attach_consoles &
         # setup/attach_consoles are called when gdb runs this script with 'console'
         # cmd from the hook to the 'run' command defined below:
         # NOTE: have to go through an actual file because -ex doesn't work since no way
         ## to give a multiline command (incl. multiple -ex), and bash-created file -x
         # <(echo -e ...) doesn't work either (issue only with gdb).
-       GDB_CMD_FILE=$(mktemp)
+	GDB_CMD_FILE=$(mktemp)
 cat >/$GDB_CMD_FILE <<EOF
 define hook-run
-shell $0 consoles
+shell $0 -c consoles
 end
 EOF
         GDB_ARGS="gdb -x $GDB_CMD_FILE --args "
@@ -248,7 +266,7 @@ BASE_COMMAND=" $GDB_ARGS ${YOCTO_QEMU_DIR}/qemu-system-aarch64
 	-nographic 
 	-monitor stdio 
 	-qmp telnet::$QMP_PORT,server,nowait 
-	-S -s -D /tmp/qemu.log -d fdt,guest_errors,unimp,cpu_reset 
+	-S -s -D /tmp/qemu.log -d fdt,guest_errors,unimp,cpu_reset
 	-hw-dtb ${QEMU_DT_FILE} 
 	$SERIAL_PORT_ARGS 
 	-device loader,addr=${LINUX_DT_ADDR},file=${LINUX_DT_FILE},force-raw,cpu-num=3 
@@ -258,6 +276,10 @@ BASE_COMMAND=" $GDB_ARGS ${YOCTO_QEMU_DIR}/qemu-system-aarch64
 "
 RTPS_FILE_LOAD=" -device loader,file=${RTPS_FILE},cpu-num=2 
 	-device loader,file=${RTPS_FILE},cpu-num=1 "
+RTPS_FILE_BIN_LOAD=" -device loader,addr=${RTPS_FILE_ADDR},file=${RTPS_FILE_BIN},cpu-num=2 
+	-device loader,addr=${RTPS_FILE_ADDR},file=${RTPS_FILE_BIN},cpu-num=1 "
+RTPS_BL_FILE_LOAD=" -device loader,file=${RTPS_BL_FILE},cpu-num=2 
+	-device loader,file=${RTPS_BL_FILE},cpu-num=1 "
 HPPS_UBOOT_LOAD=" -device loader,file=${BL_FILE},cpu-num=3 "
 HPPS_ATF_LOAD=" -device loader,file=${ARM_TF_FILE},cpu-num=3 "
 HPPS_ROOTFS_LOAD=" -device loader,addr=${ROOTFS_ADDR},file=${ROOTFS_FILE},force-raw,cpu-num=3 "
@@ -270,11 +292,11 @@ BOOT_MODE_NAND_LOAD=" -device loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE_NAND,d
 OPT_COMMAND=""
 if [ ${BOOT_IMAGE_OPTION} == 'dram' ]	# Boot images are loaded onto DRAM by Qemu
 then
-    OPT_COMMAND="${HPPS_UBOOT_LOAD} ${HPPS_ATF_LOAD} ${RTPS_FILE_LOAD} "
+    OPT_COMMAND="${HPPS_UBOOT_LOAD} ${HPPS_ATF_LOAD} ${RTPS_BL_FILE_LOAD} ${RTPS_FILE_LOAD} "
 elif [ ${BOOT_IMAGE_OPTION} == 'nvram' ]	# Boot images are stored in an NVRAM and loaded onto DRAM by TRCH
 then
     create_nvsram_image
-    OPT_COMMAND="${TRCH_SRAM_LOAD} ${RTPS_FILE_LOAD} "
+    OPT_COMMAND="${TRCH_SRAM_LOAD} "
 fi
 COMMAND="${BASE_COMMAND} ${OPT_COMMAND}"
 
@@ -288,7 +310,10 @@ then
 fi
 COMMAND="${COMMAND} ${OPT_COMMAND}"
 
-echo Final Command: ${COMMAND}
+if [ ${CMD} == 'run' ]
+then
+    echo Final Command: ${COMMAND}
+fi
 
 function finish {
 	if [ -n "$GDB_CMD_FILE" ]
