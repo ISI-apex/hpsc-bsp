@@ -27,9 +27,9 @@ RTPS_FILE=${BAREMETAL_DIR}/rtps/bld/rtps.elf
 
 # External storage (NAND, SRAM) devices
 # how to use:
-#	-drive file=$HPPS_NAND_IMAGE,if=pflash,format=raw,index=3 \
-#	-drive file=$HPPS_SRAM_FILE,if=pflash,format=raw,index=2 \
-#	-drive file=$TRCH_SRAM_FILE,if=pflash,format=raw,index=0 \
+#    -drive file=$HPPS_NAND_IMAGE,if=pflash,format=raw,index=3 \
+#    -drive file=$HPPS_SRAM_FILE,if=pflash,format=raw,index=2 \
+#    -drive file=$TRCH_SRAM_FILE,if=pflash,format=raw,index=0 \
 
 HPPS_NAND_IMAGE=${YOCTO_DEPLOY_DIR}/rootfs_nand.bin
 HPPS_SRAM_FILE=${YOCTO_DEPLOY_DIR}/hpps_sram.bin
@@ -37,11 +37,11 @@ TRCH_SRAM_FILE=${YOCTO_DEPLOY_DIR}/trch_sram.bin
 
 # Controlling boot mode of HPPS (ramdisk or rootfs in NAND)
 # how to use:
-#	-device loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE,data-len=4,cpu-num=3 \
+#    -device loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE,data-len=4,cpu-num=3 \
 
-BOOT_MODE_ADDR=0x9f000000	# memory location to store boot mode code for HPPS U-boot
-BOOT_MODE_DRAM=0x00000000	# HPPS rootfs in RAM
-BOOT_MODE_NAND=0x0000f000	# HPPS rootfs in NAND (MTD device)
+BOOT_MODE_ADDR=0x9f000000    # memory location to store boot mode code for HPPS U-boot
+BOOT_MODE_DRAM=0x00000000    # HPPS rootfs in RAM
+BOOT_MODE_NAND=0x0000f000    # HPPS rootfs in NAND (MTD device)
 
 ARM_TF_ADDRESS=0x80000000
 BL_ADDRESS=0x88000000
@@ -55,25 +55,27 @@ SRAM_SIZE=0x4000000
 # create non-volatile offchip sram image
 function create_nvsram_image()
 {
-	echo create_sram_image...
-	# Create SRAM image to store boot images
-	${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS} create ${TRCH_SRAM_FILE} ${SRAM_SIZE}
-	${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${BL_FILE_BIN} ${BL_ADDRESS}
-	${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${ARM_TF_FILE_BIN} ${ARM_TF_ADDRESS}
-	${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS} show ${TRCH_SRAM_FILE} 
-	#${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${RTPS_FILE_BIN} ${RTPS_ADDRESS}
-	#${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${KERNEL_FILE} ${KERNEL_ADDR}
+    echo "create_nvsram_image..."
+    # Create SRAM image to store boot images
+    "${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS}" create "${TRCH_SRAM_FILE}" ${SRAM_SIZE}
+    "${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${BL_FILE_BIN}" ${BL_ADDRESS}
+    "${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${ARM_TF_FILE_BIN}" ${ARM_TF_ADDRESS}
+    "${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS}" show "${TRCH_SRAM_FILE}" 
+    #"${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" ${RTPS_FILE_BIN} ${RTPS_ADDRESS}
+    #"${YOCTO_DEPLOY_DIR}/${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" ${KERNEL_FILE} ${KERNEL_ADDR}
 }
 
-function usage() { echo "Usage: $0 [-c < run | gdb | consoles >] [-f < dram | nand >] [-b < dram | nvram >]" 1>&2; 
-	  echo "               -c run: command - start emulation (default)" 1>&2;
-	  echo "               -c gdb: command - start emulation with gdb" 1>&2;
-	  echo "               -c consoles: command - setup consoles of the subsystems at the host" 1>&2;
-	  echo "               -b dram: boot images in dram (default)" 1>&2;
-	  echo "               -b nvram: boot images in offchip non-volatile ram" 1>&2;
-	  echo "               -f dram: HPPS rootfile system in ram, volatile (default)" 1>&2;
-	  echo "               -f nand: HPPS rootfile system in nand image, non-volatile" 1>&2;
-          exit 1; 
+function usage()
+{
+    echo "Usage: $0 [-c < run | gdb | consoles >] [-f < dram | nand >] [-b < dram | nvram >]" 1>&2
+    echo "               -c run: command - start emulation (default)" 1>&2
+    echo "               -c gdb: command - start emulation with gdb" 1>&2
+    echo "               -c consoles: command - setup consoles of the subsystems at the host" 1>&2
+    echo "               -b dram: boot images in dram (default)" 1>&2
+    echo "               -b nvram: boot images in offchip non-volatile ram" 1>&2
+    echo "               -f dram: HPPS rootfile system in ram, volatile (default)" 1>&2
+    echo "               -f nand: HPPS rootfile system in nand image, non-volatile" 1>&2
+    exit 1
 }
 
 # Labels are created by Qemu with the convention 'serialN'
@@ -145,9 +147,9 @@ function attach_consoles()
         # not terminated) after QEMU exited.
         local pty=${PTYS_ARR[$i]}
         local sess=${SCREEN_SESSIONS[$i]}
-        local pty_sess="hpsc-pts$(basename $pty)"
+        local pty_sess="hpsc-pts$(basename "$pty")"
         echo "Adding console $pty to screen session $sess"
-        screen -d -m -S "$pty_sess" $pty
+        screen -d -m -S "$pty_sess" "$pty"
         # TODO: Make this work without using "stuff" command
         screen -S "$sess" -X stuff "^C screen -m -r $pty_sess\r"
         echo "Attach to screen session from another window with:"
@@ -167,34 +169,34 @@ HPPS_ROOTFS_OPTION="dram"
 while getopts ":b:c:f:" o; do
     case "${o}" in
         c)
-            if [ ${OPTARG} == 'run' ] || [ ${OPTARG} == 'gdb' ] || [ ${OPTARG} == 'consoles' ]
+            if [ "${OPTARG}" == "run" ] || [ "${OPTARG}" == "gdb" ] || [ "${OPTARG}" == "consoles" ]
             then
-                CMD=${OPTARG}
+                CMD="${OPTARG}"
             else
-                echo Error: no such command - ${OPTARG}
+                echo "Error: no such command - ${OPTARG}"
                 usage
             fi
             ;;
         b)
-            if [ ${OPTARG} == 'dram' ] || [ ${OPTARG} == 'nvram' ]
+            if [ "${OPTARG}" == "dram" ] || [ "${OPTARG}" == "nvram" ]
             then
-                BOOT_IMAGE_OPTION=${OPTARG}
+                BOOT_IMAGE_OPTION="${OPTARG}"
             else
-                echo Error: no such boot image option - ${OPTARG}
+                echo "Error: no such boot image option - ${OPTARG}"
                 usage
             fi
             ;;
         f)
-            if [ ${OPTARG} == 'dram' ] || [ ${OPTARG} == 'nand' ]
+            if [ "${OPTARG}" == "dram" ] || [ "${OPTARG}" == "nand" ]
             then
-                HPPS_ROOTFS_OPTION=${OPTARG}
+                HPPS_ROOTFS_OPTION="${OPTARG}"
             else
-                echo Error: no such HPPS rootfile system option - ${OPTARG}
+                echo "Error: no such HPPS rootfile system option - ${OPTARG}"
                 usage
             fi
             ;;
         *)
-            echo "Wrong option" 1>&2;
+            echo "Wrong option" 1>&2
             usage
             ;;
     esac
@@ -211,13 +213,13 @@ case "$CMD" in
         attach_consoles &
         ;;
    gdb)
-        # setup/attach_consoles are called when gdb runs this script with 'console'
+        # setup/attach_consoles are called when gdb runs this script with 'consoles'
         # cmd from the hook to the 'run' command defined below:
         # NOTE: have to go through an actual file because -ex doesn't work since no way
         ## to give a multiline command (incl. multiple -ex), and bash-created file -x
         # <(echo -e ...) doesn't work either (issue only with gdb).
        GDB_CMD_FILE=$(mktemp)
-cat >/$GDB_CMD_FILE <<EOF
+cat >/"$GDB_CMD_FILE" <<EOF
 define hook-run
 shell $0 consoles
 end
@@ -225,12 +227,12 @@ EOF
         GDB_ARGS="gdb -x $GDB_CMD_FILE --args "
         ;;
     consoles)
-        echo run setup_consoles
-        echo run attach_consoles
+        echo "run setup_screen"
         for session in "${SCREEN_SESSIONS[@]}"
         do
             setup_screen $session
         done
+        echo "run attach_consoles"
         attach_consoles &
         exit # don't run qemu
         ;;
@@ -244,20 +246,20 @@ esac
 # Note: If you want to see instructions and exceptions at a large performance cost, then add
 # "in_asm,int" to the list of categories in -d.
 BASE_COMMAND=" $GDB_ARGS ${YOCTO_QEMU_DIR}/qemu-system-aarch64 
-	-machine arm-generic-fdt 
-	-nographic 
-	-monitor stdio 
-	-qmp telnet::$QMP_PORT,server,nowait 
-	-S -s -D /tmp/qemu.log -d fdt,guest_errors,unimp,cpu_reset 
-	-hw-dtb ${QEMU_DT_FILE} 
-	$SERIAL_PORT_ARGS 
-	-device loader,addr=${LINUX_DT_ADDR},file=${LINUX_DT_FILE},force-raw,cpu-num=3 
-	-device loader,addr=${KERNEL_ADDR},file=${KERNEL_FILE},force-raw,cpu-num=3 
-	-device loader,file=${TRCH_FILE},cpu-num=0  
-        -net nic,vlan=0 -net user,vlan=0,hostfwd=tcp:127.0.0.1:2345-10.0.2.15:2345,hostfwd=tcp:127.0.0.1:10022-10.0.2.15:22 
+    -machine arm-generic-fdt 
+    -nographic 
+    -monitor stdio 
+    -qmp telnet::$QMP_PORT,server,nowait 
+    -S -s -D /tmp/qemu.log -d fdt,guest_errors,unimp,cpu_reset 
+    -hw-dtb ${QEMU_DT_FILE} 
+    $SERIAL_PORT_ARGS 
+    -device loader,addr=${LINUX_DT_ADDR},file=${LINUX_DT_FILE},force-raw,cpu-num=3 
+    -device loader,addr=${KERNEL_ADDR},file=${KERNEL_FILE},force-raw,cpu-num=3 
+    -device loader,file=${TRCH_FILE},cpu-num=0  
+    -net nic,vlan=0 -net user,vlan=0,hostfwd=tcp:127.0.0.1:2345-10.0.2.15:2345,hostfwd=tcp:127.0.0.1:10022-10.0.2.15:22 
 "
 RTPS_FILE_LOAD=" -device loader,file=${RTPS_FILE},cpu-num=2 
-	-device loader,file=${RTPS_FILE},cpu-num=1 "
+    -device loader,file=${RTPS_FILE},cpu-num=1 "
 HPPS_UBOOT_LOAD=" -device loader,file=${BL_FILE},cpu-num=3 "
 HPPS_ATF_LOAD=" -device loader,file=${ARM_TF_FILE},cpu-num=3 "
 HPPS_ROOTFS_LOAD=" -device loader,addr=${ROOTFS_ADDR},file=${ROOTFS_FILE},force-raw,cpu-num=3 "
@@ -268,10 +270,10 @@ BOOT_MODE_DRAM_LOAD=" -device loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE_DRAM,d
 BOOT_MODE_NAND_LOAD=" -device loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE_NAND,data-len=4,cpu-num=3 "
 
 OPT_COMMAND=""
-if [ ${BOOT_IMAGE_OPTION} == 'dram' ]	# Boot images are loaded onto DRAM by Qemu
+if [ "${BOOT_IMAGE_OPTION}" == "dram" ]    # Boot images are loaded onto DRAM by Qemu
 then
     OPT_COMMAND="${HPPS_UBOOT_LOAD} ${HPPS_ATF_LOAD} ${RTPS_FILE_LOAD} "
-elif [ ${BOOT_IMAGE_OPTION} == 'nvram' ]	# Boot images are stored in an NVRAM and loaded onto DRAM by TRCH
+elif [ "${BOOT_IMAGE_OPTION}" == "nvram" ]    # Boot images are stored in an NVRAM and loaded onto DRAM by TRCH
 then
     create_nvsram_image
     OPT_COMMAND="${TRCH_SRAM_LOAD} ${RTPS_FILE_LOAD} "
@@ -279,22 +281,22 @@ fi
 COMMAND="${BASE_COMMAND} ${OPT_COMMAND}"
 
 OPT_COMMAND=""
-if [ ${HPPS_ROOTFS_OPTION} == 'dram' ]	# HPPS rootfs is loaded onto DRAM by Qemu, volatile
+if [ "${HPPS_ROOTFS_OPTION}" == "dram" ]    # HPPS rootfs is loaded onto DRAM by Qemu, volatile
 then
     OPT_COMMAND="${HPPS_ROOTFS_LOAD} ${BOOT_MODE_DRAM_LOAD}"
-elif [ ${HPPS_ROOTFS_OPTION} == 'nand' ]	# HPPS rootfs is stored in an Nand, non-volatile
+elif [ "${HPPS_ROOTFS_OPTION}" == "nand" ]    # HPPS rootfs is stored in an Nand, non-volatile
 then
     OPT_COMMAND="${HPPS_NAND_LOAD} ${BOOT_MODE_NAND_LOAD}"
 fi
 COMMAND="${COMMAND} ${OPT_COMMAND}"
 
-echo Final Command: ${COMMAND}
+echo "Final Command: ${COMMAND}"
 
 function finish {
-	if [ -n "$GDB_CMD_FILE" ]
-	then
-	    rm "$GDB_CMD_FILE"
-	fi
+    if [ -n "$GDB_CMD_FILE" ]
+    then
+        rm "$GDB_CMD_FILE"
+    fi
 }
 trap finish EXIT
 
