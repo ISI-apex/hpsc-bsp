@@ -219,7 +219,7 @@ case "$CMD" in
        GDB_CMD_FILE=$(mktemp)
 cat >/$GDB_CMD_FILE <<EOF
 define hook-run
-shell $0 console
+shell $0 consoles
 end
 EOF
         GDB_ARGS="gdb -x $GDB_CMD_FILE --args "
@@ -227,7 +227,6 @@ EOF
     consoles)
         echo run setup_consoles
         echo run attach_consoles
-        exit 
         for session in "${SCREEN_SESSIONS[@]}"
         do
             setup_screen $session
