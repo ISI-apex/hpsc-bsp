@@ -8,8 +8,8 @@ GCC_ARM_NONE_EABI_BINDIR=${PWD}/../gcc-arm-none-eabi-7-2018-q2-update/bin
 BUILD_JOBS=4
 
 # Checkout values can be configured from the environment
-GIT_CHECKOUT_BM=${GIT_CHECKOUT_BM=-"hpsc"}
-GIT_CHECKOUT_UBOOT_R52=${GIT_CHECKOUT_UBOOT_R52=-"hpsc"}
+GIT_CHECKOUT_BM=${GIT_CHECKOUT_BM:-"hpsc"}
+GIT_CHECKOUT_UBOOT_R52=${GIT_CHECKOUT_UBOOT_R52:-"hpsc"}
 
 function bm_build()
 {
