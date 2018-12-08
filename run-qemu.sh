@@ -17,7 +17,7 @@ ROOTFS_FILE=${YOCTO_DEPLOY_DIR}/core-image-minimal-hpsc-chiplet.cpio.gz.u-boot
 KERNEL_FILE=${YOCTO_DEPLOY_DIR}/Image
 LINUX_DT_FILE=${YOCTO_DEPLOY_DIR}/hpsc.dtb
 QEMU_DT_FILE=${YOCTO_DEPLOY_DIR}/qemu-hw-devicetrees/hpsc-arch.dtb
-BL_FILE=${YOCTO_DEPLOY_DIR}/u-boot
+BL_FILE=${YOCTO_DEPLOY_DIR}/u-boot.elf
 BL_FILE_BIN=${YOCTO_DEPLOY_DIR}/u-boot.bin
 
 # Output files from the hpsc-baremetal build
@@ -93,10 +93,11 @@ function usage()
 
 # Labels are created by Qemu with the convention "serialN"
 SERIAL_PORTS=(serial0 serial1 serial2)
+SERIAL_PORT_ARGS=()
 SCREEN_SESSIONS=()
 for port in ${SERIAL_PORTS[*]}
 do
-    SERIAL_PORT_ARGS+=" -serial pty "
+    SERIAL_PORT_ARGS+=(-serial pty)
     SCREEN_SESSIONS+=("hpsc-qemu-$port")
 done
 
@@ -242,7 +243,7 @@ define hook-run
 shell $0 -c consoles
 end
 EOF
-        GDB_ARGS="gdb -x $GDB_CMD_FILE --args "
+        GDB_ARGS=(gdb -x "$GDB_CMD_FILE" --args)
         ;;
     consoles)
         echo "run setup_screen"
@@ -257,64 +258,65 @@ EOF
 esac
 
 #
-# compose qemu commands according to the command options
+# Compose qemu commands according to the command options.
+# Build the command as an array of strings. Quote anything with a path variable
+# or that uses commas as part of a string instance. Building as a string and
+# using eval on it is error-prone, e.g., if spaces are introduced to parameters.
 #
 # See QEMU User Guide in HPSC release for explanation of the command line arguments
 # Note: order of -device args may matter, must load ATF last, because loader also sets PC
 # Note: If you want to see instructions and exceptions at a large performance cost, then add
 # "in_asm,int" to the list of categories in -d.
-BASE_COMMAND=" $GDB_ARGS ${YOCTO_QEMU_DIR}/qemu-system-aarch64 
-    -machine arm-generic-fdt 
-    -nographic 
-    -monitor stdio 
-    -qmp telnet::$QMP_PORT,server,nowait 
-    -S -s -D /tmp/qemu.log -d fdt,guest_errors,unimp,cpu_reset 
-    -hw-dtb ${QEMU_DT_FILE} 
-    $SERIAL_PORT_ARGS 
-    -device loader,addr=${LINUX_DT_ADDR},file=${LINUX_DT_FILE},force-raw,cpu-num=3 
-    -device loader,addr=${KERNEL_ADDR},file=${KERNEL_FILE},force-raw,cpu-num=3 
-    -device loader,file=${TRCH_FILE},cpu-num=0  
-    -net nic,vlan=0 -net user,vlan=0,hostfwd=tcp:127.0.0.1:2345-10.0.2.15:2345,hostfwd=tcp:127.0.0.1:10022-10.0.2.15:22 
-"
-RTPS_FILE_LOAD=" -device loader,file=${RTPS_FILE},cpu-num=2 
-	-device loader,file=${RTPS_FILE},cpu-num=1 "
-RTPS_FILE_BIN_LOAD=" -device loader,addr=${RTPS_FILE_ADDR},file=${RTPS_FILE_BIN},cpu-num=2 
-	-device loader,addr=${RTPS_FILE_ADDR},file=${RTPS_FILE_BIN},cpu-num=1 "
-RTPS_BL_FILE_LOAD=" -device loader,file=${RTPS_BL_FILE},cpu-num=2 
-	-device loader,file=${RTPS_BL_FILE},cpu-num=1 "
-HPPS_UBOOT_LOAD=" -device loader,file=${BL_FILE},cpu-num=3 "
-HPPS_ATF_LOAD=" -device loader,file=${ARM_TF_FILE},cpu-num=3 "
-HPPS_ROOTFS_LOAD=" -device loader,addr=${ROOTFS_ADDR},file=${ROOTFS_FILE},force-raw,cpu-num=3 "
-HPPS_NAND_LOAD=" -drive file=$HPPS_NAND_IMAGE,if=pflash,format=raw,index=3 "
-HPPS_SRAM_LOAD=" -drive file=$HPPS_SRAM_FILE,if=pflash,format=raw,index=2 "
-TRCH_SRAM_LOAD=" -drive file=$TRCH_SRAM_FILE,if=pflash,format=raw,index=0 "
-BOOT_MODE_DRAM_LOAD=" -device loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE_DRAM,data-len=4,cpu-num=3 "
-BOOT_MODE_NAND_LOAD=" -device loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE_NAND,data-len=4,cpu-num=3 "
+BASE_COMMAND=("${GDB_ARGS[@]}" "${YOCTO_QEMU_DIR}/qemu-system-aarch64"
+    -machine "arm-generic-fdt"
+    -nographic
+    -monitor stdio
+    -qmp "telnet::$QMP_PORT,server,nowait"
+    -S -s -D "/tmp/qemu.log" -d "fdt,guest_errors,unimp,cpu_reset"
+    -hw-dtb "${QEMU_DT_FILE}"
+    "${SERIAL_PORT_ARGS[@]}"
+    -device "loader,addr=${LINUX_DT_ADDR},file=${LINUX_DT_FILE},force-raw,cpu-num=3"
+    -device "loader,addr=${KERNEL_ADDR},file=${KERNEL_FILE},force-raw,cpu-num=3"
+    -device "loader,file=${TRCH_FILE},cpu-num=0"
+    -net "nic,vlan=0" -net "user,vlan=0,hostfwd=tcp:127.0.0.1:2345-10.0.2.15:2345,hostfwd=tcp:127.0.0.1:10022-10.0.2.15:22")
+RTPS_FILE_LOAD=(-device "loader,file=${RTPS_FILE},cpu-num=2"
+    -device "loader,file=${RTPS_FILE},cpu-num=1")
+RTPS_FILE_BIN_LOAD=(-device "loader,addr=${RTPS_FILE_ADDR},file=${RTPS_FILE_BIN},cpu-num=2"
+    -device "loader,addr=${RTPS_FILE_ADDR},file=${RTPS_FILE_BIN},cpu-num=1")
+RTPS_BL_FILE_LOAD=(-device "loader,file=${RTPS_BL_FILE},cpu-num=2"
+    -device "loader,file=${RTPS_BL_FILE},cpu-num=1")
+HPPS_UBOOT_LOAD=(-device "loader,file=${BL_FILE},cpu-num=3")
+HPPS_ATF_LOAD=(-device "loader,file=${ARM_TF_FILE},cpu-num=3")
+HPPS_ROOTFS_LOAD=(-device "loader,addr=${ROOTFS_ADDR},file=${ROOTFS_FILE},force-raw,cpu-num=3")
+HPPS_NAND_LOAD=(-drive "file=$HPPS_NAND_IMAGE,if=pflash,format=raw,index=3")
+HPPS_SRAM_LOAD=(-drive "file=$HPPS_SRAM_FILE,if=pflash,format=raw,index=2")
+TRCH_SRAM_LOAD=(-drive "file=$TRCH_SRAM_FILE,if=pflash,format=raw,index=0")
+BOOT_MODE_DRAM_LOAD=(-device "loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE_DRAM,data-len=4,cpu-num=3")
+BOOT_MODE_NAND_LOAD=(-device "loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE_NAND,data-len=4,cpu-num=3")
 
-OPT_COMMAND=""
+COMMAND=()
 if [ "${BOOT_IMAGE_OPTION}" == "dram" ]    # Boot images are loaded onto DRAM by Qemu
 then
-    OPT_COMMAND="${HPPS_UBOOT_LOAD} ${HPPS_ATF_LOAD} ${RTPS_BL_FILE_LOAD} ${RTPS_FILE_LOAD} "
-elif [ ${BOOT_IMAGE_OPTION} == "nvram" ]	# Boot images are stored in an NVRAM and loaded onto DRAM by TRCH
+    OPT_COMMAND=("${HPPS_UBOOT_LOAD[@]}" "${HPPS_ATF_LOAD[@]}" "${RTPS_BL_FILE_LOAD[@]}" "${RTPS_FILE_LOAD[@]}")
+elif [ "${BOOT_IMAGE_OPTION}" == "nvram" ]	# Boot images are stored in an NVRAM and loaded onto DRAM by TRCH
 then
     create_nvsram_image
-    OPT_COMMAND="${TRCH_SRAM_LOAD} "
+    OPT_COMMAND=("${TRCH_SRAM_LOAD[@]}")
 fi
-COMMAND="${BASE_COMMAND} ${OPT_COMMAND}"
+COMMAND+=("${BASE_COMMAND[@]}" "${OPT_COMMAND[@]}")
 
-OPT_COMMAND=""
 if [ "${HPPS_ROOTFS_OPTION}" == "dram" ]    # HPPS rootfs is loaded onto DRAM by Qemu, volatile
 then
-    OPT_COMMAND="${HPPS_ROOTFS_LOAD} ${BOOT_MODE_DRAM_LOAD}"
+    OPT_COMMAND=("${HPPS_ROOTFS_LOAD[@]}" "${BOOT_MODE_DRAM_LOAD[@]}")
 elif [ "${HPPS_ROOTFS_OPTION}" == "nand" ]    # HPPS rootfs is stored in an Nand, non-volatile
 then
-    OPT_COMMAND="${HPPS_NAND_LOAD} ${BOOT_MODE_NAND_LOAD}"
+    OPT_COMMAND=("${HPPS_NAND_LOAD[@]}" "${BOOT_MODE_NAND_LOAD[@]}")
 fi
-COMMAND="${COMMAND} ${OPT_COMMAND}"
+COMMAND+=("${OPT_COMMAND[@]}")
 
-if [ ${CMD} == "run" ]
+if [ "${CMD}" == "run" ]
 then
-    echo Final Command: ${COMMAND}
+    echo "Final Command: ${COMMAND[*]}"
 fi
 
 function finish {
@@ -325,5 +327,5 @@ function finish {
 }
 trap finish EXIT
 
-
-eval ${COMMAND}
+# Make it so!
+"${COMMAND[@]}"
