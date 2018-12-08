@@ -91,7 +91,7 @@ function usage()
     exit 1
 }
 
-# Labels are created by Qemu with the convention 'serialN'
+# Labels are created by Qemu with the convention "serialN"
 SERIAL_PORTS=(serial0 serial1 serial2)
 SCREEN_SESSIONS=()
 for port in ${SERIAL_PORTS[*]}
@@ -175,8 +175,8 @@ function attach_consoles()
 
 # default values
 CMD="run"
-BOOT_IMAGE_OPTION='dram'
-HPPS_ROOTFS_OPTION='dram'
+BOOT_IMAGE_OPTION="dram"
+HPPS_ROOTFS_OPTION="dram"
 
 # parse options
 while getopts ":b:c:f:" o; do
@@ -231,8 +231,8 @@ case "$CMD" in
             setup_screen $session
         done
         attach_consoles &
-        # setup/attach_consoles are called when gdb runs this script with 'consoles'
-        # cmd from the hook to the 'run' command defined below:
+        # setup/attach_consoles are called when gdb runs this script with "consoles"
+        # cmd from the hook to the "run" command defined below:
         # NOTE: have to go through an actual file because -ex doesn't work since no way
         ## to give a multiline command (incl. multiple -ex), and bash-created file -x
         # <(echo -e ...) doesn't work either (issue only with gdb).
@@ -295,7 +295,7 @@ OPT_COMMAND=""
 if [ "${BOOT_IMAGE_OPTION}" == "dram" ]    # Boot images are loaded onto DRAM by Qemu
 then
     OPT_COMMAND="${HPPS_UBOOT_LOAD} ${HPPS_ATF_LOAD} ${RTPS_BL_FILE_LOAD} ${RTPS_FILE_LOAD} "
-elif [ ${BOOT_IMAGE_OPTION} == 'nvram' ]	# Boot images are stored in an NVRAM and loaded onto DRAM by TRCH
+elif [ ${BOOT_IMAGE_OPTION} == "nvram" ]	# Boot images are stored in an NVRAM and loaded onto DRAM by TRCH
 then
     create_nvsram_image
     OPT_COMMAND="${TRCH_SRAM_LOAD} "
@@ -312,7 +312,7 @@ then
 fi
 COMMAND="${COMMAND} ${OPT_COMMAND}"
 
-if [ ${CMD} == 'run' ]
+if [ ${CMD} == "run" ]
 then
     echo Final Command: ${COMMAND}
 fi
