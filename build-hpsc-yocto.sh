@@ -1,14 +1,19 @@
 #!/bin/bash
 
+# Checkout values can be configured from the environment
+GIT_CHECKOUT_POKY=${GIT_CHECKOUT_POKY:-"hpsc"}
+GIT_CHECKOUT_META_OE=${GIT_CHECKOUT_META_OE:-"hpsc"}
+GIT_CHECKOUT_META_HPSC=${GIT_CHECKOUT_META_HPSC:-"hpsc"}
+
 # The following SRCREV_* env vars allow the user to specify the commit hash or
 # tag (e.g. 'hpsc-0.9') that will be checked out for each of the repositories
 # below.  Alternatively, the user can specify "\${AUTOREV}" to check out the
 # head of the hpsc branch.
-export SRCREV_atf="\${AUTOREV}"
-export SRCREV_linux_hpsc="\${AUTOREV}"
-export SRCREV_qemu_devicetrees="\${AUTOREV}"
-export SRCREV_qemu="\${AUTOREV}"
-export SRCREV_u_boot="\${AUTOREV}"
+export SRCREV_atf=${SRCREV_atf:-"\${AUTOREV}"}
+export SRCREV_linux_hpsc=${SRCREV_linux_hpsc:-"\${AUTOREV}"}
+export SRCREV_qemu_devicetrees=${SRCREV_qemu_devicetrees:-"\${AUTOREV}"}
+export SRCREV_qemu=${SRCREV_qemu:-"\${AUTOREV}"}
+export SRCREV_u_boot=${SRCREV_u_boot:-"\${AUTOREV}"}
 # BB_ENV_EXTRAWHITE allows additional variables to pass through from
 # the external environment into Bitbake's datastore
 export BB_ENV_EXTRAWHITE="$BB_ENV_EXTRAWHITE \
@@ -32,43 +37,42 @@ YOCTO_INSTALL=(gdb gdbserver
 
 
 # Script options
+IS_ONLINE=1
 ACTION=$1
-if [ -z "$ACTION" ]; then
-    ACTION="all"
-else
-    case "$ACTION" in
-        "all" |\
-        "fetchall" |\
-        "populate_sdk" |\
-        "taskexp")
-            ;;
-        *)
-            echo "Usage: $0 [ACTION]"
-            echo "  where ACTION is one of:"
-            echo "    all: (default) download source code and create all of the Yocto-generated files including kernel image and rootfs"
-            echo "    fetchall: download source code to 'downloads' folder and then stop"
-            echo "    populate_sdk: download source code, then build cross-compiler toolchain installer"
-            echo "    taskexp: after the previous builds have completed, run the task dependency explorer"
-            exit 1
-            ;;
-    esac
-fi
+case "$ACTION" in
+    "" | "all" |\
+    "fetchall" |\
+    "populate_sdk" |\
+    "taskexp")
+        ;;
+    *)
+        echo "Usage: $0 [ACTION]"
+        echo "  where ACTION is one of:"
+        echo "    all: (default) download sources and build all, including kernel image and rootfs"
+        echo "    fetchall: download sources"
+        echo "    populate_sdk: download sources, then build cross-compiler toolchain installer"
+        echo "    taskexp: after the previous builds have completed, run the task dependency explorer"
+        exit 1
+        ;;
+esac
 
-# Checkout repository if not already done, always pull branch/tag
-# $1 = repository name, $2 = branch/tag name
+# Clone repository if not already done, always pull
 function isi_github_pull()
 {
     local repo=$1
-    local brtag=$2
-    echo "Pulling repository=$repo, branch/tag=$brtag"
-    if [ ! -d "$repo" ]; then
-        git clone "https://github.com/ISI-apex/$repo.git"
+    local dir=$1
+    # Don't ask for credentials if requests are bad
+    export GIT_TERMINAL_PROMPT=0 # for git > 2.3
+    export GIT_ASKPASS=/bin/echo
+    echo "Pulling repository=$repo"
+    if [ ! -d "$dir" ]; then
+        git clone "https://github.com/ISI-apex/$repo.git" "$dir" || return $?
     fi
-    cd "$repo"
-    # `git pull origin "$brtag"` is causing conflicts...?
-    git checkout "$brtag"
+    cd "$dir"
     git pull
-    cd ..
+    RC=$?
+    cd - > /dev/null
+    return $RC
 }
 
 function conf_replace_or_append()
@@ -80,21 +84,29 @@ function conf_replace_or_append()
         echo "$key = $value" >> "$file"
 }
 
-# download the yocto poky git repository
-isi_github_pull poky hpsc
-# add the meta-openembedded layer (for the mpich package)
-isi_github_pull "meta-openembedded" "hpsc"
-# add the meta-hpsc layer
-if [ "${SRCREV_linux_hpsc}" == "hpsc-0.9" ]; then
-    isi_github_pull "meta-hpsc" "hpsc-0.9"
-else
-    isi_github_pull "meta-hpsc" "hpsc"
+if [ $IS_ONLINE -ne 0 ]; then
+    isi_github_pull "meta-openembedded" || exit $?
+    isi_github_pull "meta-hpsc" || exit $?
+    isi_github_pull "poky" || exit $?
 fi
+
+# add the meta-openembedded layer (for the mpich package)
+cd meta-openembedded
+git checkout "$GIT_CHECKOUT_META_OE" || exit $?
+cd ..
+
+# add the meta-hpsc layer
+cd meta-hpsc
+git checkout "$GIT_CHECKOUT_META_HPSC" || exit $?
+cd ..
+
 BITBAKE_LAYERS=("${PWD}/meta-openembedded/meta-oe"
                 "${PWD}/meta-openembedded/meta-python"
                 "${PWD}/meta-hpsc/meta-xilinx-bsp")
 
+# download the yocto poky git repository
 cd poky
+git checkout "$GIT_CHECKOUT_POKY" || exit $?
 # create build directory and configure it
 . ./oe-init-build-env build
 for layer in "${BITBAKE_LAYERS[@]}"; do
@@ -107,7 +119,7 @@ conf_replace_or_append "CORE_IMAGE_EXTRA_INSTALL" "\"${YOCTO_INSTALL[*]}\""
 
 # finally, execute the requested action
 case "$ACTION" in
-    "all")
+    "" | "all")
         bitbake core-image-minimal
         ;;
     "fetchall")
