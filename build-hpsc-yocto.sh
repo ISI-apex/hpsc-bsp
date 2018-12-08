@@ -82,25 +82,23 @@ function conf_replace_or_append()
 
 # download the yocto poky git repository
 isi_github_pull poky hpsc
-cd poky
-POKY_DIR=${PWD}
-
+# add the meta-openembedded layer (for the mpich package)
+isi_github_pull "meta-openembedded" "hpsc"
 # add the meta-hpsc layer
 if [ "${SRCREV_linux_hpsc}" == "hpsc-0.9" ]; then
     isi_github_pull "meta-hpsc" "hpsc-0.9"
 else
     isi_github_pull "meta-hpsc" "hpsc"
 fi
-# add the meta-openembedded layer (for the mpich package)
-isi_github_pull "meta-openembedded" "hpsc"
-BITBAKE_LAYERS=("meta-hpsc/meta-xilinx-bsp"
-                "meta-openembedded/meta-oe"
-                "meta-openembedded/meta-python")
+BITBAKE_LAYERS=("${PWD}/meta-openembedded/meta-oe"
+                "${PWD}/meta-openembedded/meta-python"
+                "${PWD}/meta-hpsc/meta-xilinx-bsp")
 
+cd poky
 # create build directory and configure it
 . ./oe-init-build-env build
 for layer in "${BITBAKE_LAYERS[@]}"; do
-    bitbake-layers add-layer "${POKY_DIR}/$layer"
+    bitbake-layers add-layer "$layer"
 done
 
 # configure local.conf
