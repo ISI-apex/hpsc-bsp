@@ -9,6 +9,8 @@ GCC_ARM_NONE_EABI_BINDIR=${PWD}/../gcc-arm-none-eabi-7-2018-q2-update/bin
 BAREMETAL_BRANCH_TAG="hpsc"
 UBOOT_R52_BRANCH_TAG="hpsc"
 
+BUILD_JOBS=4
+
 # Check that toolchain is on PATH
 function check_toolchain()
 {
@@ -44,8 +46,10 @@ fi
 ## hpsc-baremetal
 isi_github_pull hpsc-baremetal "$BAREMETAL_BRANCH_TAG" hpsc-baremetal
 cd hpsc-baremetal
+echo "hpsc-baremetal: clean..."
+make clean
 echo "hpsc-baremetal: build..."
-make all
+make all -j${BUILD_JOBS}
 RC=$?
 if [ $RC -eq 0 ]; then
     echo "hpsc-baremetal: build successful"
@@ -58,9 +62,11 @@ cd ..
 ## u-boot-r52
 isi_github_pull u-boot "$UBOOT_R52_BRANCH_TAG" u-boot-r52
 cd u-boot-r52
+echo "u-boot-r52: clean..."
+make clean
 echo "u-boot-r52: build..."
 make hpsc_rtps_r52_defconfig
-make -j4 CROSS_COMPILE=arm-none-eabi- CONFIG_LD_GCC=y
+make -j${BUILD_JOBS} CROSS_COMPILE=arm-none-eabi- CONFIG_LD_GCC=y
 RC=$?
 if [ $RC -eq 0 ]; then
     echo "u-boot-r52: build successful"
