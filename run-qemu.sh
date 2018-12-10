@@ -80,10 +80,11 @@ function create_nvsram_image()
 
 function usage()
 {
-    echo "Usage: $0 [-c < run | gdb | consoles >] [-f < dram | nand >] [-b < dram | nvram >]" 1>&2
+    echo "Usage: $0 [-c < run | gdb | consoles | nand_create >] [-f < dram | nand >] [-b < dram | nvram >]" 1>&2
     echo "               -c run: command - start emulation (default)" 1>&2
     echo "               -c gdb: command - start emulation with gdb" 1>&2
     echo "               -c consoles: command - setup consoles of the subsystems at the host" 1>&2
+    echo "               -c nand_create: command - create nand image with rootfs in it" 1>&2
     echo "               -b dram: boot images in dram (default)" 1>&2
     echo "               -b nvram: boot images in offchip non-volatile ram" 1>&2
     echo "               -f dram: HPPS rootfile system in ram, volatile (default)" 1>&2
@@ -183,7 +184,7 @@ HPPS_ROOTFS_OPTION="dram"
 while getopts ":b:c:f:" o; do
     case "${o}" in
         c)
-            if [ "${OPTARG}" == "run" ] || [ "${OPTARG}" == "gdb" ] || [ "${OPTARG}" == "consoles" ]
+            if [ "${OPTARG}" == "run" ] || [ "${OPTARG}" == "gdb" ] || [ "${OPTARG}" == "consoles" ] || [ "${OPTARG}" == "nand_create" ]
             then
                 CMD="${OPTARG}"
             else
@@ -255,6 +256,13 @@ EOF
         attach_consoles &
         exit # don't run qemu
         ;;
+   nand_create)
+        for session in "${SCREEN_SESSIONS[@]}"
+        do
+            setup_screen $session
+        done
+        attach_consoles &
+        ;;
 esac
 
 #
@@ -295,6 +303,14 @@ BOOT_MODE_DRAM_LOAD=(-device "loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE_DRAM,d
 BOOT_MODE_NAND_LOAD=(-device "loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE_NAND,data-len=4,cpu-num=3")
 
 COMMAND=()
+if [ "${CMD}" == "nand_create" ]
+then
+   BOOT_IMAGE_OPTION="dram"
+   HPPS_ROOTFS_OPTION="dram"
+   OPT_COMMAND=("${HPPS_NAND_LOAD[@]}")
+fi
+COMMAND+=("${BASE_COMMAND[@]}" "${OPT_COMMAND[@]}")
+
 if [ "${BOOT_IMAGE_OPTION}" == "dram" ]    # Boot images are loaded onto DRAM by Qemu
 then
     OPT_COMMAND=("${HPPS_UBOOT_LOAD[@]}" "${HPPS_ATF_LOAD[@]}" "${RTPS_BL_FILE_LOAD[@]}" "${RTPS_FILE_LOAD[@]}")
@@ -303,7 +319,7 @@ then
     create_nvsram_image
     OPT_COMMAND=("${TRCH_SRAM_LOAD[@]}")
 fi
-COMMAND+=("${BASE_COMMAND[@]}" "${OPT_COMMAND[@]}")
+COMMAND+=("${OPT_COMMAND[@]}")
 
 if [ "${HPPS_ROOTFS_OPTION}" == "dram" ]    # HPPS rootfs is loaded onto DRAM by Qemu, volatile
 then
