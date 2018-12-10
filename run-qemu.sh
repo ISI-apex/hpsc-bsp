@@ -289,12 +289,9 @@ BASE_COMMAND=("${GDB_ARGS[@]}" "${YOCTO_QEMU_DIR}/qemu-system-aarch64"
     -device "loader,addr=${KERNEL_ADDR},file=${KERNEL_FILE},force-raw,cpu-num=3"
     -device "loader,file=${TRCH_FILE},cpu-num=0"
     -net "nic,vlan=0" -net "user,vlan=0,hostfwd=tcp:127.0.0.1:2345-10.0.2.15:2345,hostfwd=tcp:127.0.0.1:10022-10.0.2.15:22")
-RTPS_FILE_LOAD=(-device "loader,file=${RTPS_FILE},cpu-num=2"
-    -device "loader,file=${RTPS_FILE},cpu-num=1")
-RTPS_FILE_BIN_LOAD=(-device "loader,addr=${RTPS_FILE_ADDR},file=${RTPS_FILE_BIN},cpu-num=2"
-    -device "loader,addr=${RTPS_FILE_ADDR},file=${RTPS_FILE_BIN},cpu-num=1")
-RTPS_BL_FILE_LOAD=(-device "loader,file=${RTPS_BL_FILE},cpu-num=2"
-    -device "loader,file=${RTPS_BL_FILE},cpu-num=1")
+RTPS_FILE_LOAD=(-device "loader,file=${RTPS_FILE},cpu-num=1")
+RTPS_FILE_BIN_LOAD=(-device "loader,addr=${RTPS_FILE_ADDR},file=${RTPS_FILE_BIN},cpu-num=1")
+RTPS_BL_FILE_LOAD=(-device "loader,file=${RTPS_BL_FILE},cpu-num=1")
 HPPS_UBOOT_LOAD=(-device "loader,file=${BL_FILE},cpu-num=3")
 HPPS_ATF_LOAD=(-device "loader,file=${ARM_TF_FILE},cpu-num=3")
 HPPS_ROOTFS_LOAD=(-device "loader,addr=${ROOTFS_ADDR},file=${ROOTFS_FILE},force-raw,cpu-num=3")
