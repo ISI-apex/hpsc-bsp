@@ -1,9 +1,9 @@
-hpsc-bsp
+HPSC Chiplet Board Support Package
 ========
 
 The "hpsc-bsp" repository includes:
 1.  The "build-hpsc-yocto.sh" script, which uses the Yocto framework to build the necessary files for running the QEMU emulation of the Chiplet.  In the process, it downloads the needed source code from the ISI Github webpage.  Note the user can specify which commit of each repo should be downloaded within the script.
-2.  The "build-hpsc-baremetal.sh" script, which uses a separate toolchain to build the firmware for the TRCH and R52.
+2.  The "build-hpsc-other.sh" script, which uses a separate toolchain to build the firmware for the TRCH and R52, and the Yocto toolchain to build test utilities.
 3.  The "run-qemu.sh" script, which uses the output from the build scripts above to boot QEMU.
 4.  The "create_rootfs_nand.sh" script, which creates nand image file and put root filesystem in the nand image file.
 
@@ -40,12 +40,20 @@ poky/build/tmp/work
 The Yocto BSP is designed to download from the github repositories located at:
 https://github.com/orgs/ISI-apex/teams/hpsc/repositories
 
-hpsc-baremetal Build
+Other Build
 --------------------
 
-Before starting the hpsc-baremetal build, verify that the BAREMETAL_TOOLCHAIN_DIR variable in the script is properly set.  The script will then build the following files:
+Building the remaining components has additional prerequisites.
+
+First, the ARM baremetal toolchain bin directory must be on `PATH`, or you must set `GCC_ARM_NONE_EABI_BINDIR`.
+This is needed to build the following files:
 1.  trch/bld/trch.elf
 2.  rtps/bld/rtps.elf
+
+Additionally, the Poky Aarch64 SDK must be installed.
+Add the x86_64 to aarch64 cross-compiler to `PATH` or set `POKY_SDK_AARCH64_PATH`.
+Then set `POKY_SDK_AARCH64_SYSROOT` to the aarch64 sysroot for poky.
+These are needed for building test utilities.
 
 Booting QEMU
 ------------
