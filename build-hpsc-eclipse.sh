@@ -24,42 +24,67 @@ ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group
                     ilg.gnumcueclipse.packs.data
                     ilg.gnumcueclipse.templates.core)
 
-# No commands are allowed to fail
-set -e
+# Script options
+IS_ONLINE=1
+IS_BUILD=1
+case "$1" in
+    "" | "all")
+        ;;
+    "fetchall")
+        IS_BUILD=0
+        ;;
+    "buildall")
+        IS_ONLINE=0
+        ;;
+    *)
+        echo "Usage: $0 [ACTION]"
+        echo "  where ACTION is one of:"
+        echo "    all: (default) download sources and build"
+        echo "    fetchall: download sources"
+        echo "    buildall: build eclipse package"
+        exit 1
+        ;;
+esac
 
-# Verify prerequisites
-if [ -d "$ECLIPSE_DIR" ]; then
-    echo "Eclipse directory already exists - please delete and retry: $ECLIPSE_DIR"
-    exit 1
+if [ $IS_ONLINE -ne 0 ]; then
+    if [ ! -e "$ECLIPSE_TGZ" ]; then
+        echo "Downloading eclipse..."
+        wget -O "$ECLIPSE_TGZ" "$ECLIPSE_URL" || exit $?
+    fi
 fi
-if [ -e "$ECLIPSE_HPSC" ]; then
-    echo "Output file already exists - please delete and retry: $ECLIPSE_HPSC"
-    exit 1
+
+if [ $IS_BUILD -ne 0 ]; then
+    # Verify prerequisites
+    if [ ! -e "$ECLIPSE_TGZ" ]; then
+        echo "Error: must fetch sources before build"
+        exit 1
+    fi
+
+    # Extract eclipse
+    if [ ! -d "$ECLIPSE_DIR" ]; then
+        echo "Extracting eclipse..."
+        tar xzf "$ECLIPSE_TGZ"
+    fi
+
+    # Configure plugins for eclipse
+    echo "Configuring eclipse..."
+    cd "$ECLIPSE_DIR"
+    # Get repos and IUs as comma-delimited lists
+    ECLIPSE_REPOSITORY_LIST=$(printf ",%s" "${ECLIPSE_REPOSITORIES[@]}")
+    ECLIPSE_REPOSITORY_LIST=${ECLIPSE_REPOSITORY_LIST:1}
+    ECLIPSE_PLUGIN_IU_LIST=$(printf ",%s" "${ECLIPSE_PLUGIN_IUS[@]}")
+    ECLIPSE_PLUGIN_IU_LIST=${ECLIPSE_PLUGIN_IU_LIST:1}
+    ./eclipse -application org.eclipse.equinox.p2.director -nosplash \
+              -repository "$ECLIPSE_REPOSITORY_LIST" \
+              -installIUs "$ECLIPSE_PLUGIN_IU_LIST"
+    RC=$?
+    cd ..
+    if [ $RC -ne 0 ]; then
+        echo "Eclipse configuration failed with exit code: $RC"
+        exit $RC
+    fi
+
+    # Create distribution archive
+    echo "Creating HPSC eclipse distribution: $ECLIPSE_HPSC"
+    tar czf "$ECLIPSE_HPSC" "$ECLIPSE_DIR"
 fi
-
-# Fetch eclipse package
-if [ ! -e "$ECLIPSE_TGZ" ]; then
-    echo "Downloading eclipse..."
-    wget -O "$ECLIPSE_TGZ" "$ECLIPSE_URL"
-fi
-
-# Extract eclipse
-echo "Extracting eclipse..."
-tar xzf "$ECLIPSE_TGZ"
-
-# Configure plugins for eclipse
-echo "Configuring eclipse..."
-cd "$ECLIPSE_DIR"
-# Get repos and IUs as comma-delimited lists
-ECLIPSE_REPOSITORY_LIST=$(printf ",%s" "${ECLIPSE_REPOSITORIES[@]}")
-ECLIPSE_REPOSITORY_LIST=${ECLIPSE_REPOSITORY_LIST:1}
-ECLIPSE_PLUGIN_IU_LIST=$(printf ",%s" "${ECLIPSE_PLUGIN_IUS[@]}")
-ECLIPSE_PLUGIN_IU_LIST=${ECLIPSE_PLUGIN_IU_LIST:1}
-./eclipse -application org.eclipse.equinox.p2.director -nosplash \
-          -repository "$ECLIPSE_REPOSITORY_LIST" \
-          -installIUs "$ECLIPSE_PLUGIN_IU_LIST"
-
-# Create new distribution archive
-cd ..
-echo "Creating HPSC eclipse distribution: $ECLIPSE_HPSC"
-tar czf "$ECLIPSE_HPSC" "$ECLIPSE_DIR"
