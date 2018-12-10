@@ -67,6 +67,7 @@ SRAM_SIZE=0x4000000			# 64MB
 # create non-volatile offchip sram image
 function create_nvsram_image()
 {
+	set -e
 	echo create_sram_image...
 	# Create SRAM image to store boot images
 	${SRAM_IMAGE_UTILS} create ${TRCH_SRAM_FILE} ${SRAM_SIZE}
@@ -76,6 +77,7 @@ function create_nvsram_image()
 	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${RTPS_FILE_BIN} 	"rtps-os" ${RTPS_FILE_ADDR}
 	${SRAM_IMAGE_UTILS} show ${TRCH_SRAM_FILE} 
 	#${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${KERNEL_FILE} ${KERNEL_ADDR}
+	set +e
 }
 
 function usage()
