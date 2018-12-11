@@ -1,29 +1,7 @@
 #!/bin/bash
 
-# Checkout values can be configured from the environment
-GIT_CHECKOUT_POKY=${GIT_CHECKOUT_POKY:-"hpsc"}
-GIT_CHECKOUT_META_OE=${GIT_CHECKOUT_META_OE:-"hpsc"}
-GIT_CHECKOUT_META_HPSC=${GIT_CHECKOUT_META_HPSC:-"hpsc"}
-
-# The following SRCREV_* env vars allow the user to specify the commit hash or
-# tag (e.g. 'hpsc-0.9') that will be checked out for each of the repositories
-# below.  Alternatively, the user can specify "\${AUTOREV}" to check out the
-# head of the hpsc branch.
-export SRCREV_atf=${SRCREV_atf:-"\${AUTOREV}"}
-export SRCREV_linux_hpsc=${SRCREV_linux_hpsc:-"\${AUTOREV}"}
-export SRCREV_qemu_devicetrees=${SRCREV_qemu_devicetrees:-"\${AUTOREV}"}
-export SRCREV_qemu=${SRCREV_qemu:-"\${AUTOREV}"}
-export SRCREV_u_boot=${SRCREV_u_boot:-"\${AUTOREV}"}
-# BB_ENV_EXTRAWHITE allows additional variables to pass through from
-# the external environment into Bitbake's datastore
-export BB_ENV_EXTRAWHITE="$BB_ENV_EXTRAWHITE \
-                          SRCREV_atf \
-                          SRCREV_linux_hpsc \
-                          SRCREV_qemu_devicetrees \
-                          SRCREV_qemu \
-                          SRCREV_u_boot"
-
 # Yocto packages to install
+# Please list alphabetically and group items together appropriately
 YOCTO_INSTALL=(gdb gdbserver
                libc-staticdev
                libgomp libgomp-dev libgomp-staticdev
@@ -32,10 +10,18 @@ YOCTO_INSTALL=(gdb gdbserver
                mtd-utils
                openssh openssh-sftp-server
                python-core python-numpy
+               qemu
                util-linux
-               watchdog
-               qemu)
+               watchdog)
 
+function conf_replace_or_append()
+{
+    local key=$1
+    local value=$2
+    local file="conf/local.conf"
+    grep -q "^$key =" "$file" && sed -i "s/^$key.*/$key = $value/" "$file" ||\
+        echo "$key = $value" >> "$file"
+}
 
 # Script options
 IS_ONLINE=1
@@ -57,47 +43,32 @@ case "$ACTION" in
         ;;
 esac
 
-# Clone repository if not already done, always pull
-function isi_github_pull()
-{
-    local repo=$1
-    local dir=$1
-    # Don't ask for credentials if requests are bad
-    export GIT_TERMINAL_PROMPT=0 # for git > 2.3
-    export GIT_ASKPASS=/bin/echo
-    echo "Pulling repository=$repo"
-    if [ ! -d "$dir" ]; then
-        git clone "https://github.com/ISI-apex/$repo.git" "$dir" || return $?
-    fi
-    cd "$dir"
-    git pull
-    RC=$?
-    cd - > /dev/null
-    return $RC
-}
+. build-common.sh || exit $?
 
-function conf_replace_or_append()
-{
-    local key=$1
-    local value=$2
-    local file="conf/local.conf"
-    grep -q "^$key =" "$file" && sed -i "s/^$key.*/$key = $value/" "$file" ||\
-        echo "$key = $value" >> "$file"
-}
+# BB_ENV_EXTRAWHITE allows additional variables to pass through from
+# the external environment into Bitbake's datastore
+export BB_ENV_EXTRAWHITE="$BB_ENV_EXTRAWHITE \
+                          SRCREV_atf \
+                          SRCREV_linux_hpsc \
+                          SRCREV_qemu_devicetrees \
+                          SRCREV_qemu \
+                          SRCREV_u_boot"
 
 if [ $IS_ONLINE -ne 0 ]; then
-    isi_github_pull "meta-openembedded" || exit $?
-    isi_github_pull "meta-hpsc" || exit $?
-    isi_github_pull "poky" || exit $?
+    git_clone_pull "meta-openembedded" || exit $?
+    git_clone_pull "meta-hpsc" || exit $?
+    git_clone_pull "poky" || exit $?
 fi
 
 # add the meta-openembedded layer (for the mpich package)
 cd meta-openembedded
+assert_str "$GIT_CHECKOUT_META_OE"
 git checkout "$GIT_CHECKOUT_META_OE" || exit $?
 cd ..
 
 # add the meta-hpsc layer
 cd meta-hpsc
+assert_str "$GIT_CHECKOUT_META_HPSC"
 git checkout "$GIT_CHECKOUT_META_HPSC" || exit $?
 cd ..
 
@@ -107,6 +78,7 @@ BITBAKE_LAYERS=("${PWD}/meta-openembedded/meta-oe"
 
 # download the yocto poky git repository
 cd poky
+assert_str "$GIT_CHECKOUT_POKY"
 git checkout "$GIT_CHECKOUT_POKY" || exit $?
 # create build directory and configure it
 . ./oe-init-build-env build

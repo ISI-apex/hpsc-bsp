@@ -3,18 +3,9 @@
 # Fetch and/or build sources that require the other toolchains
 #
 
-# The following toolchain paths may need to be updated:
-GCC_ARM_NONE_EABI_BINDIR=${GCC_ARM_NONE_EABI_BINDIR:-"${PWD}/../gcc-arm-none-eabi-7-2018-q2-update/bin"}
-# TODO: By default we use a pre-installed toolchain - can we use poky's instead?
-POKY_SDK_AARCH64_PATH=${POKY_SDK_AARCH64_PATH:-"/opt/poky/2.3.4/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux"}
-POKY_SDK_AARCH64_SYSROOT=${POKY_SDK_AARCH64_SYSROOT:-"/opt/poky/2.3.4/sysroots/aarch64-poky-linux"}
-
-# Checkout values can be configured from the environment
-GIT_CHECKOUT_BM=${GIT_CHECKOUT_BM:-"hpsc"}
-GIT_CHECKOUT_UBOOT_R52=${GIT_CHECKOUT_UBOOT_R52:-"hpsc"}
-GIT_CHECKOUT_HPSC_UTILS=${GIT_CHECKOUT_HPSC_UTILS:-"hpsc"}
-
 BUILD_JOBS=4
+
+. build-common.sh || exit $?
 
 # Check that baremetal toolchain is on PATH
 function check_bm_toolchain()
@@ -89,26 +80,6 @@ BUILD_FNS=(bm_build
            uboot_r52_build
            utils_build)
 
-
-# Clone repository if not already done, always pull
-function git_clone_pull()
-{
-    local repo=$1
-    local dir=$2
-    # Don't ask for credentials if requests are bad
-    export GIT_TERMINAL_PROMPT=0 # for git > 2.3
-    export GIT_ASKPASS=/bin/echo
-    echo "Pulling repository: $repo"
-    if [ ! -d "$dir" ]; then
-        git clone "$repo" "$dir" || return $?
-    fi
-    cd "$dir"
-    git pull
-    RC=$?
-    cd - > /dev/null
-    return $RC
-}
-
 # Script options
 IS_ONLINE=1
 IS_BUILD=1
@@ -155,6 +126,7 @@ if [ $IS_BUILD -ne 0 ]; then
         (
             cd "$DIR"
             echo "$DIR: checkout: $CHECKOUT..."
+            assert_str "$CHECKOUT"
             git checkout "$CHECKOUT" || exit $?
             "${BUILD_FNS[$i]}"
         )
