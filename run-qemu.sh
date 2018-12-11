@@ -10,7 +10,7 @@
 
 # Output files from the Yocto build
 YOCTO_DEPLOY_DIR=${PWD}/poky/build/tmp/deploy/images/hpsc-chiplet
-YOCTO_QEMU_DIR=${PWD}/poky/build/tmp/work/x86_64-linux/qemu-native/2.11.1-r0/image/usr/local/bin
+YOCTO_QEMU_DIR="$(find ${PWD}/poky/build/tmp/work/x86_64-linux/qemu-xilinx-native/ -name qemu-system-aarch64 | grep image | xargs $1 dirname)"
 ARM_TF_FILE=${YOCTO_DEPLOY_DIR}/arm-trusted-firmware.elf # TODO: consider renaming this to bl31.elf or atf-bl31.elf to show that we're only using stage 3.1
 ARM_TF_FILE_BIN=${YOCTO_DEPLOY_DIR}/arm-trusted-firmware.bin # TODO: consider renaming this to bl31.elf or atf-bl31.elf to show that we're only using stage 3.1
 ROOTFS_FILE=${YOCTO_DEPLOY_DIR}/core-image-minimal-hpsc-chiplet.cpio.gz.u-boot
