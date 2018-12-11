@@ -43,6 +43,12 @@ HPPS_NAND_IMAGE=${YOCTO_DEPLOY_DIR}/rootfs_nand.bin
 HPPS_SRAM_FILE=${YOCTO_DEPLOY_DIR}/hpps_sram.bin
 TRCH_SRAM_FILE=${YOCTO_DEPLOY_DIR}/trch_sram.bin
 
+# Controlling boot mode of RTPS (Split or lock-step)
+RTPS_BOOT_MODE_ADDR=0xffff0
+RTPS_BOOT_SPLIT=0x00000000
+RTPS_BOOT_LOCKSTEP=0x00000001
+RTPS_BOOT_SMP=0x00000002
+
 # Controlling boot mode of HPPS (ramdisk or rootfs in NAND)
 # how to use:
 #    -device loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE,data-len=4,cpu-num=3 \
@@ -288,6 +294,7 @@ BASE_COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
     "${SERIAL_PORT_ARGS[@]}"
     -device "loader,addr=${LINUX_DT_ADDR},file=${LINUX_DT_FILE},force-raw,cpu-num=3"
     -device "loader,addr=${KERNEL_ADDR},file=${KERNEL_FILE},force-raw,cpu-num=3"
+    -device "loader,addr=${RTPS_BOOT_MODE_ADDR},data=${RTPS_BOOT_LOCKSTEP},data-len=4,cpu-num=0"
     -device "loader,file=${TRCH_FILE},cpu-num=0"
     -net "nic,vlan=0" -net "user,vlan=0,hostfwd=tcp:127.0.0.1:2345-10.0.2.15:2345,hostfwd=tcp:127.0.0.1:10022-10.0.2.15:22")
 RTPS_FILE_LOAD=(-device "loader,file=${RTPS_FILE},cpu-num=1")
