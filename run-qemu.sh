@@ -10,13 +10,11 @@
 
 # Output files from the Yocto build
 YOCTO_DEPLOY_DIR=${PWD}/poky/build/tmp/deploy/images/hpsc-chiplet
-YOCTO_QEMU_DIR="$(find ${PWD}/poky/build/tmp/work/x86_64-linux/qemu-xilinx-native/ -name qemu-system-aarch64 | grep image | xargs $1 dirname)"
 ARM_TF_FILE=${YOCTO_DEPLOY_DIR}/arm-trusted-firmware.elf # TODO: consider renaming this to bl31.elf or atf-bl31.elf to show that we're only using stage 3.1
 ARM_TF_FILE_BIN=${YOCTO_DEPLOY_DIR}/arm-trusted-firmware.bin # TODO: consider renaming this to bl31.elf or atf-bl31.elf to show that we're only using stage 3.1
 ROOTFS_FILE=${YOCTO_DEPLOY_DIR}/core-image-minimal-hpsc-chiplet.cpio.gz.u-boot
 KERNEL_FILE=${YOCTO_DEPLOY_DIR}/Image
 LINUX_DT_FILE=${YOCTO_DEPLOY_DIR}/hpsc.dtb
-QEMU_DT_FILE=${YOCTO_DEPLOY_DIR}/qemu-hw-devicetrees/hpsc-arch.dtb
 BL_FILE=${YOCTO_DEPLOY_DIR}/u-boot.elf
 BL_FILE_BIN=${YOCTO_DEPLOY_DIR}/u-boot.bin
 
@@ -30,6 +28,10 @@ RTPS_FILE_BIN=${BAREMETAL_DIR}/rtps/bld/rtps.bin
 R52_UBOOT_DIR=${PWD}/u-boot-r52
 RTPS_BL_FILE=${R52_UBOOT_DIR}/u-boot.elf
 RTPS_BL_FILE_BIN=${R52_UBOOT_DIR}/u-boot.bin
+
+# Output files from the qemu/qemu-devicetree builds
+QEMU_DIR=${PWD}/qemu/BUILD/aarch64-softmmu
+QEMU_DT_FILE=${PWD}/qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb
 
 # External storage (NAND, SRAM) devices
 # how to use:
@@ -276,7 +278,7 @@ esac
 # Note: order of -device args may matter, must load ATF last, because loader also sets PC
 # Note: If you want to see instructions and exceptions at a large performance cost, then add
 # "in_asm,int" to the list of categories in -d.
-BASE_COMMAND=("${GDB_ARGS[@]}" "${YOCTO_QEMU_DIR}/qemu-system-aarch64"
+BASE_COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
     -machine "arm-generic-fdt"
     -nographic
     -monitor stdio

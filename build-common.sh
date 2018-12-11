@@ -69,6 +69,9 @@ export SRCREV_u_boot="$SRCREV_DEFAULT"
 export GIT_CHECKOUT_BM="$GIT_CHECKOUT_DEFAULT"
 export GIT_CHECKOUT_UBOOT_R52="$GIT_CHECKOUT_DEFAULT"
 export GIT_CHECKOUT_HPSC_UTILS="$GIT_CHECKOUT_DEFAULT"
+# Building qemu outside poky is a (temporary?) workaround for some issues
+export GIT_CHECKOUT_QEMU="$GIT_CHECKOUT_DEFAULT"
+export GIT_CHECKOUT_QEMU_DT="$GIT_CHECKOUT_DEFAULT"
 
 #
 # Some common functions

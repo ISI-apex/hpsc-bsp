@@ -47,6 +47,23 @@ function uboot_r52_build()
     make -j${BUILD_JOBS} CROSS_COMPILE=arm-none-eabi- CONFIG_LD_GCC=y
 }
 
+function qemu_build()
+{
+    rm -rf BUILD && \
+    mkdir BUILD && \
+    cd BUILD && \
+    ../configure --target-list="aarch64-softmmu" --enable-fdt --disable-kvm \
+                 --disable-xen && \
+    make -j${BUILD_JOBS} && \
+    cd ..
+}
+
+function qemu_dt_build()
+{
+    make clean && \
+    make -j${BUILD_JOBS}
+}
+
 function utils_build()
 {
     # host utilities
@@ -63,21 +80,29 @@ function utils_build()
     cd .. || return $?
 }
 
+PREBUILD_FNS=(check_bm_toolchain
+              check_poky_toolchain)
+
 # Indexes of these arrays must align to each other
 BUILD_REPOS=("https://github.com/ISI-apex/hpsc-baremetal.git"
              "https://github.com/ISI-apex/u-boot.git"
+             "https://github.com/ISI-apex/qemu.git"
+             "https://github.com/ISI-apex/qemu-devicetrees.git"
              "https://github.com/ISI-apex/hpsc-utils.git")
 BUILD_DIRS=("hpsc-baremetal"
             "u-boot-r52"
+            "qemu"
+            "qemu-devicetrees"
             "hpsc-utils")
 BUILD_CHECKOUTS=("$GIT_CHECKOUT_BM"
                  "$GIT_CHECKOUT_UBOOT_R52"
+                 "$GIT_CHECKOUT_QEMU"
+                 "$GIT_CHECKOUT_QEMU_DT"
                  "$GIT_CHECKOUT_HPSC_UTILS")
-PREBUILD_FNS=(check_bm_toolchain
-              check_bm_toolchain
-              check_poky_toolchain)
 BUILD_FNS=(bm_build
            uboot_r52_build
+           qemu_build
+           qemu_dt_build
            utils_build)
 
 # Script options
