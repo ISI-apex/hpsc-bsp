@@ -95,13 +95,12 @@ function usage()
 }
 
 # Labels are created by Qemu with the convention "serialN"
+SCREEN_SESSIONS=(hpsc-trch hpsc-rtps-r52 hpsc-hpps)
 SERIAL_PORTS=(serial0 serial1 serial2)
 SERIAL_PORT_ARGS=()
-SCREEN_SESSIONS=()
 for port in ${SERIAL_PORTS[*]}
 do
     SERIAL_PORT_ARGS+=(-serial pty)
-    SCREEN_SESSIONS+=("hpsc-qemu-$port")
 done
 
 QMP_PORT=4433
