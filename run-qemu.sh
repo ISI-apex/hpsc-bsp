@@ -91,7 +91,7 @@ function create_nvsram_image()
 
 function usage()
 {
-    echo "Usage: $0 [-c < run | gdb | consoles | nand_create >] [-f < dram | nand >] [-b < dram | nvram >]" 1>&2
+    echo "Usage: $0 [-c < run | gdb | consoles | nand_create >] [-f < dram | nand >] [-b < dram | nvram >] [ -h ] " 1>&2
     echo "               -c run: command - start emulation (default)" 1>&2
     echo "               -c gdb: command - start emulation with gdb" 1>&2
     echo "               -c consoles: command - setup consoles of the subsystems at the host" 1>&2
@@ -100,6 +100,7 @@ function usage()
     echo "               -b nvram: boot images in offchip non-volatile ram" 1>&2
     echo "               -f dram: HPPS rootfile system in ram, volatile (default)" 1>&2
     echo "               -f nand: HPPS rootfile system in nand image, non-volatile" 1>&2
+    echo "               -h : show this message" 1>&2
     exit 1
 }
 
@@ -191,7 +192,7 @@ BOOT_IMAGE_OPTION="dram"
 HPPS_ROOTFS_OPTION="dram"
 
 # parse options
-while getopts ":b:c:f:" o; do
+while getopts "h?b:c:f:" o; do
     case "${o}" in
         c)
             if [ "${OPTARG}" == "run" ] || [ "${OPTARG}" == "gdb" ] || [ "${OPTARG}" == "consoles" ] || [ "${OPTARG}" == "nand_create" ]
@@ -219,6 +220,9 @@ while getopts ":b:c:f:" o; do
                 echo "Error: no such HPPS rootfile system option - ${OPTARG}"
                 usage
             fi
+            ;;
+        h)
+            usage
             ;;
         *)
             echo "Wrong option" 1>&2
