@@ -10,7 +10,7 @@ YOCTO_INSTALL=(gdb gdbserver
                mtd-utils
                openssh openssh-sftp-server
                python-core python-numpy
-               qemu
+               # qemu
                util-linux
                watchdog)
 
