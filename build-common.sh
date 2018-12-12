@@ -14,18 +14,10 @@ GIT_RELEASE_TAG="hpsc-2.0"
 # HPSC_BUILD_DEVELOPMENT=1
 
 #
-# Toolchain paths - can be overridden by environment
-#
-
-export GCC_ARM_NONE_EABI_BINDIR=${GCC_ARM_NONE_EABI_BINDIR:-"${PWD}/../gcc-arm-none-eabi-7-2018-q2-update/bin"}
-export POKY_SDK_AARCH64_PATH=${POKY_SDK_AARCH64_PATH:-"/opt/poky/2.3.4/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux"}
-export POKY_SDK_AARCH64_SYSROOT=${POKY_SDK_AARCH64_SYSROOT:-"/opt/poky/2.3.4/sysroots/aarch64-poky-linux"}
-
-#
 # Set git revisions to use
 #
 
-if [ -n "$HPSC_BUILD_DEVELOPMENT" ]; then
+if [ "$HPSC_BUILD_DEVELOPMENT" == "1" ]; then
     # Anything goes - read from the environment, otherwise use the latest
     export GIT_CHECKOUT_DEFAULT=${GIT_CHECKOUT_DEFAULT:-"hpsc"}
     export SRCREV_DEFAULT=${SRCREV_DEFAULT:-"\${AUTOREV}"}

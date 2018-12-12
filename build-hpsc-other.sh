@@ -7,29 +7,38 @@ BUILD_JOBS=4
 
 . ./build-common.sh || exit $?
 
+# Must know where the POKY SDK is - fall back on default install location
+export POKY_SDK=${POKY_SDK:-"/opt/poky/2.4.3"}
+
 # Check that baremetal toolchain is on PATH
 function check_bm_toolchain()
 {
-    export PATH=${PATH}:${GCC_ARM_NONE_EABI_BINDIR}
     which arm-none-eabi-gcc > /dev/null 2>&1
     if [ $? -ne 0 ]; then
-        echo "Error: update GCC_ARM_NONE_EABI_BINDIR or add toolchain bin directory to PATH"
+        echo "Error: Bare metal cross compiler 'arm-none-eabi-gcc' is not on PATH"
+        echo "  e.g., export PATH=\$PATH:/opt/gcc-arm-none-eabi-7-2018-q2-update/bin"
         exit 1
     fi
 }
 
-# Check that poky toolchain is on PATH
+# Verify poky toolchain components
 function check_poky_toolchain()
 {
-    export PATH=${PATH}:${POKY_SDK_AARCH64_PATH}
-    export SYSROOT="$POKY_SDK_AARCH64_SYSROOT"
-    which aarch64-poky-linux-gcc > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        echo "Error: update POKY_SDK_AARCH64_PATH or add toolchain to PATH"
+    if [ ! -d "$POKY_SDK" ]; then
+        echo "Error: POKY_SDK not found: $POKY_SDK"
+        echo "  e.g., export POKY_SDK=/opt/poky/2.4.3"
         exit 1
     fi
-    if [ ! -d "${POKY_SDK_AARCH64_SYSROOT}" ]; then
-        echo "Error: POKY_SDK_AARCH64_SYSROOT not found: $POKY_SDK_AARCH64_SYSROOT"
+    local POKY_CC_PATH=$POKY_SDK/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux
+    export PATH=$PATH:$POKY_CC_PATH
+    which aarch64-poky-linux-gcc > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "Error: 'aarch64-poky-linux-gcc' not found in SDK: $POKY_CC_PATH"
+        exit 1
+    fi
+    export SYSROOT="$POKY_SDK/sysroots/aarch64-poky-linux"
+    if [ ! -d "${SYSROOT}" ]; then
+        echo "Error: sysroot 'aarch64-poky-linux' not found in SDK: $SYSROOT"
         exit 1
     fi
 }
