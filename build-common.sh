@@ -81,7 +81,7 @@ export GIT_CHECKOUT_QEMU_DT="$GIT_CHECKOUT_DEFAULT"
 function git_clone_pull()
 {
     local repo=$1
-    local dir=${2:-"$1"}
+    local dir=$2
     # Don't ask for credentials if requests are bad
     export GIT_TERMINAL_PROMPT=0 # for git > 2.3
     export GIT_ASKPASS=/bin/echo

@@ -5,7 +5,7 @@
 
 BUILD_JOBS=4
 
-. build-common.sh || exit $?
+. ./build-common.sh || exit $?
 
 # Check that baremetal toolchain is on PATH
 function check_bm_toolchain()

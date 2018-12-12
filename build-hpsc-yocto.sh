@@ -43,7 +43,7 @@ case "$ACTION" in
         ;;
 esac
 
-. build-common.sh || exit $?
+. ./build-common.sh || exit $?
 
 # BB_ENV_EXTRAWHITE allows additional variables to pass through from
 # the external environment into Bitbake's datastore
@@ -55,9 +55,9 @@ export BB_ENV_EXTRAWHITE="$BB_ENV_EXTRAWHITE \
                           SRCREV_u_boot"
 
 if [ $IS_ONLINE -ne 0 ]; then
-    git_clone_pull "meta-openembedded" || exit $?
-    git_clone_pull "meta-hpsc" || exit $?
-    git_clone_pull "poky" || exit $?
+    git_clone_pull "https://github.com/ISI-apex/meta-openembedded" "meta-openembedded" || exit $?
+    git_clone_pull "https://github.com/ISI-apex/meta-hpsc" "meta-hpsc" || exit $?
+    git_clone_pull "https://github.com/ISI-apex/poky" "poky" || exit $?
 fi
 
 # add the meta-openembedded layer (for the mpich package)
