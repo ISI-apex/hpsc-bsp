@@ -68,17 +68,16 @@ if [ $IS_BUILD -ne 0 ]; then
 
     # Configure plugins for eclipse
     echo "Configuring eclipse..."
-    cd "$ECLIPSE_DIR"
     # Get repos and IUs as comma-delimited lists
     ECLIPSE_REPOSITORY_LIST=$(printf ",%s" "${ECLIPSE_REPOSITORIES[@]}")
     ECLIPSE_REPOSITORY_LIST=${ECLIPSE_REPOSITORY_LIST:1}
     ECLIPSE_PLUGIN_IU_LIST=$(printf ",%s" "${ECLIPSE_PLUGIN_IUS[@]}")
     ECLIPSE_PLUGIN_IU_LIST=${ECLIPSE_PLUGIN_IU_LIST:1}
-    ./eclipse -application org.eclipse.equinox.p2.director -nosplash \
-              -repository "$ECLIPSE_REPOSITORY_LIST" \
-              -installIUs "$ECLIPSE_PLUGIN_IU_LIST"
+    "$ECLIPSE_DIR/eclipse" -application org.eclipse.equinox.p2.director \
+                           -nosplash \
+                           -repository "$ECLIPSE_REPOSITORY_LIST" \
+                           -installIUs "$ECLIPSE_PLUGIN_IU_LIST"
     RC=$?
-    cd ..
     if [ $RC -ne 0 ]; then
         echo "Eclipse configuration failed with exit code: $RC"
         exit $RC
