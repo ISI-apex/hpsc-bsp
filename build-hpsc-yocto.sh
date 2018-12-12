@@ -23,27 +23,58 @@ function conf_replace_or_append()
         echo "$key = $value" >> "$file"
 }
 
-# Script options
-IS_ONLINE=1
-ACTION=$1
-case "$ACTION" in
-    "" | "all" |\
-    "fetchall" |\
-    "populate_sdk" |\
-    "taskexp")
-        ;;
-    *)
-        echo "Usage: $0 [ACTION]"
-        echo "  where ACTION is one of:"
-        echo "    all: (default) download sources and build all, including kernel image and rootfs"
-        echo "    fetchall: download sources"
-        echo "    populate_sdk: download sources, then build cross-compiler toolchain installer"
-        echo "    taskexp: after the previous builds have completed, run the task dependency explorer"
-        exit 1
-        ;;
-esac
+function usage()
+{
+    echo "Usage: $0 -b ID [-a <all|fetchall|populate_sdk|taskexp>] [-h]"
+    echo "    -b ID: build using git tag=ID"
+    echo "       If ID=HEAD, a development release is built instead"
+    echo "    -a ACTION"
+    echo "       all: (default) download sources and build all,"
+    echo "            including kernel image and rootfs"
+    echo "       fetchall: download sources"
+    echo "       populate_sdk: build poky SDK installer, including sysroot (rootfs)"
+    echo "       taskexp: run the task dependency explorer (requires build)"
+    echo "    -h: show this message and exit"
+    exit 1
+}
 
+# Script options
+# TODO: Support offline build (may involve setting BB_NO_NETWORK)
+IS_ONLINE=1
+ACTION=""
+BUILD=""
+# parse options
+while getopts "h?a:b:" o; do
+    case "$o" in
+        a)
+            if [ "${OPTARG}" != "all" ] ||
+               [ "${OPTARG}" != "fetchall" ] ||
+               [ "${OPTARG}" != "populate_sdk" ] ||
+               [ "${OPTARG}" != "taskexp" ]; then
+                echo "Error: no such action: ${OPTARG}"
+                usage
+            fi
+            ACTION="${OPTARG}"
+            ;;
+        b)
+            BUILD="${OPTARG}"
+            ;;
+        h)
+            usage
+            ;;
+        *)
+            echo "Unknown option"
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ -z "$BUILD" ]; then
+    usage
+fi
 . ./build-common.sh || exit $?
+build_set_environment "$BUILD"
 
 # BB_ENV_EXTRAWHITE allows additional variables to pass through from
 # the external environment into Bitbake's datastore
@@ -103,9 +134,5 @@ case "$ACTION" in
         ;;
     "taskexp")
         bitbake -u taskexp -g core-image-minimal
-        ;;
-    *)
-        echo "Unknown ACTION"
-        exit 1
         ;;
 esac

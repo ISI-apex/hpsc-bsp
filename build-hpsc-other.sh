@@ -5,8 +5,6 @@
 
 BUILD_JOBS=4
 
-. ./build-common.sh || exit $?
-
 # Must know where the POKY SDK is - fall back on default install location
 export POKY_SDK=${POKY_SDK:-"/opt/poky/2.4.3"}
 
@@ -89,6 +87,57 @@ function utils_build()
     cd .. || return $?
 }
 
+function usage()
+{
+    echo "Usage: $0 -b ID [-a <all|fetchall|buildall>] [-h]"
+    echo "    -b ID: build using git tag=ID"
+    echo "       If ID=HEAD, a development release is built instead"
+    echo "    -a ACTION"
+    echo "       all: (default) download sources and compile"
+    echo "       fetchall: download sources"
+    echo "       buildall: compile pre-downloaded sources"
+    echo "    -h: show this message and exit"
+    exit 1
+}
+
+# Script options
+IS_ONLINE=1
+IS_BUILD=1
+BUILD=""
+# parse options
+while getopts "h?a:b:" o; do
+    case "$o" in
+        a)
+            if [ "${OPTARG}" == "fetchall" ]; then
+                IS_BUILD=0;
+            elif [ "${OPTARG}" == "buildall" ]; then
+                IS_ONLINE=0
+            elif [ "${OPTARG}" != "all" ]; then
+                echo "Error: no such action: ${OPTARG}"
+                usage
+            fi
+            ;;
+        b)
+            BUILD="${OPTARG}"
+            ;;
+        h)
+            usage
+            ;;
+        *)
+            echo "Unknown option"
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ -z "$BUILD" ]; then
+    usage
+fi
+. ./build-common.sh || exit $?
+build_set_environment "$BUILD"
+
+
 PREBUILD_FNS=(check_bm_toolchain
               check_poky_toolchain)
 
@@ -113,28 +162,6 @@ BUILD_FNS=(bm_build
            qemu_build
            qemu_dt_build
            utils_build)
-
-# Script options
-IS_ONLINE=1
-IS_BUILD=1
-case "$1" in
-    "" | "all")
-        ;;
-    "fetchall")
-        IS_BUILD=0
-        ;;
-    "buildall")
-        IS_ONLINE=0
-        ;;
-    *)
-        echo "Usage: $0 [ACTION]"
-        echo "  where ACTION is one of:"
-        echo "    all: (default) download sources and compile"
-        echo "    fetchall: download sources"
-        echo "    buildall: compile pre-downloaded sources"
-        exit 1
-        ;;
-esac
 
 if [ $IS_ONLINE -ne 0 ]; then
     echo "Fetching sources..."

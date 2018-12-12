@@ -3,7 +3,7 @@ HPSC Chiplet Board Support Package
 
 This repository includes:
 
-1. `build-common.sh` - configuration for development and release builds lives here.
+1. `build-common.sh` - common utilities, including configuration for development and release builds.
 1. `build-hpsc-yocto.sh` - uses the Yocto framework to build the bulk of the Chiplet artifacts, particularly those for Linux on the HPPS.
 1. `build-hpsc-other.sh` - builds additional artifacts.
 Uses the ARM bare metal toolchain to build the TRCH and R52 firmware and u-boot for the R52s.
@@ -15,22 +15,20 @@ Uses the host compiler to build QEMU.
 Build scripts download from the git repositories located at:
 https://github.com/orgs/ISI-apex/teams/hpsc/repositories
 
-Release builds are created by default, as specified by the `GIT_RELEASE_TAG` value in `build-common.sh`.
-To build a development release instead (using the latest `HEAD` of the `hpsc` branches, set the environment variable `HPSC_BUILD_DEVELOPMENT=1`.
-
 Yocto Build
 -----------
 
 Before starting the Yocto build, ensure that your system has python3 installed, which is needed to run bitbake.
 
-To simply fetch sources:
+To perform a release build for `hpsc-2.0`:
 
-	./build-hpsc-yocto.sh fetchall
+	./build-hpsc-yocto.sh -b hpsc-2.0
 
-To run a development build, then create the SDK:
+To run a development build, specify `-b HEAD` instead.
+For example to build sources, then create the SDK:
 
-	HPSC_BUILD_DEVELOPMENT=1 ./build-hpsc-yocto.sh
-	HPSC_BUILD_DEVELOPMENT=1 ./build-hpsc-yocto.sh populate_sdk
+	./build-hpsc-yocto.sh -b HEAD
+	./build-hpsc-yocto.sh -b HEAD -a populate_sdk
 
 The generated files needed to run QEMU are located in: `poky/build/tmp/deploy/images/hpsc-chiplet`.
 Specifically:
@@ -47,7 +45,7 @@ Other Build
 -----------
 
 Building the remaining components has additional prerequisites.
-First, the ARM baremetal toolchain bin directory must be on `PATH`, e.g.:
+First, the ARM bare metal toolchain bin directory must be on `PATH`, e.g. in `/opt`:
 
 	export PATH=$PATH:/opt/gcc-arm-none-eabi-7-2018-q2-update/bin
 
@@ -63,13 +61,13 @@ The host compiler is used to build:
 1. `qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb` - the QEMU device tree
 
 Finally, the Poky SDK must be installed to build test utilities.
-Set `POKY_SDK` to the install location, e.g.:
+Set `POKY_SDK` to the install location, e.g. (using the default location):
 
 	export POKY_SDK=/opt/poky/2.4.3
 
 To run a development build:
 
-	HPSC_BUILD_DEVELOPMENT=1 ./build-hpsc-other.sh
+	./build-hpsc-other.sh -b HEAD
 
 Booting QEMU
 ------------
@@ -92,5 +90,5 @@ To download eclipse, install additional plugins, and package up again:
 
 	./build-hpsc-eclipse.sh
 
-There is no concept of a development build for Eclipse.
+There is no concept of a development or release build for Eclipse, as there's no additional source control involved.
 The final artifact is `hpsc-eclipse.tar.gz`.
