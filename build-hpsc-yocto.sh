@@ -25,7 +25,7 @@ function conf_replace_or_append()
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetchall|populate_sdk|taskexp>] [-h]"
+    echo "Usage: $0 -b ID [-a <all|fetchall|populate_sdk|buildall|taskexp>] [-h]"
     echo "    -b ID: build using git tag=ID"
     echo "       If ID=HEAD, a development release is built instead"
     echo "    -a ACTION"
@@ -33,13 +33,13 @@ function usage()
     echo "            including kernel image and rootfs"
     echo "       fetchall: download sources"
     echo "       populate_sdk: build poky SDK installer, including sysroot (rootfs)"
+    echo "       buildall: like all, but try offline"
     echo "       taskexp: run the task dependency explorer (requires build)"
     echo "    -h: show this message and exit"
     exit 1
 }
 
 # Script options
-# TODO: Support offline build (may involve setting BB_NO_NETWORK)
 IS_ONLINE=1
 ACTION=""
 BUILD=""
@@ -50,9 +50,14 @@ while getopts "h?a:b:" o; do
             if [ "${OPTARG}" != "all" ] &&
                [ "${OPTARG}" != "fetchall" ] &&
                [ "${OPTARG}" != "populate_sdk" ] &&
+               [ "${OPTARG}" != "buildall" ] &&
                [ "${OPTARG}" != "taskexp" ]; then
                 echo "Error: no such action: ${OPTARG}"
                 usage
+            fi
+            if [ "${OPTARG}" == "buildall" ]; then
+                # TODO: Force bitbake offline (may involve setting BB_NO_NETWORK)
+                IS_ONLINE=0
             fi
             ACTION="${OPTARG}"
             ;;

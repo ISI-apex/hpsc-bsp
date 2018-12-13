@@ -109,7 +109,7 @@ while getopts "h?a:b:" o; do
     case "$o" in
         a)
             if [ "${OPTARG}" == "fetchall" ]; then
-                IS_BUILD=0;
+                IS_BUILD=0
             elif [ "${OPTARG}" == "buildall" ]; then
                 IS_ONLINE=0
             elif [ "${OPTARG}" != "all" ]; then
