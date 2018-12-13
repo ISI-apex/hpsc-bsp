@@ -137,36 +137,42 @@ function transform_run_qemu()
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetchall|buildall|package>] [-h]"
+    echo "Usage: $0 -b ID [-a <all|fetchall|buildall|stage|package>] [-h]"
     echo "    -b ID: build using git tag=ID"
     echo "       If ID=HEAD, a development release is built instead"
     echo "    -a ACTION"
-    echo "       all: (default) download sources, compile, and package"
+    echo "       all: (default) download sources, compile, stage, and package"
     echo "       fetchall: download toolchains and sources"
     echo "       buildall: compile pre-downloaded sources"
+    echo "       stage: stage everything into a directory before packaging"
     echo "       package: package everything into the BSP"
     echo "    -h: show this message and exit"
     exit 1
 }
 
 # Script options
-IS_ONLINE=1
-IS_BUILD=1
-IS_PACKAGE=1
+HAS_ACTION=0
+IS_ALL=0
+IS_ONLINE=0
+IS_BUILD=0
+IS_STAGE=0
+IS_PACKAGE=0
 BUILD=""
 while getopts "h?a:b:" o; do
     case "$o" in
         a)
+            HAS_ACTION=1
             if [ "${OPTARG}" == "fetchall" ]; then
-                IS_BUILD=0
-                IS_PACKAGE=0
+                IS_ONLINE=1
             elif [ "${OPTARG}" == "buildall" ]; then
-                IS_ONLINE=0
-                IS_PACKAGE=0
+                IS_BUILD=1
+            elif [ "${OPTARG}" == "stage" ]; then
+                IS_STAGE=1
             elif [ "${OPTARG}" == "package" ]; then
-                IS_ONLINE=0
-                IS_BUILD=0
-            elif [ "${OPTARG}" != "all" ]; then
+                IS_PACKAGE=1
+            elif [ "${OPTARG}" == "all" ]; then
+                IS_ALL=1
+            else
                 echo "Error: no such action: ${OPTARG}"
                 usage
             fi
@@ -187,15 +193,20 @@ shift $((OPTIND-1))
 if [ -z "$BUILD" ]; then
     usage
 fi
-if [ $IS_PACKAGE -ne 0 ]; then
-    if [ -d "$RELEASE_DIR" ]; then
-        echo "Release directory already exists, please remove: $RELEASE_DIR"
-        exit 1
-    fi
-    if [ -e "$RELEASE_TGZ" ]; then
-        echo "Release artifact already exists, please remove: $RELEASE_TGZ"
-        exit 1
-    fi
+if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
+    # do everything
+    IS_ONLINE=1
+    IS_BUILD=1
+    IS_STAGE=1
+    IS_PACKAGE=1
+fi
+if [ $IS_STAGE -ne 0 ] && [ -d "$RELEASE_DIR" ]; then
+    echo "Staging directory already exists, please remove: $RELEASE_DIR"
+    exit 1
+fi
+if [ $IS_PACKAGE -ne 0 ] && [ -e "$RELEASE_TGZ" ]; then
+    echo "Packaged artifact already exists, please remove: $RELEASE_TGZ"
+    exit 1
 fi
 
 # Fail-fast
@@ -239,14 +250,12 @@ if [ $IS_BUILD -ne 0 ]; then
     ./build-hpsc-eclipse.sh -a buildall
 fi
 
-if [ $IS_PACKAGE -ne 0 ]; then
-    echo "Packaging $RELEASE_DIR..."
+if [ $IS_STAGE -ne 0 ]; then
+    echo "Staging $RELEASE_DIR..."
     mkdir "$RELEASE_DIR"
 
-    #
     # BSP
-    #
-    echo "Copying BSP..."
+    echo "Staging BSP..."
     mkdir "$BSP_DIR"
     for a in "${BSP_ARTIFACTS_QEMU[@]}"; do
         cp "$a" "${BSP_DIR}/"
@@ -270,16 +279,12 @@ if [ $IS_PACKAGE -ne 0 ]; then
         cp "$a" "${BSP_DIR}/aarch64-poky-linux-utils/"
     done
 
-    #
     # eclipse
-    #
-    echo "Copying eclipse..."
+    echo "Staging eclipse..."
     cp hpsc-eclipse.tar.gz "$RELEASE_DIR"
 
-    #
     # src
-    #
-    echo "Copying sources..."
+    echo "Staging sources..."
     mkdir "${RELEASE_DIR}/src"
     # copy sources downloaded to toolchain dir
     for a in "${SRC_ARTIFACTS[@]}"; do
@@ -287,18 +292,15 @@ if [ $IS_PACKAGE -ne 0 ]; then
         cp -r "${TC_REPO_DIR}/${dir}" "${RELEASE_DIR}/src/${dir}"
     done
 
-    #
     # toolchains
-    #
-    echo "Copying toolchains..."
+    echo "Staging toolchains..."
     mkdir "${RELEASE_DIR}/toolchains"
     for a in "${TOOLCHAIN_ARTIFACTS[@]}"; do
         cp "$a" "${RELEASE_DIR}/toolchains/"
     done
+fi
 
-    #
-    # Create final release archive
-    #
-    echo "Creating artifact: $RELEASE_TGZ..."
+if [ $IS_PACKAGE -ne 0 ]; then
+    echo "Packaging: $RELEASE_TGZ..."
     tar czf "$RELEASE_TGZ" "$RELEASE_DIR"
 fi
