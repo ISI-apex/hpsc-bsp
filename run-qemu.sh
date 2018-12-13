@@ -14,6 +14,8 @@ ARM_TF_FILE=${YOCTO_DEPLOY_DIR}/arm-trusted-firmware.elf # TODO: consider renami
 ARM_TF_FILE_BIN=${YOCTO_DEPLOY_DIR}/arm-trusted-firmware.bin # TODO: consider renaming this to bl31.elf or atf-bl31.elf to show that we're only using stage 3.1
 ROOTFS_FILE=${YOCTO_DEPLOY_DIR}/core-image-minimal-hpsc-chiplet.cpio.gz.u-boot
 KERNEL_FILE=${YOCTO_DEPLOY_DIR}/Image
+GZIPPED_KERNEL_FILE=${YOCTO_DEPLOY_DIR}/Image.gz
+COMPRESSED_KERNEL_FILE=${YOCTO_DEPLOY_DIR}/uImage
 LINUX_DT_FILE=${YOCTO_DEPLOY_DIR}/hpsc.dtb
 BL_FILE=${YOCTO_DEPLOY_DIR}/u-boot.elf
 BL_FILE_BIN=${YOCTO_DEPLOY_DIR}/u-boot.bin
@@ -60,6 +62,7 @@ BOOT_MODE_NAND=0x0000f000    # HPPS rootfs in NAND (MTD device)
 ARM_TF_ADDRESS=0x80000000
 BL_ADDRESS=0x88000000
 KERNEL_ADDR=0x80080000
+COMPRESSED_KERNEL_ADDR=0x81080000
 LINUX_DT_ADDR=0x84000000
 ROOTFS_ADDR=0x90000000
 
@@ -84,7 +87,7 @@ function create_nvsram_image()
 	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${BL_FILE_BIN} 	"hpps-bl" ${BL_ADDRESS}
 	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${ARM_TF_FILE_BIN} 	"hpps-fw" ${ARM_TF_ADDRESS}
 	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${LINUX_DT_FILE} 	"hpps-dt" ${LINUX_DT_ADDR}
-	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${KERNEL_FILE}   	"hpps-os" ${KERNEL_ADDR}
+	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${COMPRESSED_KERNEL_FILE}   	"hpps-os" ${COMPRESSED_KERNEL_ADDR}
 	${SRAM_IMAGE_UTILS} show ${TRCH_SRAM_FILE} 
 	set +e
 }
@@ -289,6 +292,9 @@ esac
 # Note: order of -device args may matter, must load ATF last, because loader also sets PC
 # Note: If you want to see instructions and exceptions at a large performance cost, then add
 # "in_asm,int" to the list of categories in -d.
+
+mkimage -C gzip -A arm64 -d ${GZIPPED_KERNEL_FILE} -a ${KERNEL_ADDR} ${COMPRESSED_KERNEL_FILE}
+
 BASE_COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
     -machine "arm-generic-fdt"
     -nographic
@@ -298,7 +304,7 @@ BASE_COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
     -hw-dtb "${QEMU_DT_FILE}"
     "${SERIAL_PORT_ARGS[@]}"
     -device "loader,addr=${LINUX_DT_ADDR},file=${LINUX_DT_FILE},force-raw,cpu-num=3"
-    -device "loader,addr=${KERNEL_ADDR},file=${KERNEL_FILE},force-raw,cpu-num=3"
+    -device "loader,addr=${COMPRESSED_KERNEL_ADDR},file=${COMPRESSED_KERNEL_FILE},force-raw,cpu-num=3"
     -device "loader,addr=${RTPS_BOOT_MODE_ADDR},data=${RTPS_BOOT_LOCKSTEP},data-len=4,cpu-num=0"
     -device "loader,file=${TRCH_FILE},cpu-num=0"
     -net "nic,vlan=0" -net "user,vlan=0,hostfwd=tcp:127.0.0.1:2345-10.0.2.15:2345,hostfwd=tcp:127.0.0.1:10022-10.0.2.15:22")
