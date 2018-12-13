@@ -24,27 +24,42 @@ ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group
                     ilg.gnumcueclipse.packs.data
                     ilg.gnumcueclipse.templates.core)
 
+function usage()
+{
+    echo "Usage: $0 [-a <all|fetchall|buildall>] [-h]"
+    echo "    -a ACTION"
+    echo "       all: (default) download sources and build"
+    echo "       fetchall: download sources"
+    echo "       buildall: build eclipse package"
+    echo "    -h: show this message and exit"
+    exit 1
+}
+
 # Script options
 IS_ONLINE=1
 IS_BUILD=1
-case "$1" in
-    "" | "all")
-        ;;
-    "fetchall")
-        IS_BUILD=0
-        ;;
-    "buildall")
-        IS_ONLINE=0
-        ;;
-    *)
-        echo "Usage: $0 [ACTION]"
-        echo "  where ACTION is one of:"
-        echo "    all: (default) download sources and build"
-        echo "    fetchall: download sources"
-        echo "    buildall: build eclipse package"
-        exit 1
-        ;;
-esac
+while getopts "h?a:" o; do
+    case "$o" in
+        a)
+            if [ "${OPTARG}" == "fetchall" ]; then
+                IS_BUILD=0
+            elif [ "${OPTARG}" == "buildall" ]; then
+                IS_ONLINE=0
+            elif [ "${OPTARG}" != "all" ]; then
+                echo "Error: no such action: ${OPTARG}"
+                usage
+            fi
+            ;;
+        h)
+            usage
+            ;;
+        *)
+            echo "Unknown option"
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
 
 if [ $IS_ONLINE -ne 0 ]; then
     if [ ! -e "$ECLIPSE_TGZ" ]; then
