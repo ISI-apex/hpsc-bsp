@@ -3,8 +3,8 @@
 # Yocto packages to install
 # Please list alphabetically and group items together appropriately
 YOCTO_INSTALL=(gdb gdbserver
-               libc-staticdev
-               libgomp libgomp-dev libgomp-staticdev
+               libgfortran
+               libgomp
                libstdc++
                mpich
                mtd-utils
@@ -47,9 +47,9 @@ BUILD=""
 while getopts "h?a:b:" o; do
     case "$o" in
         a)
-            if [ "${OPTARG}" != "all" ] ||
-               [ "${OPTARG}" != "fetchall" ] ||
-               [ "${OPTARG}" != "populate_sdk" ] ||
+            if [ "${OPTARG}" != "all" ] &&
+               [ "${OPTARG}" != "fetchall" ] &&
+               [ "${OPTARG}" != "populate_sdk" ] &&
                [ "${OPTARG}" != "taskexp" ]; then
                 echo "Error: no such action: ${OPTARG}"
                 usage
@@ -120,6 +120,7 @@ done
 # configure local.conf
 conf_replace_or_append "MACHINE" "\"hpsc-chiplet\""
 conf_replace_or_append "CORE_IMAGE_EXTRA_INSTALL" "\"${YOCTO_INSTALL[*]}\""
+conf_replace_or_append "FORTRAN_forcevariable" "\",fortran\""
 
 # finally, execute the requested action
 case "$ACTION" in
