@@ -3,6 +3,7 @@ HPSC Chiplet Board Support Package
 
 This repository includes:
 
+1. `build-hpsc-bsp.sh` - top-level build script
 1. `build-common.sh` - common utilities, including configuration for development and release builds.
 1. `build-hpsc-yocto.sh` - uses the Yocto framework to build the bulk of the Chiplet artifacts, particularly those for Linux on the HPPS.
 1. `build-hpsc-other.sh` - builds additional artifacts.
@@ -12,20 +13,41 @@ Uses the host compiler to build QEMU.
 1. `run-qemu.sh` - uses the output from the build scripts above to boot QEMU.
 1. `create_rootfs_nand.sh` - creates nand image file and put root filesystem in the nand image file.
 
+Scripts must be run from the same directory.
+Most scripts support the `-h` flag to print usage help.
+
 Build scripts download from the git repositories located at:
 https://github.com/orgs/ISI-apex/teams/hpsc/repositories
+
+BSP Build
+---------
+
+The top-level `build-hpsc-bsp.sh` script wraps the other build scripts, so please read their documentation below before proceeding.
+
+By default, it will run through fetch, build, stage, and package steps.
+The following steps may be run independently using the `-a` flag so long as previous steps are complete.
+
+* `fetchall` - download/build toolchains and fetch build sources
+* `buildall` - build all pre-downloaded sources.
+Note: Yocto may still attempt to fetch sources when doing a development build.
+* `stage` - stage sources and binaries into the directory structure to be packaged
+* `package` - package the staged directory structure into the final BSP archive
+
+To perform a release build for `hpsc-2.0`:
+
+	./build-hpsc-bsp.sh -b hpsc-2.0
+
+To run a development build, specify `-b HEAD` instead.
+Other build scripts follow this same pattern.
+
+	./build-hpsc-bsp.sh -b HEAD
 
 Yocto Build
 -----------
 
 Before starting the Yocto build, ensure that your system has python3 installed, which is needed to run bitbake.
 
-To perform a release build for `hpsc-2.0`:
-
-	./build-hpsc-yocto.sh -b hpsc-2.0
-
-To run a development build, specify `-b HEAD` instead.
-For example to build sources, then create the SDK:
+For example to perform a development build, then create the SDK:
 
 	./build-hpsc-yocto.sh -b HEAD
 	./build-hpsc-yocto.sh -b HEAD -a populate_sdk
