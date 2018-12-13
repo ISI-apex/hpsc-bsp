@@ -28,13 +28,17 @@ BSP_ARTIFACTS_QEMU=("${PWD}/qemu/BUILD/aarch64-softmmu/qemu-system-aarch64"
                     "${PWD}/qmp.py"
                     "${PWD}/run-qemu.sh")
 BSP_ARTIFACTS_HPPS=("${POKY_IMAGE_DIR}/arm-trusted-firmware.elf"
+                    "${POKY_IMAGE_DIR}/arm-trusted-firmware.bin"
                     "${POKY_IMAGE_DIR}/core-image-minimal-hpsc-chiplet.cpio"
                     "${POKY_IMAGE_DIR}/core-image-minimal-hpsc-chiplet.cpio.gz.u-boot"
                     "${POKY_IMAGE_DIR}/hpsc.dtb"
                     "${POKY_IMAGE_DIR}/Image"
-                    "${POKY_IMAGE_DIR}/u-boot.elf")
-BSP_ARTIFACTS_UTIL=("${UTILS_DIR}/linux/mboxtester"
-                    "${UTILS_DIR}/linux/wdtester")
+                    "${POKY_IMAGE_DIR}/u-boot.elf"
+                    "${POKY_IMAGE_DIR}/u-boot.bin")
+BSP_ARTIFACTS_AARCH64_UTIL=("${UTILS_DIR}/linux/mboxtester"
+                            "${UTILS_DIR}/linux/wdtester")
+BSP_ARTIFACTS_HOST_UTIL=("${UTILS_DIR}/host/qemu-nand-creator"
+                         "${UTILS_DIR}/host/sram-image-utils")
 BSP_ARTIFACTS_RTPS_R52=("${BAREMETAL_DIR}/rtps/bld/rtps.elf"
                         "${BAREMETAL_DIR}/rtps/bld/rtps.bin"
                         "${R52_UBOOT_DIR}/u-boot.elf"
@@ -45,6 +49,8 @@ BSP_DIR=${RELEASE_DIR}/BSP
 BSP_DIR_HPPS=${BSP_DIR}/hpps
 BSP_DIR_RTPS_R52=${BSP_DIR}/rtps-r52
 BSP_DIR_TRCH=${BSP_DIR}/trch
+BSP_DIR_AARCH64_UTILS=${BSP_DIR}/aarch64-poky-linux-utils
+BSP_DIR_HOST_UTILS=${BSP_DIR}/host-utils
 
 # Sources for src directory
 # TODO: Include poky, meta-hpsc, and meta-openembedded?
@@ -91,30 +97,31 @@ EOF
 function transform_run_qemu()
 {
     script=$1
+    # TODO: Would be nice if we could just get relative paths from above
     local RUN_QEMU_REPLACE=(
-        ARM_TF_FILE=${BSP_DIR_HPPS}/arm-trusted-firmware.elf
-        ARM_TF_FILE_BIN=${BSP_DIR_HPPS}/arm-trusted-firmware.bin
-        ROOTFS_FILE=${BSP_DIR_HPPS}/core-image-minimal-hpsc-chiplet.cpio.gz.u-boot
-        KERNEL_FILE=${BSP_DIR_HPPS}/Image
-        LINUX_DT_FILE=${BSP_DIR_HPPS}/hpsc.dtb
-        BL_FILE=${BSP_DIR_HPPS}/u-boot.elf
-        BL_FILE_BIN=${BSP_DIR_HPPS}/u-boot.bin
+        ARM_TF_FILE=hpps/arm-trusted-firmware.elf
+        ARM_TF_FILE_BIN=hpps/arm-trusted-firmware.bin
+        ROOTFS_FILE=hpps/core-image-minimal-hpsc-chiplet.cpio.gz.u-boot
+        KERNEL_FILE=hpps/Image
+        LINUX_DT_FILE=hpps/hpsc.dtb
+        BL_FILE=hpps/u-boot.elf
+        BL_FILE_BIN=hpps/u-boot.bin
 
-        TRCH_FILE=${BSP_DIR_TRCH}/trch.elf
-        RTPS_FILE=${BSP_DIR_RTPS_R52}/rtps.elf
-        RTPS_FILE_BIN=${BSP_DIR_RTPS_R52}/rtps.bin
+        TRCH_FILE=trch/trch.elf
+        RTPS_FILE=rtps-r52/rtps.elf
+        RTPS_FILE_BIN=rtps-r52/rtps.bin
 
-        RTPS_BL_FILE=${BSP_DIR_RTPS_R52}/u-boot.elf
-        RTPS_BL_FILE_BIN=${BSP_DIR_RTPS_R52}/u-boot.bin
+        RTPS_BL_FILE=rtps-r52/u-boot.elf
+        RTPS_BL_FILE_BIN=rtps-r52/u-boot.bin
 
         QEMU_DIR=.
         QEMU_DT_FILE=hpsc-arch.dtb
 
-        HPPS_NAND_IMAGE=${BSP_DIR_HPPS}/rootfs_nand.bin
-        HPPS_SRAM_FILE=${BSP_DIR_HPPS}/hpps_sram.bin
-        TRCH_SRAM_FILE=${BSP_DIR_HPPS}/trch_sram.bin
+        HPPS_NAND_IMAGE=hpps/rootfs_nand.bin
+        HPPS_SRAM_FILE=hpps/hpps_sram.bin
+        TRCH_SRAM_FILE=hpps/trch_sram.bin
 
-        HPSC_HOST_UTILS_DIR=../src/hpsc-utils/host
+        HPSC_HOST_UTILS_DIR=host-utils
     )
     for repl in "${RUN_QEMU_REPLACE[@]}"; do
         prop=$(echo "$repl" | cut -d= -f1)
@@ -274,9 +281,13 @@ if [ $IS_STAGE -ne 0 ]; then
     for a in "${BSP_ARTIFACTS_TRCH[@]}"; do
         cp "$a" "${BSP_DIR_TRCH}/"
     done
-    mkdir "${BSP_DIR}/aarch64-poky-linux-utils"
-    for a in "${BSP_ARTIFACTS_UTIL[@]}"; do
-        cp "$a" "${BSP_DIR}/aarch64-poky-linux-utils/"
+    mkdir "$BSP_DIR_AARCH64_UTILS"
+    for a in "${BSP_ARTIFACTS_AARCH64_UTIL[@]}"; do
+        cp "$a" "${BSP_DIR_AARCH64_UTILS}/"
+    done
+    mkdir "$BSP_DIR_HOST_UTILS"
+    for a in "${BSP_ARTIFACTS_HOST_UTIL[@]}"; do
+        cp "$a" "${BSP_DIR_HOST_UTILS}/"
     done
 
     # eclipse
