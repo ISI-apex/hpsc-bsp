@@ -373,7 +373,16 @@ COMMAND+=("${TRCH_APP_LOAD[@]}")
 
 if [ "${CMD}" == "run" ]
 then
-    echo "Final Command: ${COMMAND[*]}"
+    echo "Final Command (one arg per line):"
+    for arg in ${COMMAND[*]}
+    do
+        echo $arg
+    done
+    echo
+
+    echo "Final Command:"
+    echo "${COMMAND[*]}"
+    echo
 fi
 
 function finish {
