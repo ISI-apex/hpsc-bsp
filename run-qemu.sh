@@ -97,6 +97,7 @@ function usage()
     echo "               -c gdb: command - start emulation with gdb" 1>&2
     echo "               -c consoles: command - setup consoles of the subsystems at the host" 1>&2
     echo "               -c nand_create: command - create nand image with rootfs in it" 1>&2
+    echo "               -c sram_create: command - create sram image" 1>&2
     echo "               -b dram: boot images in dram (default)" 1>&2
     echo "               -b nvram: boot images in offchip non-volatile ram" 1>&2
     echo "               -f dram: HPPS rootfile system in ram, volatile (default)" 1>&2
@@ -197,7 +198,7 @@ HPPS_ROOTFS_OPTION="dram"
 while getopts "h?b:c:f:" o; do
     case "${o}" in
         c)
-            if [[ "${OPTARG}" =~ ^run|gdb|consoles|nand_create$ ]]
+            if [[ "${OPTARG}" =~ ^run|gdb|consoles|nand_create|sram_create$ ]]
             then
                 CMDS+=("${OPTARG}")
             else
@@ -262,7 +263,7 @@ do
            GDB_CMD_FILE=$(mktemp)
            cat >/"$GDB_CMD_FILE" <<EOF
 define hook-run
-shell $0 -c consoles
+shell $0 -c consoles -c sram_create
 end
 EOF
             GDB_ARGS=(gdb -x "$GDB_CMD_FILE" --args)
@@ -276,6 +277,9 @@ EOF
             done
             echo "run attach_consoles"
             attach_consoles &
+            ;;
+       sram_create)
+            create_nvsram_image
             ;;
        nand_create)
             for session in "${SCREEN_SESSIONS[@]}"
