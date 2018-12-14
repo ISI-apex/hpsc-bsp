@@ -357,6 +357,9 @@ then
 fi
 COMMAND+=("${OPT_COMMAND[@]}")
 
+# Not selectable by a command line argument yet
+RTPS_BOOT_MODE="${RTPS_BOOT_LOCKSTEP}"
+
 # Storing boot configuration files for TRCH and for RTPS/HPPS bootloaders on NV
 # mem is not yet supported, so boot config flags are set by Qemu in designated
 # DRAM locations on machine startup, and read by TRCH or RTPS/HPPS bootloaders.
