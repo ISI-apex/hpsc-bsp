@@ -243,11 +243,6 @@ case "$CMD" in
         attach_consoles &
         ;;
    gdb)
-        for session in "${SCREEN_SESSIONS[@]}"
-        do
-            setup_screen $session
-        done
-        attach_consoles &
         # setup/attach_consoles are called when gdb runs this script with "consoles"
         # cmd from the hook to the "run" command defined below:
         # NOTE: have to go through an actual file because -ex doesn't work since no way
