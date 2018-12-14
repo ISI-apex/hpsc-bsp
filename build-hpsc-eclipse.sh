@@ -1,6 +1,7 @@
 #!/bin/bash
 
 ECLIPSE_URL="https://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/2018-09/R/eclipse-cpp-2018-09-linux-gtk-x86_64.tar.gz&r=1"
+ECLIPSE_MD5=6087e4def4382fd334de658f9bde190b
 ECLIPSE_TGZ=eclipse_src.tar.gz
 ECLIPSE_DIR=eclipse
 ECLIPSE_HPSC=hpsc-eclipse.tar.gz
@@ -65,6 +66,13 @@ if [ $IS_ONLINE -ne 0 ]; then
     if [ ! -e "$ECLIPSE_TGZ" ]; then
         echo "Downloading eclipse..."
         wget -O "$ECLIPSE_TGZ" "$ECLIPSE_URL" || exit $?
+        md5=$(md5sum "$ECLIPSE_TGZ" | awk '{print $1}')
+        if [ "$md5" != "$ECLIPSE_MD5" ]; then
+            echo "md5sum mismatch for: $ECLIPSE_TGZ"
+            echo "  got: $md5"
+            echo "  expected: $ECLIPSE_MD5"
+            exit 1
+        fi
     fi
 fi
 

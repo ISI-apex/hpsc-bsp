@@ -12,6 +12,7 @@ TC_POKY_DIR=${TC_TOP_DIR}/poky
 TC_REPO_DIR=${TC_TOP_DIR}/bsp_repositories
 
 BM_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2"
+BM_MD5=299ebd3f1c2c90930d28ab82e5d8d6c0
 BM_TC_TBZ2=${PWD}/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
 
 # Paths generated as part of build
@@ -227,6 +228,13 @@ if [ $IS_ONLINE -ne 0 ]; then
     # get toolchains
     if [ ! -e "$BM_TC_TBZ2" ]; then
         wget -O "$BM_TC_TBZ2" "$BM_URL"
+        md5=$(md5sum "$BM_TC_TBZ2" | awk '{print $1}')
+        if [ "$md5" != "$BM_MD5" ]; then
+            echo "md5sum mismatch for: $BM_TC_TBZ2"
+            echo "  got: $md5"
+            echo "  expected: $ECLIPSE_MD5"
+            exit 1
+        fi
     fi
     ./build-hpsc-yocto.sh -b "$BUILD" -a populate_sdk
     mkdir -p "$TC_TOP_DIR"
@@ -250,7 +258,7 @@ if [ $IS_BUILD -ne 0 ]; then
     # build Yocto
     ./build-hpsc-yocto.sh -b "$BUILD" -a buildall
     # build other packages
-    export PATH=$PATH:$TC_BM_DIR
+    export PATH=$PATH:$TC_BM_DIR/bin
     export POKY_SDK="$TC_POKY_DIR"
     ./build-hpsc-other.sh -b "$BUILD" -a buildall
     # build Eclipse
