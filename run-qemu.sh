@@ -10,9 +10,8 @@
 
 # Output files from the Yocto build
 YOCTO_DEPLOY_DIR=${PWD}/poky/build/tmp/deploy/images/hpsc-chiplet
-ARM_TF_FILE=${YOCTO_DEPLOY_DIR}/arm-trusted-firmware.elf # TODO: consider renaming this to bl31.elf or atf-bl31.elf to show that we're only using stage 3.1
-ARM_TF_FILE_BIN=${YOCTO_DEPLOY_DIR}/arm-trusted-firmware.bin # TODO: consider renaming this to bl31.elf or atf-bl31.elf to show that we're only using stage 3.1
 ROOTFS_FILE=${YOCTO_DEPLOY_DIR}/core-image-minimal-hpsc-chiplet.cpio.gz.u-boot
+HPPS_FW=${YOCTO_DEPLOY_DIR}/arm-trusted-firmware.bin
 HPPS_BL=${YOCTO_DEPLOY_DIR}/u-boot.bin
 HPPS_DT=${YOCTO_DEPLOY_DIR}/hpsc.dtb
 HPPS_KERN_BIN=${YOCTO_DEPLOY_DIR}/Image.gz
@@ -55,7 +54,7 @@ BOOT_MODE_ADDR=0x9f000000    # memory location to store boot mode code for HPPS 
 BOOT_MODE_DRAM=0x00000000    # HPPS rootfs in RAM
 BOOT_MODE_NAND=0x0000f000    # HPPS rootfs in NAND (MTD device)
 
-ARM_TF_ADDRESS=0x80000000
+HPPS_FW_ADDR=0x80000000
 HPPS_BL_ADDR=0x88000000
 HPPS_KERN_ADDR=0x81080000
 HPPS_KERN_LOAD_ADDR=0x80080000
@@ -82,7 +81,7 @@ function create_nvsram_image()
 	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${RTPS_BL} 		"rtps-bl" ${RTPS_BL_ADDR}
 	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${RTPS_APP} 		"rtps-os" ${RTPS_APP_ADDR}
 	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${HPPS_BL} 	        "hpps-bl" ${HPPS_BL_ADDR}
-	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${ARM_TF_FILE_BIN} 	"hpps-fw" ${ARM_TF_ADDRESS}
+	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${HPPS_FW} 	        "hpps-fw" ${HPPS_FW_ADDR}
 	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${HPPS_DT} 	        "hpps-dt" ${HPPS_DT_ADDR}
 	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${HPPS_KERN}   	"hpps-os" ${HPPS_KERN_ADDR}
 	${SRAM_IMAGE_UTILS} show ${TRCH_SRAM_FILE} 
@@ -306,7 +305,7 @@ BASE_COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
 RTPS_BL_LOAD=(-device "loader,addr=${RTPS_BL_ADDR},file=${RTPS_BL},force-raw,cpu-num=1")
 RTPS_APP_LOAD=(-device "loader,addr=${RTPS_APP_ADDR},file=${RTPS_APP},force-raw,cpu-num=1")
 HPPS_BL_LOAD=(-device "loader,addr=${HPPS_BL_ADDR},file=${HPPS_BL},force-raw,cpu-num=3")
-HPPS_ATF_LOAD=(-device "loader,file=${ARM_TF_FILE},cpu-num=3")
+HPPS_ATF_LOAD=(-device "loader,file=${HPPS_FW},force-raw,cpu-num=3")
 HPPS_OS_LOAD=(-device "loader,addr=${HPPS_DT_ADDR},file=${HPPS_DT},force-raw,cpu-num=3"
               -device "loader,addr=${HPPS_KERN_ADDR},file=${HPPS_KERN},force-raw,cpu-num=3")
 HPPS_ROOTFS_LOAD=(-device "loader,addr=${ROOTFS_ADDR},file=${ROOTFS_FILE},force-raw,cpu-num=3")
