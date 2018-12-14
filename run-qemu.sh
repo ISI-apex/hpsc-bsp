@@ -310,18 +310,21 @@ HPPS_ATF_LOAD=(-device "loader,file=${HPPS_FW},force-raw,cpu-num=3")
 HPPS_OS_LOAD=(-device "loader,addr=${HPPS_DT_ADDR},file=${HPPS_DT},force-raw,cpu-num=3"
               -device "loader,addr=${HPPS_KERN_ADDR},file=${HPPS_KERN},force-raw,cpu-num=3")
 HPPS_RAMDISK_LOAD=(-device "loader,addr=${HPPS_RAMDISK_ADDR},file=${HPPS_RAMDISK},force-raw,cpu-num=3")
-HPPS_NAND_LOAD=(-drive "file=$HPPS_NAND_IMAGE,if=pflash,format=raw,index=3")
-HPPS_SRAM_LOAD=(-drive "file=$HPPS_SRAM_FILE,if=pflash,format=raw,index=2")
-TRCH_SRAM_LOAD=(-drive "file=$TRCH_SRAM_FILE,if=pflash,format=raw,index=0")
+
 BOOT_MODE_DRAM_LOAD=(-device "loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE_DRAM,data-len=4,cpu-num=3")
 BOOT_MODE_NAND_LOAD=(-device "loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE_NAND,data-len=4,cpu-num=3")
+
+HPPS_NAND_DRIVE=(-drive "file=$HPPS_NAND_IMAGE,if=pflash,format=raw,index=3")
+HPPS_SRAM_DRIVE=(-drive "file=$HPPS_SRAM_FILE,if=pflash,format=raw,index=2")
+TRCH_SRAM_DRIVE=(-drive "file=$TRCH_SRAM_FILE,if=pflash,format=raw,index=0")
+
 
 COMMAND=()
 if [ "${CMD}" == "nand_create" ]
 then
    BOOT_IMAGE_OPTION="dram"
    HPPS_ROOTFS_OPTION="dram"
-   OPT_COMMAND=("${HPPS_NAND_LOAD[@]}")
+   OPT_COMMAND=("${HPPS_NAND_DRIVE[@]}")
 fi
 COMMAND+=("${BASE_COMMAND[@]}" "${OPT_COMMAND[@]}")
 
@@ -332,7 +335,7 @@ then
 elif [ "${BOOT_IMAGE_OPTION}" == "nvram" ]	# Boot images are stored in an NVRAM and loaded onto DRAM by TRCH
 then
     create_nvsram_image
-    OPT_COMMAND=("${TRCH_SRAM_LOAD[@]}")
+    OPT_COMMAND=("${TRCH_SRAM_DRIVE[@]}")
 fi
 COMMAND+=("${OPT_COMMAND[@]}")
 
@@ -341,7 +344,7 @@ then
     OPT_COMMAND=("${HPPS_RAMDISK_LOAD[@]}" "${BOOT_MODE_DRAM_LOAD[@]}")
 elif [ "${HPPS_ROOTFS_OPTION}" == "nand" ]    # HPPS rootfs is stored in an Nand, non-volatile
 then
-    OPT_COMMAND=("${HPPS_NAND_LOAD[@]}" "${BOOT_MODE_NAND_LOAD[@]}")
+    OPT_COMMAND=("${HPPS_NAND_DRIVE[@]}" "${BOOT_MODE_NAND_LOAD[@]}")
 fi
 COMMAND+=("${OPT_COMMAND[@]}")
 
