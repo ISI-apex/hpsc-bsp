@@ -22,7 +22,7 @@ BL_FILE_BIN=${YOCTO_DEPLOY_DIR}/u-boot.bin
 
 # Output files from the hpsc-baremetal build
 BAREMETAL_DIR=${PWD}/hpsc-baremetal
-TRCH_FILE=${BAREMETAL_DIR}/trch/bld/trch.elf
+TRCH_APP=${BAREMETAL_DIR}/trch/bld/trch.elf
 RTPS_APP=${BAREMETAL_DIR}/rtps/bld/rtps.elf
 
 # Output files from the hpsc-R52-uboot build
@@ -305,7 +305,7 @@ BASE_COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
     -device "loader,addr=${LINUX_DT_ADDR},file=${LINUX_DT_FILE},force-raw,cpu-num=3"
     -device "loader,addr=${COMPRESSED_KERNEL_ADDR},file=${COMPRESSED_KERNEL_FILE},force-raw,cpu-num=3"
     -device "loader,addr=${RTPS_BOOT_MODE_ADDR},data=${RTPS_BOOT_LOCKSTEP},data-len=4,cpu-num=0"
-    -device "loader,file=${TRCH_FILE},cpu-num=0"
+    -device "loader,file=${TRCH_APP},cpu-num=0"
     -net "nic,vlan=0" -net "user,vlan=0,hostfwd=tcp:127.0.0.1:2345-10.0.2.15:2345,hostfwd=tcp:127.0.0.1:10022-10.0.2.15:22")
 RTPS_BL_LOAD=(-device "loader,addr=${RTPS_BL_ADDR},file=${RTPS_BL},force-raw,cpu-num=1")
 RTPS_APP_LOAD=(-device "loader,addr=${RTPS_APP_ADDR},file=${RTPS_APP},force-raw,cpu-num=1")
