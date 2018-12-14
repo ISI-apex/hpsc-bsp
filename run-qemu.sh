@@ -187,8 +187,9 @@ function attach_consoles()
     ./qmp.py localhost $QMP_PORT cont
 }
 
+
 # default values
-CMD="run"
+CMDS=()
 BOOT_IMAGE_OPTION="dram"
 HPPS_ROOTFS_OPTION="dram"
 
@@ -198,7 +199,7 @@ while getopts "h?b:c:f:" o; do
         c)
             if [[ "${OPTARG}" =~ ^run|gdb|consoles|nand_create$ ]]
             then
-                CMD="${OPTARG}"
+                CMDS+=("${OPTARG}")
             else
                 echo "Error: no such command - ${OPTARG}"
                 usage
@@ -233,47 +234,63 @@ while getopts "h?b:c:f:" o; do
 done
 shift $((OPTIND-1))
 
-# preparation of environment
-case "$CMD" in
-   run)
-        for session in "${SCREEN_SESSIONS[@]}"
-        do
-            setup_screen $session
-        done
-        attach_consoles &
-        ;;
-   gdb)
-        # setup/attach_consoles are called when gdb runs this script with "consoles"
-        # cmd from the hook to the "run" command defined below:
-        # NOTE: have to go through an actual file because -ex doesn't work since no way
-        ## to give a multiline command (incl. multiple -ex), and bash-created file -x
-        # <(echo -e ...) doesn't work either (issue only with gdb).
-       GDB_CMD_FILE=$(mktemp)
-cat >/"$GDB_CMD_FILE" <<EOF
+if [ ${#CMDS[@]} -eq 0 ]
+then
+    CMDS+=("run")
+fi
+
+RUN=0
+echo CMDS ${CMDS[@]}
+for CMD in ${CMDS[@]}
+do
+    echo CMD: $CMD
+    case "$CMD" in
+       run)
+            for session in "${SCREEN_SESSIONS[@]}"
+            do
+                setup_screen $session
+            done
+            attach_consoles &
+            RUN=1
+            ;;
+       gdb)
+            # setup/attach_consoles are called when gdb runs this script with "consoles"
+            # cmd from the hook to the "run" command defined below:
+            # NOTE: have to go through an actual file because -ex doesn't work since no way
+            ## to give a multiline command (incl. multiple -ex), and bash-created file -x
+            # <(echo -e ...) doesn't work either (issue only with gdb).
+           GDB_CMD_FILE=$(mktemp)
+           cat >/"$GDB_CMD_FILE" <<EOF
 define hook-run
 shell $0 -c consoles
 end
 EOF
-        GDB_ARGS=(gdb -x "$GDB_CMD_FILE" --args)
-        ;;
-    consoles)
-        echo "run setup_screen"
-        for session in "${SCREEN_SESSIONS[@]}"
-        do
-            setup_screen $session
-        done
-        echo "run attach_consoles"
-        attach_consoles &
-        exit # don't run qemu
-        ;;
-   nand_create)
-        for session in "${SCREEN_SESSIONS[@]}"
-        do
-            setup_screen $session
-        done
-        attach_consoles &
-        ;;
-esac
+            GDB_ARGS=(gdb -x "$GDB_CMD_FILE" --args)
+            RUN=1
+            ;;
+        consoles)
+            echo "run setup_screen"
+            for session in "${SCREEN_SESSIONS[@]}"
+            do
+                setup_screen $session
+            done
+            echo "run attach_consoles"
+            attach_consoles &
+            ;;
+       nand_create)
+            for session in "${SCREEN_SESSIONS[@]}"
+            do
+                setup_screen $session
+            done
+            attach_consoles &
+            ;;
+    esac
+done
+
+if [ "$RUN" -eq 0 ]
+then
+    exit
+fi
 
 #
 # Compose qemu commands according to the command options.
