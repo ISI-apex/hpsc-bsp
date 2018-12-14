@@ -301,38 +301,50 @@ BASE_COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
     -S -s -D "/tmp/qemu.log" -d "fdt,guest_errors,unimp,cpu_reset"
     -hw-dtb "${QEMU_DT_FILE}"
     "${SERIAL_PORT_ARGS[@]}"
-    -device "loader,addr=${RTPS_BOOT_MODE_ADDR},data=${RTPS_BOOT_LOCKSTEP},data-len=4,cpu-num=0"
-    -device "loader,file=${TRCH_APP},cpu-num=0"
     -net "nic,vlan=0" -net "user,vlan=0,hostfwd=tcp:127.0.0.1:2345-10.0.2.15:2345,hostfwd=tcp:127.0.0.1:10022-10.0.2.15:22")
-RTPS_BL_LOAD=(-device "loader,addr=${RTPS_BL_ADDR},file=${RTPS_BL},force-raw,cpu-num=1")
-RTPS_APP_LOAD=(-device "loader,addr=${RTPS_APP_ADDR},file=${RTPS_APP},force-raw,cpu-num=1")
-HPPS_BL_LOAD=(-device "loader,addr=${HPPS_BL_ADDR},file=${HPPS_BL},force-raw,cpu-num=3")
-HPPS_ATF_LOAD=(-device "loader,file=${HPPS_FW},force-raw,cpu-num=3")
-HPPS_OS_LOAD=(-device "loader,addr=${HPPS_DT_ADDR},file=${HPPS_DT},force-raw,cpu-num=3"
-              -device "loader,addr=${HPPS_KERN_ADDR},file=${HPPS_KERN},force-raw,cpu-num=3")
+
+# Storing TRCH code in NV mem is not yet supported, so it is loaded
+# directly into TRCH SRAM by Qemu's ELF loader on machine startup
+TRCH_APP_LOAD=(-device "loader,file=${TRCH_APP},cpu-num=0")
+
+# The following two are used only for developer-friendly boot mode in which
+# Qemu loads the images directly into DRAM upon startup of the machine (not
+# possible on real HW).
+BOOT_IMGS_LOAD=(
+-device "loader,addr=${RTPS_BL_ADDR},file=${RTPS_BL},force-raw,cpu-num=1"
+-device "loader,addr=${RTPS_APP_ADDR},file=${RTPS_APP},force-raw,cpu-num=1"
+-device "loader,addr=${HPPS_BL_ADDR},file=${HPPS_BL},force-raw,cpu-num=3"
+-device "loader,file=${HPPS_FW},force-raw,cpu-num=3"
+-device "loader,addr=${HPPS_DT_ADDR},file=${HPPS_DT},force-raw,cpu-num=3"
+-device "loader,addr=${HPPS_KERN_ADDR},file=${HPPS_KERN},force-raw,cpu-num=3"
+)
 HPPS_RAMDISK_LOAD=(-device "loader,addr=${HPPS_RAMDISK_ADDR},file=${HPPS_RAMDISK},force-raw,cpu-num=3")
 
+# Storing boot configuration files for TRCH and for RTPS/HPPS bootloaders on NV
+# mem is not yet supported, so boot config flags are set by Qemu in designated
+# DRAM locations on machine startup, and read by TRCH or RTPS/HPPS bootloaders.
 BOOT_MODE_DRAM_LOAD=(-device "loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE_DRAM,data-len=4,cpu-num=3")
 BOOT_MODE_NAND_LOAD=(-device "loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE_NAND,data-len=4,cpu-num=3")
 
+# Non-volatile memory (modeled by persistent files on the host machine)
 HPPS_NAND_DRIVE=(-drive "file=$HPPS_NAND_IMAGE,if=pflash,format=raw,index=3")
 HPPS_SRAM_DRIVE=(-drive "file=$HPPS_SRAM_FILE,if=pflash,format=raw,index=2")
 TRCH_SRAM_DRIVE=(-drive "file=$TRCH_SRAM_FILE,if=pflash,format=raw,index=0")
 
 
-COMMAND=()
+COMMAND=("${BASE_COMMAND[@]}")
+
 if [ "${CMD}" == "nand_create" ]
 then
    BOOT_IMAGE_OPTION="dram"
    HPPS_ROOTFS_OPTION="dram"
    OPT_COMMAND=("${HPPS_NAND_DRIVE[@]}")
 fi
-COMMAND+=("${BASE_COMMAND[@]}" "${OPT_COMMAND[@]}")
+COMMAND+=("${OPT_COMMAND[@]}")
 
 if [ "${BOOT_IMAGE_OPTION}" == "dram" ]    # Boot images are loaded onto DRAM by Qemu
 then
-    OPT_COMMAND=("${HPPS_ATF_LOAD[@]}" "${HPPS_BL_LOAD[@]}" "${HPPS_OS_LOAD[@]}"
-                 "${RTPS_BL_LOAD[@]}" "${RTPS_APP_LOAD[@]}")
+    OPT_COMMAND=("${BOOT_IMGS_LOAD[@]}")
 elif [ "${BOOT_IMAGE_OPTION}" == "nvram" ]	# Boot images are stored in an NVRAM and loaded onto DRAM by TRCH
 then
     create_nvsram_image
@@ -348,6 +360,8 @@ then
     OPT_COMMAND=("${HPPS_NAND_DRIVE[@]}" "${BOOT_MODE_NAND_LOAD[@]}")
 fi
 COMMAND+=("${OPT_COMMAND[@]}")
+
+COMMAND+=("${TRCH_APP_LOAD[@]}")
 
 if [ "${CMD}" == "run" ]
 then
