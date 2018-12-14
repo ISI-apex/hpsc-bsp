@@ -50,9 +50,9 @@ RTPS_BOOT_SMP=0x00000002
 # how to use:
 #    -device loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE,data-len=4,cpu-num=3 \
 
-BOOT_MODE_ADDR=0x9f000000    # memory location to store boot mode code for HPPS U-boot
-BOOT_MODE_DRAM=0x00000000    # HPPS rootfs in RAM
-BOOT_MODE_NAND=0x0000f000    # HPPS rootfs in NAND (MTD device)
+HPPS_BOOT_MODE_ADDR=0x9f000000    # memory location to store boot mode code for HPPS U-boot
+HPPS_BOOT_MODE_DRAM=0x00000000    # HPPS rootfs in RAM
+HPPS_BOOT_MODE_NAND=0x0000f000    # HPPS rootfs in NAND (MTD device)
 
 HPPS_FW_ADDR=0x80000000
 HPPS_BL_ADDR=0x88000000
@@ -323,8 +323,9 @@ HPPS_RAMDISK_LOAD=(-device "loader,addr=${HPPS_RAMDISK_ADDR},file=${HPPS_RAMDISK
 # Storing boot configuration files for TRCH and for RTPS/HPPS bootloaders on NV
 # mem is not yet supported, so boot config flags are set by Qemu in designated
 # DRAM locations on machine startup, and read by TRCH or RTPS/HPPS bootloaders.
-BOOT_MODE_DRAM_LOAD=(-device "loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE_DRAM,data-len=4,cpu-num=3")
-BOOT_MODE_NAND_LOAD=(-device "loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE_NAND,data-len=4,cpu-num=3")
+HPPS_BOOT_MODE_DRAM_LOAD=(-device "loader,addr=${HPPS_BOOT_MODE_ADDR},data=${HPPS_BOOT_MODE_DRAM},data-len=4,cpu-num=3")
+HPPS_BOOT_MODE_NAND_LOAD=(-device "loader,addr=${HPPS_BOOT_MODE_ADDR},data=${HPPS_BOOT_MODE_NAND},data-len=4,cpu-num=3")
+RTPS_BOOT_MODE_LOAD=(-device "loader,addr=${RTPS_BOOT_MODE_ADDR},data=${RTPS_BOOT_LOCKSTEP},data-len=4,cpu-num=0")
 
 # Non-volatile memory (modeled by persistent files on the host machine)
 HPPS_NAND_DRIVE=(-drive "file=$HPPS_NAND_IMAGE,if=pflash,format=raw,index=3")
@@ -354,10 +355,10 @@ COMMAND+=("${OPT_COMMAND[@]}")
 
 if [ "${HPPS_ROOTFS_OPTION}" == "dram" ]    # HPPS rootfs is loaded onto DRAM by Qemu, volatile
 then
-    OPT_COMMAND=("${HPPS_RAMDISK_LOAD[@]}" "${BOOT_MODE_DRAM_LOAD[@]}")
+    OPT_COMMAND=("${HPPS_RAMDISK_LOAD[@]}" "${HPPS_BOOT_MODE_DRAM_LOAD[@]}")
 elif [ "${HPPS_ROOTFS_OPTION}" == "nand" ]    # HPPS rootfs is stored in an Nand, non-volatile
 then
-    OPT_COMMAND=("${HPPS_NAND_DRIVE[@]}" "${BOOT_MODE_NAND_LOAD[@]}")
+    OPT_COMMAND=("${HPPS_NAND_DRIVE[@]}" "${HPPS_BOOT_MODE_NAND_LOAD[@]}")
 fi
 COMMAND+=("${OPT_COMMAND[@]}")
 
