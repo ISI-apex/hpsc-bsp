@@ -68,6 +68,7 @@ RTPS_APP_ADDR=0x68000000      # address of baremetal app ELF file
 # RTPS_APP_LOAD_ADDR          # where BL loads the ELF sections, set in the ELF header
 
 # TRCH
+# TRCH_APP_LOAD_ADDR          # where ELF sections are loaded, set in the ELF header
 HPSC_HOST_UTILS_DIR=${PWD}/hpsc-utils/host
 SRAM_IMAGE_UTILS=${HPSC_HOST_UTILS_DIR}/sram-image-utils
 SRAM_SIZE=0x4000000			# 64MB
