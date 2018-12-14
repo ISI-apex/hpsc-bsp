@@ -228,10 +228,7 @@ if [ $IS_ONLINE -ne 0 ]; then
             exit 1
         fi
     fi
-    ./build-hpsc-yocto.sh -b "$BUILD" -a populate_sdk
-    mkdir -p "$TC_TOP_DIR"
     sdk_bm_setup
-    sdk_poky_setup
     echo "Fetching sources..."
     # fetch sources
     ./build-hpsc-yocto.sh -b "$BUILD" -a fetchall
@@ -248,6 +245,8 @@ fi
 if [ $IS_BUILD -ne 0 ]; then
     echo "Building..."
     # build Yocto
+    ./build-hpsc-yocto.sh -b "$BUILD" -a populate_sdk
+    sdk_poky_setup
     ./build-hpsc-yocto.sh -b "$BUILD" -a buildall
     # build other packages
     export PATH=$PATH:$TC_BM_DIR/bin
