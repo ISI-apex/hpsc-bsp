@@ -216,8 +216,9 @@ set -e
 build_set_environment "$BUILD"
 
 if [ $IS_ONLINE -ne 0 ]; then
-    echo "Fetching toolchains..."
     # get toolchains
+    echo "Fetching toolchains..."
+    mkdir -p "$TC_TOP_DIR"
     if [ ! -e "$BM_TC_TBZ2" ]; then
         wget -O "$BM_TC_TBZ2" "$BM_URL"
         md5=$(md5sum "$BM_TC_TBZ2" | awk '{print $1}')
