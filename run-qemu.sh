@@ -196,7 +196,7 @@ HPPS_ROOTFS_OPTION="dram"
 while getopts "h?b:c:f:" o; do
     case "${o}" in
         c)
-            if [ "${OPTARG}" == "run" ] || [ "${OPTARG}" == "gdb" ] || [ "${OPTARG}" == "consoles" ] || [ "${OPTARG}" == "nand_create" ]
+            if [[ "${OPTARG}" =~ ^run|gdb|consoles|nand_create$ ]]
             then
                 CMD="${OPTARG}"
             else
