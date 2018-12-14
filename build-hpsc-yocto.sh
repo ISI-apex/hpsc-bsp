@@ -129,7 +129,7 @@ conf_replace_or_append "FORTRAN_forcevariable" "\",fortran\""
 
 # finally, execute the requested action
 case "$ACTION" in
-    "" | "all")
+    "" | "all" | "buildall")
         bitbake core-image-minimal
         ;;
     "fetchall")
