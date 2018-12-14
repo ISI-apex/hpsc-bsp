@@ -320,13 +320,6 @@ BOOT_IMGS_LOAD=(
 )
 HPPS_RAMDISK_LOAD=(-device "loader,addr=${HPPS_RAMDISK_ADDR},file=${HPPS_RAMDISK},force-raw,cpu-num=3")
 
-# Storing boot configuration files for TRCH and for RTPS/HPPS bootloaders on NV
-# mem is not yet supported, so boot config flags are set by Qemu in designated
-# DRAM locations on machine startup, and read by TRCH or RTPS/HPPS bootloaders.
-HPPS_BOOT_MODE_DRAM_LOAD=(-device "loader,addr=${HPPS_BOOT_MODE_ADDR},data=${HPPS_BOOT_MODE_DRAM},data-len=4,cpu-num=3")
-HPPS_BOOT_MODE_NAND_LOAD=(-device "loader,addr=${HPPS_BOOT_MODE_ADDR},data=${HPPS_BOOT_MODE_NAND},data-len=4,cpu-num=3")
-RTPS_BOOT_MODE_LOAD=(-device "loader,addr=${RTPS_BOOT_MODE_ADDR},data=${RTPS_BOOT_LOCKSTEP},data-len=4,cpu-num=0")
-
 # Non-volatile memory (modeled by persistent files on the host machine)
 HPPS_NAND_DRIVE=(-drive "file=$HPPS_NAND_IMAGE,if=pflash,format=raw,index=3")
 HPPS_SRAM_DRIVE=(-drive "file=$HPPS_SRAM_FILE,if=pflash,format=raw,index=2")
@@ -355,12 +348,23 @@ COMMAND+=("${OPT_COMMAND[@]}")
 
 if [ "${HPPS_ROOTFS_OPTION}" == "dram" ]    # HPPS rootfs is loaded onto DRAM by Qemu, volatile
 then
-    OPT_COMMAND=("${HPPS_RAMDISK_LOAD[@]}" "${HPPS_BOOT_MODE_DRAM_LOAD[@]}")
+    OPT_COMMAND=("${HPPS_RAMDISK_LOAD[@]}")
+    HPPS_BOOT_MODE=${HPPS_BOOT_MODE_DRAM}
 elif [ "${HPPS_ROOTFS_OPTION}" == "nand" ]    # HPPS rootfs is stored in an Nand, non-volatile
 then
-    OPT_COMMAND=("${HPPS_NAND_DRIVE[@]}" "${HPPS_BOOT_MODE_NAND_LOAD[@]}")
+    OPT_COMMAND=("${HPPS_NAND_DRIVE[@]}")
+    HPPS_BOOT_MODE=${HPPS_BOOT_MODE_NAND}
 fi
 COMMAND+=("${OPT_COMMAND[@]}")
+
+# Storing boot configuration files for TRCH and for RTPS/HPPS bootloaders on NV
+# mem is not yet supported, so boot config flags are set by Qemu in designated
+# DRAM locations on machine startup, and read by TRCH or RTPS/HPPS bootloaders.
+BOOT_CFG_LOAD=(
+-device "loader,addr=${HPPS_BOOT_MODE_ADDR},data=${HPPS_BOOT_MODE},data-len=4,cpu-num=3"
+-device "loader,addr=${RTPS_BOOT_MODE_ADDR},data=${RTPS_BOOT_MODE},data-len=4,cpu-num=0"
+)
+COMMAND+=("${BOOT_CFG_LOAD[@]}")
 
 COMMAND+=("${TRCH_APP_LOAD[@]}")
 
