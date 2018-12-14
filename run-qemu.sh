@@ -23,8 +23,7 @@ BL_FILE_BIN=${YOCTO_DEPLOY_DIR}/u-boot.bin
 # Output files from the hpsc-baremetal build
 BAREMETAL_DIR=${PWD}/hpsc-baremetal
 TRCH_FILE=${BAREMETAL_DIR}/trch/bld/trch.elf
-RTPS_FILE=${BAREMETAL_DIR}/rtps/bld/rtps.elf
-RTPS_FILE_BIN=${BAREMETAL_DIR}/rtps/bld/rtps.bin
+RTPS_APP=${BAREMETAL_DIR}/rtps/bld/rtps.elf
 
 # Output files from the hpsc-R52-uboot build
 R52_UBOOT_DIR=${PWD}/u-boot-r52
@@ -67,8 +66,9 @@ LINUX_DT_ADDR=0x84000000
 ROOTFS_ADDR=0x90000000
 
 # RTPS
-RTPS_FILE_ADDR=0x70000000		# load address for demo baremetal application
-RTPS_BL_ADDR=0x60000000			# load address for R52 u-boot
+RTPS_BL_ADDR=0x60000000       # load address for R52 u-boot
+RTPS_APP_ADDR=0x68000000      # address of baremetal app ELF file
+# RTPS_APP_LOAD_ADDR          # where BL loads the ELF sections, set in the ELF header
 
 # TRCH
 HPSC_HOST_UTILS_DIR=${PWD}/hpsc-utils/host
@@ -83,7 +83,7 @@ function create_nvsram_image()
 	# Create SRAM image to store boot images
 	${SRAM_IMAGE_UTILS} create ${TRCH_SRAM_FILE} ${SRAM_SIZE}
 	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${RTPS_BL_FILE_BIN} 	"rtps-bl" ${RTPS_BL_ADDR}
-	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${RTPS_FILE_BIN} 	"rtps-os" ${RTPS_FILE_ADDR}
+	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${RTPS_APP} 		"rtps-os" ${RTPS_APP_ADDR}
 	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${BL_FILE_BIN} 	"hpps-bl" ${BL_ADDRESS}
 	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${ARM_TF_FILE_BIN} 	"hpps-fw" ${ARM_TF_ADDRESS}
 	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${LINUX_DT_FILE} 	"hpps-dt" ${LINUX_DT_ADDR}
@@ -308,8 +308,7 @@ BASE_COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
     -device "loader,addr=${RTPS_BOOT_MODE_ADDR},data=${RTPS_BOOT_LOCKSTEP},data-len=4,cpu-num=0"
     -device "loader,file=${TRCH_FILE},cpu-num=0"
     -net "nic,vlan=0" -net "user,vlan=0,hostfwd=tcp:127.0.0.1:2345-10.0.2.15:2345,hostfwd=tcp:127.0.0.1:10022-10.0.2.15:22")
-RTPS_FILE_LOAD=(-device "loader,file=${RTPS_FILE},cpu-num=1")
-RTPS_FILE_BIN_LOAD=(-device "loader,addr=${RTPS_FILE_ADDR},file=${RTPS_FILE_BIN},cpu-num=1")
+RTPS_APP_LOAD=(-device "loader,addr=${RTPS_APP_ADDR},file=${RTPS_APP},force-raw,cpu-num=1")
 RTPS_BL_FILE_LOAD=(-device "loader,file=${RTPS_BL_FILE},cpu-num=1")
 HPPS_UBOOT_LOAD=(-device "loader,file=${BL_FILE},cpu-num=3")
 HPPS_ATF_LOAD=(-device "loader,file=${ARM_TF_FILE},cpu-num=3")
@@ -331,7 +330,7 @@ COMMAND+=("${BASE_COMMAND[@]}" "${OPT_COMMAND[@]}")
 
 if [ "${BOOT_IMAGE_OPTION}" == "dram" ]    # Boot images are loaded onto DRAM by Qemu
 then
-    OPT_COMMAND=("${HPPS_UBOOT_LOAD[@]}" "${HPPS_ATF_LOAD[@]}" "${RTPS_BL_FILE_LOAD[@]}" "${RTPS_FILE_LOAD[@]}")
+    OPT_COMMAND=("${HPPS_UBOOT_LOAD[@]}" "${HPPS_ATF_LOAD[@]}" "${RTPS_BL_FILE_LOAD[@]}" "${RTPS_APP_LOAD[@]}")
 elif [ "${BOOT_IMAGE_OPTION}" == "nvram" ]	# Boot images are stored in an NVRAM and loaded onto DRAM by TRCH
 then
     create_nvsram_image
