@@ -41,8 +41,13 @@ HPPS_NAND_IMAGE=${YOCTO_DEPLOY_DIR}/rootfs_nand.bin
 HPPS_SRAM_FILE=${YOCTO_DEPLOY_DIR}/hpps_sram.bin
 TRCH_SRAM_FILE=${YOCTO_DEPLOY_DIR}/trch_sram.bin
 
+# Chiplet-wide boot configuration communicatd to TRCH
+TRCH_BOOT_MODE_ADDR=0x000ff000 # in TRCH SRAM
+TRCH_BOOT_MODE_SRAM=0x00000001 # load RTPS/HPPS images from SRAM
+TRCH_BOOT_MODE_DRAM=0x00000002 # assume RTPS/HPPS images already in DRAM
+
 # Controlling boot mode of RTPS (Split or lock-step)
-RTPS_BOOT_MODE_ADDR=0xffff0
+RTPS_BOOT_MODE_ADDR=0x000ff004 # in TRCH SRAM
 RTPS_BOOT_SPLIT=0x00000000
 RTPS_BOOT_LOCKSTEP=0x00000001
 RTPS_BOOT_SMP=0x00000002
@@ -356,10 +361,12 @@ COMMAND+=("${OPT_COMMAND[@]}")
 if [ "${BOOT_IMAGE_OPTION}" == "dram" ]    # Boot images are loaded onto DRAM by Qemu
 then
     OPT_COMMAND=("${BOOT_IMGS_LOAD[@]}")
+    TRCH_BOOT_MODE="${TRCH_BOOT_MODE_DRAM}"
 elif [ "${BOOT_IMAGE_OPTION}" == "nvram" ]	# Boot images are stored in an NVRAM and loaded onto DRAM by TRCH
 then
     create_nvsram_image
     OPT_COMMAND=("${TRCH_SRAM_DRIVE[@]}")
+    TRCH_BOOT_MODE="${TRCH_BOOT_MODE_SRAM}"
 fi
 COMMAND+=("${OPT_COMMAND[@]}")
 
@@ -380,9 +387,11 @@ RTPS_BOOT_MODE="${RTPS_BOOT_LOCKSTEP}"
 # Storing boot configuration files for TRCH and for RTPS/HPPS bootloaders on NV
 # mem is not yet supported, so boot config flags are set by Qemu in designated
 # DRAM locations on machine startup, and read by TRCH or RTPS/HPPS bootloaders.
+# Note: RTPS boot mode is communicated to TRCH, hence cpu-num is 0
 BOOT_CFG_LOAD=(
--device "loader,addr=${HPPS_BOOT_MODE_ADDR},data=${HPPS_BOOT_MODE},data-len=4,cpu-num=3"
+-device "loader,addr=${TRCH_BOOT_MODE_ADDR},data=${TRCH_BOOT_MODE},data-len=4,cpu-num=0"
 -device "loader,addr=${RTPS_BOOT_MODE_ADDR},data=${RTPS_BOOT_MODE},data-len=4,cpu-num=0"
+-device "loader,addr=${HPPS_BOOT_MODE_ADDR},data=${HPPS_BOOT_MODE},data-len=4,cpu-num=3"
 )
 COMMAND+=("${BOOT_CFG_LOAD[@]}")
 
