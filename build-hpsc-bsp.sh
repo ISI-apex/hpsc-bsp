@@ -6,28 +6,27 @@
 RELEASE_DIR=HPSC_2.0
 RELEASE_TGZ=${RELEASE_DIR}.tar.gz
 
-TC_TOP_DIR=${PWD}/sdk
-TC_BM_DIR=${TC_TOP_DIR}/gcc-arm-none-eabi-7-2018-q2-update
-TC_POKY_DIR=${TC_TOP_DIR}/poky
-TC_REPO_DIR=${TC_TOP_DIR}/bsp_repositories
+TC_TOPDIR=sdk
+TC_BM_DIR=${TC_TOPDIR}/gcc-arm-none-eabi-7-2018-q2-update
+TC_POKY_DIR=${TC_TOPDIR}/poky
 
 BM_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2"
 BM_MD5=299ebd3f1c2c90930d28ab82e5d8d6c0
-BM_TC_TBZ2=${PWD}/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
+BM_TC_TBZ2=gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
 
 # Paths generated as part of build
-POKY_DEPLOY_DIR=${PWD}/poky/build/tmp/deploy
+POKY_DEPLOY_DIR=poky/build/tmp/deploy
 POKY_IMAGE_DIR=${POKY_DEPLOY_DIR}/images/hpsc-chiplet
 POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-minimal-aarch64-toolchain-2.4.3.sh
-BAREMETAL_DIR=${PWD}/hpsc-baremetal
-UTILS_DIR=${PWD}/hpsc-utils
-R52_UBOOT_DIR=${PWD}/u-boot-r52
+BAREMETAL_DIR=hpsc-baremetal
+UTILS_DIR=hpsc-utils
+R52_UBOOT_DIR=u-boot-r52
 
 # Generated artifacts for BSP directory
-BSP_ARTIFACTS_QEMU=("${PWD}/qemu/BUILD/aarch64-softmmu/qemu-system-aarch64"
-                    "${PWD}/qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb"
-                    "${PWD}/qmp.py"
-                    "${PWD}/run-qemu.sh")
+BSP_ARTIFACTS_TOP=("qmp.py"
+                   "run-qemu.sh")
+BSP_ARTIFACTS_QEMU=("qemu/BUILD/aarch64-softmmu/qemu-system-aarch64"
+                    "qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb")
 BSP_ARTIFACTS_HPPS=("${POKY_IMAGE_DIR}/arm-trusted-firmware.bin"
                     "${POKY_IMAGE_DIR}/u-boot.bin"
                     "${POKY_IMAGE_DIR}/hpsc.dtb"
@@ -48,17 +47,6 @@ BSP_DIR_TRCH=${BSP_DIR}/trch
 BSP_DIR_AARCH64_UTILS=${BSP_DIR}/aarch64-poky-linux-utils
 BSP_DIR_HOST_UTILS=${BSP_DIR}/host-utils
 
-# Sources for src directory
-# TODO: Include poky, meta-hpsc, and meta-openembedded?
-SRC_ARTIFACTS=("https://github.com/ISI-apex/arm-trusted-firmware.git"
-               "https://github.com/ISI-apex/hpsc-baremetal.git"
-               "https://github.com/ISI-apex/hpsc-bsp.git"
-               "https://github.com/ISI-apex/hpsc-utils.git"
-               "https://github.com/ISI-apex/linux-hpsc.git"
-               "https://github.com/ISI-apex/qemu.git"
-               "https://github.com/ISI-apex/qemu-devicetrees.git"
-               "https://github.com/ISI-apex/u-boot.git")
-
 # Toolchain installers for toolchains directory
 TOOLCHAIN_ARTIFACTS=("${BM_TC_TBZ2}"
                      "${POKY_TC_INSTALLER}")
@@ -70,7 +58,7 @@ function sdk_bm_setup()
             echo "Bare metal toolchain installer not found: $BM_TC_TBZ2"
             exit 1
         fi
-        tar xjf "$BM_TC_TBZ2" -C "$TC_TOP_DIR"
+        tar xjf "$BM_TC_TBZ2" -C "$TC_TOPDIR"
     fi
 }
 
@@ -122,22 +110,26 @@ function transform_run_qemu()
         sed -i 's,'"$prop=.*"','"$prop=\"$val\""',' "$script"
     done
     # this is a clumsy attempt to catch changes that break our transformation
-    sed -i '/YOCTO_DEPLOY_DIR=/d' "$script"
-    sed -i '/BAREMETAL_DIR=/d' "$script"
-    sed -i '/RTPS_BL_DIR=/d' "$script"
-    sed -i '/PWD=/d' "$script"
-    if grep YOCTO_DEPLOY_DIR "$script"||
-       grep BAREMETAL_DIR "$script" ||
-       grep RTPS_BL_DIR "$script" ||
-       grep PWD "$script"; then
-        echo "run-qemu script changed, 'transform_run_qemu' needs updating!"
-        exit 1
-    fi
+    local RUN_QEMU_DELETE=(WORKING_DIR
+                           YOCTO_DEPLOY_DIR
+                           BAREMETAL_DIR
+                           RTPS_BL_DIR
+                           PWD)
+    for del in "${RUN_QEMU_DELETE[@]}"; do
+        sed -i "/${del}=/d" "$script"
+    done
+    for del in "${RUN_QEMU_DELETE[@]}"; do
+        if grep "$del" "$script"; then
+            echo "run-qemu script changed, 'transform_run_qemu' needs updating!"
+            echo "  found: '$del'"
+            exit 1
+        fi
+    done
 }
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetchall|buildall|stage|package>] [-h]"
+    echo "Usage: $0 -b ID [-a <all|fetchall|buildall|stage|package>] [-h] [-w DIR]"
     echo "    -b ID: build using git tag=ID"
     echo "       If ID=HEAD, a development release is built instead"
     echo "    -a ACTION"
@@ -147,6 +139,7 @@ function usage()
     echo "       stage: stage everything into a directory before packaging"
     echo "       package: package everything into the BSP"
     echo "    -h: show this message and exit"
+    echo "    -w DIR: Set the working directory (default=ID from -b)"
     exit 1
 }
 
@@ -158,7 +151,8 @@ IS_BUILD=0
 IS_STAGE=0
 IS_PACKAGE=0
 BUILD=""
-while getopts "h?a:b:" o; do
+WORKING_DIR=""
+while getopts "h?a:b:w:" o; do
     case "$o" in
         a)
             HAS_ACTION=1
@@ -183,6 +177,9 @@ while getopts "h?a:b:" o; do
         h)
             usage
             ;;
+        w)
+            WORKING_DIR="${OPTARG}"
+            ;;
         *)
             echo "Unknown option"
             usage
@@ -192,6 +189,9 @@ done
 shift $((OPTIND-1))
 if [ -z "$BUILD" ]; then
     usage
+fi
+if [ -z "$WORKING_DIR" ]; then
+    WORKING_DIR="$BUILD"
 fi
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
     # do everything
@@ -215,10 +215,14 @@ set -e
 . ./build-common.sh
 build_set_environment "$BUILD"
 
+TOPDIR=${PWD}
+mkdir -p "$WORKING_DIR" || exit 1
+
 if [ $IS_ONLINE -ne 0 ]; then
     # get toolchains
     echo "Fetching toolchains..."
-    mkdir -p "$TC_TOP_DIR"
+    cd "$WORKING_DIR"
+    mkdir -p "$TC_TOPDIR"
     if [ ! -e "$BM_TC_TBZ2" ]; then
         wget -O "$BM_TC_TBZ2" "$BM_URL"
         md5=$(md5sum "$BM_TC_TBZ2" | awk '{print $1}')
@@ -229,33 +233,32 @@ if [ $IS_ONLINE -ne 0 ]; then
             exit 1
         fi
     fi
-    sdk_bm_setup
-    echo "Fetching sources..."
+    cd "$TOPDIR"
     # fetch sources
-    ./build-hpsc-yocto.sh -b "$BUILD" -a fetchall
-    ./build-hpsc-other.sh -b "$BUILD" -a fetchall
-    ./build-hpsc-eclipse.sh -a fetchall
-    # fetch sources for BSP
-    mkdir -p "$TC_REPO_DIR"
-    for a in "${SRC_ARTIFACTS[@]}"; do
-        dir=$(basename "$a" | cut -d. -f1)
-        git_clone_pull "$a" "${TC_REPO_DIR}/${dir}"
-    done
+    echo "Fetching sources..."
+    ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a fetchall
+    ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a fetchall
+    ./build-hpsc-eclipse.sh -a fetchall -w "$WORKING_DIR"
 fi
 
 if [ $IS_BUILD -ne 0 ]; then
     echo "Building..."
     # build Yocto
-    ./build-hpsc-yocto.sh -b "$BUILD" -a populate_sdk
-    sdk_poky_setup
-    ./build-hpsc-yocto.sh -b "$BUILD" -a buildall
+    ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a populate_sdk
+    ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a buildall
     # build other packages
-    export PATH=$PATH:$TC_BM_DIR/bin
-    export POKY_SDK="$TC_POKY_DIR"
-    ./build-hpsc-other.sh -b "$BUILD" -a buildall
+    cd "$WORKING_DIR"
+    sdk_bm_setup
+    sdk_poky_setup
+    export PATH=$PATH:${PWD}/$TC_BM_DIR/bin
+    export POKY_SDK="${PWD}/${TC_POKY_DIR}"
+    cd "$TOPDIR"
+    ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a buildall
     # build Eclipse
-    ./build-hpsc-eclipse.sh -a buildall
+    ./build-hpsc-eclipse.sh -w "$WORKING_DIR" -w "$WORKING_DIR" -a buildall
 fi
+
+cd "$WORKING_DIR"
 
 if [ $IS_STAGE -ne 0 ]; then
     echo "Staging $RELEASE_DIR..."
@@ -264,11 +267,14 @@ if [ $IS_STAGE -ne 0 ]; then
     # BSP
     echo "Staging BSP..."
     mkdir "$BSP_DIR"
-    for a in "${BSP_ARTIFACTS_QEMU[@]}"; do
-        cp "$a" "${BSP_DIR}/"
+    for a in "${BSP_ARTIFACTS_TOP[@]}"; do
+        cp "${TOPDIR}/${a}" "${BSP_DIR}/"
     done
     # run-qemu needs to be updated with new paths
     transform_run_qemu "${BSP_DIR}/run-qemu.sh"
+    for a in "${BSP_ARTIFACTS_QEMU[@]}"; do
+        cp "$a" "${BSP_DIR}/"
+    done
     mkdir "$BSP_DIR_HPPS"
     for a in "${BSP_ARTIFACTS_HPPS[@]}"; do
         cp "$a" "${BSP_DIR_HPPS}/"
@@ -294,15 +300,6 @@ if [ $IS_STAGE -ne 0 ]; then
     echo "Staging eclipse..."
     cp hpsc-eclipse.tar.gz "$RELEASE_DIR"
 
-    # src
-    echo "Staging sources..."
-    mkdir "${RELEASE_DIR}/src"
-    # copy sources downloaded to toolchain dir
-    for a in "${SRC_ARTIFACTS[@]}"; do
-        dir=$(basename "$a" | cut -d. -f1)
-        cp -r "${TC_REPO_DIR}/${dir}" "${RELEASE_DIR}/src/${dir}"
-    done
-
     # toolchains
     echo "Staging toolchains..."
     mkdir "${RELEASE_DIR}/toolchains"
@@ -315,3 +312,5 @@ if [ $IS_PACKAGE -ne 0 ]; then
     echo "Packaging: $RELEASE_TGZ..."
     tar czf "$RELEASE_TGZ" "$RELEASE_DIR"
 fi
+
+cd "$TOPDIR"

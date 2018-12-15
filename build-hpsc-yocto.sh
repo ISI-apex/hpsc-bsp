@@ -25,7 +25,7 @@ function conf_replace_or_append()
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetchall|populate_sdk|buildall|taskexp>] [-h]"
+    echo "Usage: $0 -b ID [-a <all|fetchall|populate_sdk|buildall|taskexp>] [-h] [-w DIR]"
     echo "    -b ID: build using git tag=ID"
     echo "       If ID=HEAD, a development release is built instead"
     echo "    -a ACTION"
@@ -36,6 +36,7 @@ function usage()
     echo "       buildall: like all, but try offline"
     echo "       taskexp: run the task dependency explorer (requires build)"
     echo "    -h: show this message and exit"
+    echo "    -w DIR: Set the working directory (default=ID from -b)"
     exit 1
 }
 
@@ -43,21 +44,22 @@ function usage()
 IS_ONLINE=1
 ACTION=""
 BUILD=""
+WORKING_DIR=""
 # parse options
-while getopts "h?a:b:" o; do
+while getopts "h?a:b:w:" o; do
     case "$o" in
         a)
-            if [ "${OPTARG}" != "all" ] &&
-               [ "${OPTARG}" != "fetchall" ] &&
-               [ "${OPTARG}" != "populate_sdk" ] &&
-               [ "${OPTARG}" != "buildall" ] &&
-               [ "${OPTARG}" != "taskexp" ]; then
-                echo "Error: no such action: ${OPTARG}"
-                usage
-            fi
-            if [ "${OPTARG}" == "buildall" ]; then
+            if [ "${OPTARG}" == "all" ] ||
+               [ "${OPTARG}" == "fetchall" ]; then
+                IS_ONLINE=1
+            elif [ "${OPTARG}" == "populate_sdk" ] ||
+                 [ "${OPTARG}" == "buildall" ] ||
+                 [ "${OPTARG}" == "taskexp" ]; then
                 # TODO: Force bitbake offline (may involve setting BB_NO_NETWORK)
                 IS_ONLINE=0
+            else
+                echo "Error: no such action: ${OPTARG}"
+                usage
             fi
             ACTION="${OPTARG}"
             ;;
@@ -66,6 +68,9 @@ while getopts "h?a:b:" o; do
             ;;
         h)
             usage
+            ;;
+        w)
+            WORKING_DIR="${OPTARG}"
             ;;
         *)
             echo "Unknown option"
@@ -78,8 +83,15 @@ shift $((OPTIND-1))
 if [ -z "$BUILD" ]; then
     usage
 fi
+if [ -z "$WORKING_DIR" ]; then
+    WORKING_DIR="$BUILD"
+fi
 . ./build-common.sh || exit $?
 build_set_environment "$BUILD"
+
+TOPDIR=${PWD}
+mkdir -p "$WORKING_DIR" || exit 1
+cd "$WORKING_DIR"
 
 # BB_ENV_EXTRAWHITE allows additional variables to pass through from
 # the external environment into Bitbake's datastore
@@ -142,3 +154,5 @@ case "$ACTION" in
         bitbake -u taskexp -g core-image-minimal
         ;;
 esac
+
+cd "$TOPDIR"

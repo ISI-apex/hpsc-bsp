@@ -27,19 +27,21 @@ ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group
 
 function usage()
 {
-    echo "Usage: $0 [-a <all|fetchall|buildall>] [-h]"
+    echo "Usage: $0 [-a <all|fetchall|buildall>] [-h] [-w DIR]"
     echo "    -a ACTION"
     echo "       all: (default) download sources and build"
     echo "       fetchall: download sources"
     echo "       buildall: build eclipse package"
     echo "    -h: show this message and exit"
+    echo "    -w DIR: Set the working directory (default=HEAD)"
     exit 1
 }
 
 # Script options
 IS_ONLINE=1
 IS_BUILD=1
-while getopts "h?a:" o; do
+WORKING_DIR="HEAD"
+while getopts "h?a:w:" o; do
     case "$o" in
         a)
             if [ "${OPTARG}" == "fetchall" ]; then
@@ -54,6 +56,9 @@ while getopts "h?a:" o; do
         h)
             usage
             ;;
+        w)
+            WORKING_DIR="${OPTARG}"
+            ;;
         *)
             echo "Unknown option"
             usage
@@ -61,6 +66,10 @@ while getopts "h?a:" o; do
     esac
 done
 shift $((OPTIND-1))
+
+TOPDIR=${PWD}
+mkdir -p "$WORKING_DIR" || exit 1
+cd "$WORKING_DIR"
 
 if [ $IS_ONLINE -ne 0 ]; then
     if [ ! -e "$ECLIPSE_TGZ" ]; then
@@ -110,3 +119,5 @@ if [ $IS_BUILD -ne 0 ]; then
     echo "Creating HPSC eclipse distribution: $ECLIPSE_HPSC"
     tar czf "$ECLIPSE_HPSC" "$ECLIPSE_DIR"
 fi
+
+cd "$TOPDIR"

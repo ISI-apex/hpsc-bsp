@@ -89,7 +89,7 @@ function utils_build()
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetchall|buildall>] [-h]"
+    echo "Usage: $0 -b ID [-a <all|fetchall|buildall>] [-h] [-w DIR]"
     echo "    -b ID: build using git tag=ID"
     echo "       If ID=HEAD, a development release is built instead"
     echo "    -a ACTION"
@@ -97,6 +97,7 @@ function usage()
     echo "       fetchall: download sources"
     echo "       buildall: compile pre-downloaded sources"
     echo "    -h: show this message and exit"
+    echo "    -w DIR: Set the working directory (default=ID from -b)"
     exit 1
 }
 
@@ -104,8 +105,9 @@ function usage()
 IS_ONLINE=1
 IS_BUILD=1
 BUILD=""
+WORKING_DIR=""
 # parse options
-while getopts "h?a:b:" o; do
+while getopts "h?a:b:w:" o; do
     case "$o" in
         a)
             if [ "${OPTARG}" == "fetchall" ]; then
@@ -123,6 +125,9 @@ while getopts "h?a:b:" o; do
         h)
             usage
             ;;
+        w)
+            WORKING_DIR="${OPTARG}"
+            ;;
         *)
             echo "Unknown option"
             usage
@@ -133,6 +138,9 @@ shift $((OPTIND-1))
 
 if [ -z "$BUILD" ]; then
     usage
+fi
+if [ -z "$WORKING_DIR" ]; then
+    WORKING_DIR="$BUILD"
 fi
 . ./build-common.sh || exit $?
 build_set_environment "$BUILD"
@@ -162,6 +170,10 @@ BUILD_FNS=(bm_build
            qemu_build
            qemu_dt_build
            utils_build)
+
+TOPDIR=${PWD}
+mkdir -p "$WORKING_DIR" || exit 1
+cd "$WORKING_DIR"
 
 if [ $IS_ONLINE -ne 0 ]; then
     echo "Fetching sources..."
@@ -200,3 +212,5 @@ if [ $IS_BUILD -ne 0 ]; then
         fi
     done
 fi
+
+cd "$TOPDIR"
