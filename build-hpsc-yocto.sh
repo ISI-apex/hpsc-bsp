@@ -155,4 +155,6 @@ case "$ACTION" in
         ;;
 esac
 
+RC=$?
 cd "$TOPDIR"
+exit $RC
