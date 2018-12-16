@@ -51,10 +51,13 @@ function build_set_environment()
     # Specify "\${AUTOREV}" to pull and  check out the head of the hpsc branch.
     export SRCREV_atf="$SRCREV_DEFAULT"
     export SRCREV_linux_hpsc="$SRCREV_DEFAULT"
-    # TODO: Remove qemu and qemu-dt once their recipes are fixed to not use them
-    export SRCREV_qemu_devicetrees="$SRCREV_DEFAULT"
-    export SRCREV_qemu="$SRCREV_DEFAULT"
     export SRCREV_u_boot="$SRCREV_DEFAULT"
+    # BB_ENV_EXTRAWHITE allows additional variables to pass through from
+    # the external environment into Bitbake's datastore
+    export BB_ENV_EXTRAWHITE="$BB_ENV_EXTRAWHITE \
+                              SRCREV_atf \
+                              SRCREV_linux_hpsc \
+                              SRCREV_u_boot"
 
     # Repositories not built by poky
     export GIT_CHECKOUT_BM="$GIT_CHECKOUT_DEFAULT"
