@@ -29,11 +29,10 @@ function usage()
     echo "    -b ID: build using git tag=ID"
     echo "       If ID=HEAD, a development release is built instead"
     echo "    -a ACTION"
-    echo "       all: (default) download sources and build all,"
-    echo "            including kernel image and rootfs"
+    echo "       all: (default) perform fetchall, buildall, and populate_sdk (not taskexp)"
     echo "       fetchall: download sources"
-    echo "       populate_sdk: build poky SDK installer, including sysroot (rootfs)"
     echo "       buildall: like all, but try offline"
+    echo "       populate_sdk: build poky SDK installer, including sysroot (rootfs)"
     echo "       taskexp: run the task dependency explorer (requires build)"
     echo "    -h: show this message and exit"
     echo "    -w DIR: Set the working directory (default=ID from -b)"
@@ -41,27 +40,33 @@ function usage()
 }
 
 # Script options
-IS_ONLINE=1
-ACTION="all"
+HAS_ACTION=0
+IS_ALL=0
+IS_ONLINE=0
+IS_BUILD=0
+IS_POPULATE_SDK=0
+IS_TASKEXP=0
 BUILD=""
 WORKING_DIR=""
 # parse options
 while getopts "h?a:b:w:" o; do
     case "$o" in
         a)
-            if [ "${OPTARG}" == "all" ] ||
-               [ "${OPTARG}" == "fetchall" ]; then
+            HAS_ACTION=1
+            if [ "${OPTARG}" == "all" ]; then
+                IS_ALL=1
+            elif [ "${OPTARG}" == "fetchall" ]; then
                 IS_ONLINE=1
-            elif [ "${OPTARG}" == "populate_sdk" ] ||
-                 [ "${OPTARG}" == "buildall" ] ||
-                 [ "${OPTARG}" == "taskexp" ]; then
-                # TODO: Force bitbake offline (may involve setting BB_NO_NETWORK)
-                IS_ONLINE=0
+            elif [ "${OPTARG}" == "buildall" ]; then
+                IS_BUILD=1
+            elif [ "${OPTARG}" == "populate_sdk" ]; then
+                IS_POPULATE_SDK=1
+            elif [ "${OPTARG}" == "taskexp" ]; then
+                IS_TASKEXP=1
             else
                 echo "Error: no such action: ${OPTARG}"
                 usage
             fi
-            ACTION="${OPTARG}"
             ;;
         b)
             BUILD="${OPTARG}"
@@ -85,6 +90,12 @@ fi
 if [ -z "$WORKING_DIR" ]; then
     WORKING_DIR="$BUILD"
 fi
+if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
+    # do everything except taskexp
+    IS_ONLINE=1
+    IS_BUILD=1
+    IS_POPULATE_SDK=1
+fi
 
 # Fail-fast
 set -e
@@ -96,59 +107,48 @@ TOPDIR=${PWD}
 mkdir -p "$WORKING_DIR"
 cd "$WORKING_DIR"
 
+# clone our repositories and checkout correct revisions
 if [ $IS_ONLINE -ne 0 ]; then
     # add the meta-openembedded layer (for the mpich package)
-    git_clone_pull "https://github.com/ISI-apex/meta-openembedded" "meta-openembedded"
-    (
-        cd meta-openembedded
-        assert_str "$GIT_CHECKOUT_META_OE"
-        git checkout "$GIT_CHECKOUT_META_OE"
-    )
-
+    git_clone_pull_checkout "https://github.com/ISI-apex/meta-openembedded" \
+                            "meta-openembedded" \
+                            "$GIT_CHECKOUT_META_OE"
     # add the meta-hpsc layer
-    git_clone_pull "https://github.com/ISI-apex/meta-hpsc" "meta-hpsc"
-    (
-        cd meta-hpsc
-        assert_str "$GIT_CHECKOUT_META_HPSC"
-        git checkout "$GIT_CHECKOUT_META_HPSC"
-    )
-
+    git_clone_pull_checkout "https://github.com/ISI-apex/meta-hpsc" \
+                            "meta-hpsc" \
+                            "$GIT_CHECKOUT_META_HPSC"
     # download the yocto poky git repository
-    git_clone_pull "https://github.com/ISI-apex/poky" "poky"
-    (
-        cd poky
-        assert_str "$GIT_CHECKOUT_POKY"
-        git checkout "$GIT_CHECKOUT_POKY"
-    )
+    git_clone_pull_checkout "https://github.com/ISI-apex/poky" \
+                            "poky" \
+                            "$GIT_CHECKOUT_POKY"
 fi
 BITBAKE_LAYERS=("${PWD}/meta-openembedded/meta-oe"
                 "${PWD}/meta-openembedded/meta-python"
                 "${PWD}/meta-hpsc/meta-xilinx-bsp")
 
-# download the yocto poky git repository
 cd poky
-# create build directory and configure it
+# create build directory if it doesn't exist and configure it
 . ./oe-init-build-env build
-for layer in "${BITBAKE_LAYERS[@]}"; do
-    bitbake-layers add-layer "$layer"
-done
 
-# configure local.conf
-conf_replace_or_append "MACHINE" "\"hpsc-chiplet\""
-conf_replace_or_append "CORE_IMAGE_EXTRA_INSTALL" "\"${YOCTO_INSTALL[*]}\""
-conf_replace_or_append "FORTRAN_forcevariable" "\",fortran\""
-
-# finally, execute the requested action
-if [ "$ACTION" == "all" ] || [ "$ACTION" == "fetchall" ]; then
+# finally, execute the requested action(s)
+if [ $IS_ONLINE -ne 0 ]; then
+    for layer in "${BITBAKE_LAYERS[@]}"; do
+        bitbake-layers add-layer "$layer"
+    done
+    # configure local.conf
+    conf_replace_or_append "MACHINE" "\"hpsc-chiplet\""
+    conf_replace_or_append "CORE_IMAGE_EXTRA_INSTALL" "\"${YOCTO_INSTALL[*]}\""
+    conf_replace_or_append "FORTRAN_forcevariable" "\",fortran\""
     bitbake core-image-minimal -c fetchall
 fi
-if [ "$ACTION" == "all" ] || [ "$ACTION" == "buildall" ]; then
+# TODO: Force bitbake offline after fetch? (may involve setting BB_NO_NETWORK)
+if [ $IS_BUILD -ne 0 ]; then
     bitbake core-image-minimal
 fi
-if [ "$ACTION" == "all" ] || [ "$ACTION" == "populate_sdk" ]; then
+if [ $IS_POPULATE_SDK -ne 0 ]; then
     bitbake core-image-minimal -c populate_sdk
 fi
-if [ "$ACTION" == "all" ] || [ "$ACTION" == "taskexp" ]; then
+if [ $IS_TASKEXP -ne 0 ]; then
     bitbake -u taskexp -g core-image-minimal
 fi
 
