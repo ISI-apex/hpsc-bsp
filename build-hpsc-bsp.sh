@@ -5,6 +5,7 @@
 
 RELEASE_DIR=HPSC_2.0
 RELEASE_TGZ=${RELEASE_DIR}.tar.gz
+RELEASE_SRC_FETCH_TGZ=${RELEASE_DIR}_src_fetch.tar.gz
 
 TC_TOPDIR=sdk
 TC_BM_DIR=${TC_TOPDIR}/gcc-arm-none-eabi-7-2018-q2-update
@@ -135,6 +136,7 @@ function usage()
     echo "    -a ACTION"
     echo "       all: (default) download sources, compile, stage, and package"
     echo "       fetchall: download toolchains and sources"
+    echo "                 Note: on first fetch, creates source archive"
     echo "       buildall: compile pre-downloaded sources"
     echo "       stage: stage everything into a directory before packaging"
     echo "       package: package everything into the BSP"
@@ -152,6 +154,7 @@ IS_STAGE=0
 IS_PACKAGE=0
 BUILD=""
 WORKING_DIR=""
+IS_FIRST_FETCH=0
 while getopts "h?a:b:w:" o; do
     case "$o" in
         a)
@@ -216,9 +219,12 @@ set -e
 build_set_environment "$BUILD"
 
 TOPDIR=${PWD}
-mkdir -p "$WORKING_DIR" || exit 1
 
 if [ $IS_ONLINE -ne 0 ]; then
+    if [ ! -d "$WORKING_DIR" ]; then
+        IS_FIRST_FETCH=1
+        mkdir "$WORKING_DIR"
+    fi
     # get toolchains
     echo "Fetching toolchains..."
     cd "$WORKING_DIR"
@@ -239,6 +245,10 @@ if [ $IS_ONLINE -ne 0 ]; then
     ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a fetchall
     ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a fetchall
     ./build-hpsc-eclipse.sh -a fetchall -w "$WORKING_DIR"
+    if [ $IS_FIRST_FETCH -ne 0 ]; then
+        echo "  First fetch - creating source release: $RELEASE_SRC_FETCH_TGZ"
+        tar czf "$RELEASE_SRC_FETCH_TGZ" "$WORKING_DIR"
+    fi
 fi
 
 if [ $IS_BUILD -ne 0 ]; then
