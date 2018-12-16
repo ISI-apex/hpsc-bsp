@@ -38,17 +38,22 @@ function usage()
 }
 
 # Script options
-IS_ONLINE=1
-IS_BUILD=1
+HAS_ACTION=0
+IS_ALL=0
+IS_ONLINE=0
+IS_BUILD=0
 WORKING_DIR="HEAD"
 while getopts "h?a:w:" o; do
     case "$o" in
         a)
+            HAS_ACTION=1
             if [ "${OPTARG}" == "fetchall" ]; then
-                IS_BUILD=0
+                IS_ONLINE=1
             elif [ "${OPTARG}" == "buildall" ]; then
-                IS_ONLINE=0
-            elif [ "${OPTARG}" != "all" ]; then
+                IS_BUILD=1
+            elif [ "${OPTARG}" == "all" ]; then
+                IS_ALL=1
+            else
                 echo "Error: no such action: ${OPTARG}"
                 usage
             fi
@@ -66,6 +71,11 @@ while getopts "h?a:w:" o; do
     esac
 done
 shift $((OPTIND-1))
+if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
+    # do everything
+    IS_ONLINE=1
+    IS_BUILD=1
+fi
 
 TOPDIR=${PWD}
 mkdir -p "$WORKING_DIR" || exit 1
