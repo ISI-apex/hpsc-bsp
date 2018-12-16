@@ -54,6 +54,13 @@ function uboot_r52_build()
     make -j${BUILD_JOBS} CROSS_COMPILE=arm-none-eabi- CONFIG_LD_GCC=y
 }
 
+function qemu_post_fetch()
+{
+    # Fetches submodules, which requires internet
+    # We only know which submodules are used b/c we've run configure before...
+    ./scripts/git-submodule.sh update ui/keycodemapdb dtc capstone
+}
+
 function qemu_build()
 {
     rm -rf BUILD && \
@@ -102,19 +109,24 @@ function usage()
 }
 
 # Script options
-IS_ONLINE=1
-IS_BUILD=1
+HAS_ACTION=0
+IS_ALL=0
+IS_ONLINE=0
+IS_BUILD=0
 BUILD=""
 WORKING_DIR=""
 # parse options
 while getopts "h?a:b:w:" o; do
     case "$o" in
         a)
+            HAS_ACTION=1
             if [ "${OPTARG}" == "fetchall" ]; then
-                IS_BUILD=0
+                IS_ONLINE=1
             elif [ "${OPTARG}" == "buildall" ]; then
-                IS_ONLINE=0
-            elif [ "${OPTARG}" != "all" ]; then
+                IS_BUILD=1
+            elif [ "${OPTARG}" == "all" ]; then
+                IS_ALL=1
+            else
                 echo "Error: no such action: ${OPTARG}"
                 usage
             fi
@@ -135,16 +147,20 @@ while getopts "h?a:b:w:" o; do
     esac
 done
 shift $((OPTIND-1))
-
 if [ -z "$BUILD" ]; then
     usage
 fi
 if [ -z "$WORKING_DIR" ]; then
     WORKING_DIR="$BUILD"
 fi
+if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
+    # do everything
+    IS_ONLINE=1
+    IS_BUILD=1
+fi
+
 . ./build-common.sh || exit $?
 build_set_environment "$BUILD"
-
 
 PREBUILD_FNS=(check_bm_toolchain
               check_poky_toolchain)
@@ -160,6 +176,11 @@ BUILD_DIRS=("hpsc-baremetal"
             "qemu"
             "qemu-devicetrees"
             "hpsc-utils")
+BUILD_POST_FETCH=(:
+                  :
+                  qemu_post_fetch
+                  :
+                  :)
 BUILD_CHECKOUTS=("$GIT_CHECKOUT_BM"
                  "$GIT_CHECKOUT_UBOOT_R52"
                  "$GIT_CHECKOUT_QEMU"
@@ -178,7 +199,19 @@ cd "$WORKING_DIR"
 if [ $IS_ONLINE -ne 0 ]; then
     echo "Fetching sources..."
     for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
-        git_clone_pull "${BUILD_REPOS[$i]}" "${BUILD_DIRS[$i]}" || exit $?
+        REPO="${BUILD_REPOS[$i]}"
+        DIR="${BUILD_DIRS[$i]}"
+        CHECKOUT="${BUILD_CHECKOUTS[$i]}"
+        echo "$DIR: fetch: $REPO"
+        git_clone_pull "$REPO" "$DIR" || exit $?
+        (
+            cd "$DIR" && \
+            echo "$DIR: checkout: $CHECKOUT..." && \
+            assert_str "$CHECKOUT" && \
+            git checkout "$CHECKOUT" && \
+            echo "$DIR: post-fetch..." && \
+            "${BUILD_POST_FETCH[$i]}" || exit $?
+        )
     done
 fi
 
@@ -190,17 +223,12 @@ if [ $IS_BUILD -ne 0 ]; then
     echo "Running builds..."
     for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
         DIR="${BUILD_DIRS[$i]}"
-        CHECKOUT="${BUILD_CHECKOUTS[$i]}"
         if [ ! -d "$DIR" ]; then
             echo "$DIR: Error: must fetch sources before build"
             exit 1
         fi
-        # subshell avoids potential cd problems
         (
-            cd "$DIR"
-            echo "$DIR: checkout: $CHECKOUT..."
-            assert_str "$CHECKOUT"
-            git checkout "$CHECKOUT" || exit $?
+            cd "$DIR" && \
             "${BUILD_FNS[$i]}"
         )
         RC=$?
