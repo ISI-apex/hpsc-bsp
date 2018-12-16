@@ -199,17 +199,12 @@ cd "$WORKING_DIR"
 if [ $IS_ONLINE -ne 0 ]; then
     echo "Fetching sources..."
     for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
-        REPO="${BUILD_REPOS[$i]}"
         DIR="${BUILD_DIRS[$i]}"
-        CHECKOUT="${BUILD_CHECKOUTS[$i]}"
-        echo "$DIR: fetch: $REPO"
-        git_clone_pull "$REPO" "$DIR" || exit $?
+        git_clone_pull_checkout "${BUILD_REPOS[$i]}" "$DIR" \
+                                "${BUILD_CHECKOUTS[$i]}" || exit $?
         (
-            cd "$DIR" && \
-            echo "$DIR: checkout: $CHECKOUT..." && \
-            assert_str "$CHECKOUT" && \
-            git checkout "$CHECKOUT" && \
             echo "$DIR: post-fetch..." && \
+            cd "$DIR" && \
             "${BUILD_POST_FETCH[$i]}" || exit $?
         )
     done

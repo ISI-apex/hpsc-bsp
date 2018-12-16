@@ -72,16 +72,32 @@ function git_clone_pull()
 {
     local repo=$1
     local dir=$2
+    assert_str "$repo"
+    assert_str "$dir"
     # Don't ask for credentials if requests are bad
     export GIT_TERMINAL_PROMPT=0 # for git > 2.3
     export GIT_ASKPASS=/bin/echo
-    echo "Pulling repository: $repo"
     if [ ! -d "$dir" ]; then
+        echo "$dir: fetch: $repo"
         git clone "$repo" "$dir" || return $?
     fi
-    cd "$dir"
-    git pull
-    RC=$?
-    cd - > /dev/null
-    return $RC
+    (
+        echo "$dir: pull: $repo"
+        cd "$dir"
+        git pull
+    )
+}
+
+function git_clone_pull_checkout()
+{
+    local repo=$1
+    local dir=$2
+    local checkout=$3
+    assert_str "$checkout"
+    git_clone_pull "$repo" "$dir"
+    (
+        echo "$dir: checkout: $checkout"
+        cd "$dir"
+        git checkout "$checkout"
+    )
 }
