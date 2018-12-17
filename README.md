@@ -10,6 +10,7 @@ This repository includes:
 Uses the ARM bare metal toolchain to build the TRCH and R52 firmware and u-boot for the R52s.
 Uses the Yocto SDK toolchain to build test utilities.
 Uses the host compiler to build QEMU.
+1. `build-hpsc-eclipse.sh` - downloads and builds the HPSC Eclipse distribution.
 1. `run-qemu.sh` - uses the output from the build scripts above to boot QEMU.
 1. `create_rootfs_nand.sh` - creates nand image file and put root filesystem in the nand image file.
 
@@ -42,6 +43,9 @@ Other build scripts follow this same pattern.
 
 	./build-hpsc-bsp.sh -b HEAD
 
+All files are downloaded and built in a working directory, which defaults to the value from `-b`.
+You may optionally specify a different working directory using `-w`.
+
 Yocto Build
 -----------
 
@@ -55,11 +59,11 @@ For example to perform a development build, then create the SDK:
 The generated files needed to run QEMU are located in: `poky/build/tmp/deploy/images/hpsc-chiplet`.
 Specifically:
 
-1. `arm-trusted-firmware.elf` - the Arm Trusted Firmware binary
+1. `arm-trusted-firmware.bin` - the Arm Trusted Firmware binary
 1. `core-image-minimal-hpsc-chiplet.cpio.gz.u-boot` - the Linux root file system for booting the dual A53 cluster
-1. `Image` - the Linux kernel binary image
+1. `Image.gz` - the Linux kernel binary image
 1. `hpsc.dtb` - the Chiplet device tree for SMP Linux
-1. `u-boot.elf` - the U-boot bootloader for the dual A53 cluster
+1. `u-boot.bin` - the U-boot bootloader for the dual A53 cluster
 
 The actual build directories for these files are located in the directory: `poky/build/tmp/work`.
 
@@ -75,17 +79,24 @@ The bare metal toolchain is used to build:
 
 1. `hpsc-baremetal/trch/bld/trch.elf` - TRCH firmware
 1. `hpsc-baremetal/rtps/bld/rtps.elf` - RTPS R52 firmware
-1. `u-boot-r52/u-boot.elf` - u-boot for the RTPS R52s
+1. `u-boot-r52/u-boot.bin` - u-boot for the RTPS R52s
 
 The host compiler is used to build:
 
 1. `qemu/BUILD/aarch64-softmmu/qemu-system-aarch64` - the QEMU binary
 1. `qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb` - the QEMU device tree
+1. `hpsc-utils/host/qemu-nand-creator` - QEMU NAND flash image creator
+1. `hpsc-utils/host/sram-image-utils` - SRAM image creation utility
 
 Finally, the Poky SDK must be installed to build test utilities.
 Set `POKY_SDK` to the install location, e.g. (using the default location):
 
 	export POKY_SDK=/opt/poky/2.4.3
+
+The Poky SDK is used to build:
+
+1. `hpsc-utils/linux/mboxtester` - mailbox test utility
+1. `hpsc-utils/linux/wdtester` - watchdog test utility
 
 To run a development build:
 
@@ -112,5 +123,5 @@ To download eclipse, install additional plugins, and package up again:
 
 	./build-hpsc-eclipse.sh
 
-There is no concept of a development or release build for Eclipse, as there's no additional source control involved.
+There is no concept of a development or release build for Eclipse, as there's no additional source control involved, so you must specify `-w` explicitly for a value other than `HEAD`.
 The final artifact is `hpsc-eclipse.tar.gz`.
