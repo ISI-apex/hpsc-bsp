@@ -77,23 +77,23 @@ RTPS_APP_ADDR=0x68000000      # address of baremetal app ELF file
 # TRCH_APP_LOAD_ADDR          # where ELF sections are loaded, set in the ELF header
 HPSC_HOST_UTILS_DIR=${WORKING_DIR}/hpsc-utils/host
 SRAM_IMAGE_UTILS=${HPSC_HOST_UTILS_DIR}/sram-image-utils
-SRAM_SIZE=0x4000000			# 64MB
+SRAM_SIZE=0x4000000           # 64MB
 
 # create non-volatile offchip sram image
 function create_nvsram_image()
 {
-	set -e
-	echo create_sram_image...
-	# Create SRAM image to store boot images
-	${SRAM_IMAGE_UTILS} create ${TRCH_SRAM_FILE} ${SRAM_SIZE}
-	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${RTPS_BL} 		"rtps-bl" ${RTPS_BL_ADDR}
-	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${RTPS_APP} 		"rtps-os" ${RTPS_APP_ADDR}
-	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${HPPS_BL} 	        "hpps-bl" ${HPPS_BL_ADDR}
-	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${HPPS_FW} 	        "hpps-fw" ${HPPS_FW_ADDR}
-	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${HPPS_DT} 	        "hpps-dt" ${HPPS_DT_ADDR}
-	${SRAM_IMAGE_UTILS} add ${TRCH_SRAM_FILE} ${HPPS_KERN}   	"hpps-os" ${HPPS_KERN_ADDR}
-	${SRAM_IMAGE_UTILS} show ${TRCH_SRAM_FILE} 
-	set +e
+    set -e
+    echo create_sram_image...
+    # Create SRAM image to store boot images
+    "${SRAM_IMAGE_UTILS}" create "${TRCH_SRAM_FILE}" ${SRAM_SIZE}
+    "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${RTPS_BL}"      "rtps-bl" ${RTPS_BL_ADDR}
+    "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${RTPS_APP}"     "rtps-os" ${RTPS_APP_ADDR}
+    "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_BL}"      "hpps-bl" ${HPPS_BL_ADDR}
+    "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_FW}"      "hpps-fw" ${HPPS_FW_ADDR}
+    "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_DT}"      "hpps-dt" ${HPPS_DT_ADDR}
+    "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_KERN}"    "hpps-os" ${HPPS_KERN_ADDR}
+    "${SRAM_IMAGE_UTILS}" show "${TRCH_SRAM_FILE}" 
+    set +e
 }
 
 function usage()
@@ -116,7 +116,7 @@ function usage()
 SCREEN_SESSIONS=(hpsc-trch hpsc-rtps-r52 hpsc-hpps)
 SERIAL_PORTS=(serial0 serial1 serial2)
 SERIAL_PORT_ARGS=()
-for port in ${SERIAL_PORTS[*]}
+for port in "${SERIAL_PORTS[@]}"
 do
     SERIAL_PORT_ARGS+=(-serial pty)
 done
@@ -247,8 +247,8 @@ then
 fi
 
 RUN=0
-echo CMDS ${CMDS[@]}
-for CMD in ${CMDS[@]}
+echo "CMDS: ${CMDS[*]}"
+for CMD in "${CMDS[@]}"
 do
     echo CMD: $CMD
     case "$CMD" in
@@ -313,7 +313,7 @@ fi
 # Note: If you want to see instructions and exceptions at a large performance cost, then add
 # "in_asm,int" to the list of categories in -d.
 
-mkimage -C gzip -A arm64 -d ${HPPS_KERN_BIN} -a ${HPPS_KERN_LOAD_ADDR} ${HPPS_KERN}
+mkimage -C gzip -A arm64 -d "${HPPS_KERN_BIN}" -a ${HPPS_KERN_LOAD_ADDR} "${HPPS_KERN}"
 
 BASE_COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
     -machine "arm-generic-fdt"
@@ -362,7 +362,7 @@ if [ "${BOOT_IMAGE_OPTION}" == "dram" ]    # Boot images are loaded onto DRAM by
 then
     OPT_COMMAND=("${BOOT_IMGS_LOAD[@]}")
     TRCH_BOOT_MODE="${TRCH_BOOT_MODE_DRAM}"
-elif [ "${BOOT_IMAGE_OPTION}" == "nvram" ]	# Boot images are stored in an NVRAM and loaded onto DRAM by TRCH
+elif [ "${BOOT_IMAGE_OPTION}" == "nvram" ]  # Boot images are stored in an NVRAM and loaded onto DRAM by TRCH
 then
     create_nvsram_image
     OPT_COMMAND=("${TRCH_SRAM_DRIVE[@]}")
