@@ -20,18 +20,36 @@ function build_set_environment()
     if [ "$BUILD" == "HEAD" ]; then
         # Anything goes - read from the environment, otherwise use the latest
         export GIT_CHECKOUT_DEFAULT=${GIT_CHECKOUT_DEFAULT:-"hpsc"}
+        # HPSC repositories built by poky
+        # The following SRCREV_* env vars specify the commit hash or tag
+        # (e.g. 'hpsc-0.9') that will be checked out for each repository.
+        # Specify "\${AUTOREV}" to pull and use the head of the hpsc branch.
         export SRCREV_DEFAULT=${SRCREV_DEFAULT:-"\${AUTOREV}"}
+        export SRCREV_atf=${SRCREV_atf:-"$SRCREV_DEFAULT"}
+        export SRCREV_linux_hpsc=${SRCREV_linux_hpsc:-"$SRCREV_DEFAULT"}
+        export SRCREV_u_boot=${SRCREV_u_boot:-"$SRCREV_DEFAULT"}
+        # BB_ENV_EXTRAWHITE allows additional variables to pass through from
+        # the external environment into Bitbake's datastore
+        export BB_ENV_EXTRAWHITE="SRCREV_atf \
+                                  SRCREV_linux_hpsc \
+                                  SRCREV_u_boot"
         echo "Performing development build"
         echo "You may override the following environment variables:"
     else
         # Force git revisions for release
         export GIT_CHECKOUT_DEFAULT="$BUILD"
-        export SRCREV_DEFAULT="$BUILD"
+        unset SRCREV_atf
+        unset SRCREV_linux_hpsc
+        unset SRCREV_u_boot
+        unset BB_ENV_EXTRAWHITE
         echo "Performing release build"
         echo "The following environment variables are fixed:"
     fi
     echo "  GIT_CHECKOUT_DEFAULT = $GIT_CHECKOUT_DEFAULT"
-    echo "  SRCREV_DEFAULT = $SRCREV_DEFAULT"
+    echo "  SRCREV_DEFAULT       = $SRCREV_DEFAULT"
+    echo "  SRCREV_atf           = $SRCREV_atf"
+    echo "  SRCREV_linux_hpsc    = $SRCREV_linux_hpsc"
+    echo "  SRCREV_u_boot        = $SRCREV_u_boot"
     echo ""
 
     #
@@ -44,20 +62,6 @@ function build_set_environment()
     export GIT_CHECKOUT_POKY="$GIT_CHECKOUT_DEFAULT"
     export GIT_CHECKOUT_META_OE="$GIT_CHECKOUT_DEFAULT"
     export GIT_CHECKOUT_META_HPSC="$GIT_CHECKOUT_DEFAULT"
-
-    # HPSC repositories built by poky
-    # The following SRCREV_* env vars specify the commit hash or tag
-    # (e.g. 'hpsc-0.9') that will be checked out for each repository.
-    # Specify "\${AUTOREV}" to pull and  check out the head of the hpsc branch.
-    export SRCREV_atf="$SRCREV_DEFAULT"
-    export SRCREV_linux_hpsc="$SRCREV_DEFAULT"
-    export SRCREV_u_boot="$SRCREV_DEFAULT"
-    # BB_ENV_EXTRAWHITE allows additional variables to pass through from
-    # the external environment into Bitbake's datastore
-    export BB_ENV_EXTRAWHITE="$BB_ENV_EXTRAWHITE \
-                              SRCREV_atf \
-                              SRCREV_linux_hpsc \
-                              SRCREV_u_boot"
 
     # Repositories not built by poky
     export GIT_CHECKOUT_BM="$GIT_CHECKOUT_DEFAULT"
