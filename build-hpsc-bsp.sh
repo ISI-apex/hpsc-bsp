@@ -228,7 +228,6 @@ if [ $IS_ONLINE -ne 0 ]; then
     # get toolchains
     echo "Fetching toolchains..."
     cd "$WORKING_DIR"
-    mkdir -p "$TC_TOPDIR"
     if [ ! -e "$BM_TC_TBZ2" ]; then
         echo "Downloading bare metal toolchain installer..."
         wget -O "$BM_TC_TBZ2" "$BM_URL"
@@ -241,8 +240,11 @@ if [ $IS_ONLINE -ne 0 ]; then
     ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a fetchall
     ./build-hpsc-eclipse.sh -w "$WORKING_DIR" -a fetchall
     if [ $IS_FIRST_FETCH -ne 0 ]; then
-        echo "  First fetch - creating source release: $RELEASE_SRC_FETCH_TGZ"
-        tar czf "$RELEASE_SRC_FETCH_TGZ" "$WORKING_DIR"
+        echo "First fetch - creating source release: $RELEASE_SRC_FETCH_TGZ"
+        # create in the working directory to avoid conflicts in $TOPDIR
+        touch "${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}"
+        tar czf "${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}" "$WORKING_DIR" \
+            --exclude "$RELEASE_SRC_FETCH_TGZ"
     fi
 fi
 
@@ -253,6 +255,7 @@ if [ $IS_BUILD -ne 0 ]; then
     ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a buildall
     # build other packages
     cd "$WORKING_DIR"
+    mkdir -p "$TC_TOPDIR"
     sdk_bm_setup
     sdk_poky_setup
     export PATH=$PATH:${PWD}/$TC_BM_DIR/bin
