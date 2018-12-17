@@ -30,9 +30,9 @@ function build_set_environment()
         echo "Performing release build"
         echo "The following environment variables are fixed:"
     fi
-        echo "  GIT_CHECKOUT_DEFAULT = $GIT_CHECKOUT_DEFAULT"
-        echo "  SRCREV_DEFAULT = $SRCREV_DEFAULT"
-        echo ""
+    echo "  GIT_CHECKOUT_DEFAULT = $GIT_CHECKOUT_DEFAULT"
+    echo "  SRCREV_DEFAULT = $SRCREV_DEFAULT"
+    echo ""
 
     #
     # If you need to pick specific revisions for individual repositories, edit
@@ -67,13 +67,15 @@ function build_set_environment()
     export GIT_CHECKOUT_QEMU_DT="$GIT_CHECKOUT_DEFAULT"
 }
 
-# Clone repository if not already done, always pull
-function git_clone_pull()
+# Clone repository if not already done, always pull and checkout
+function git_clone_pull_checkout()
 {
     local repo=$1
     local dir=$2
+    local checkout=$3
     assert_str "$repo"
     assert_str "$dir"
+    assert_str "$checkout"
     # Don't ask for credentials if requests are bad
     export GIT_TERMINAL_PROMPT=0 # for git > 2.3
     export GIT_ASKPASS=/bin/echo
@@ -82,22 +84,10 @@ function git_clone_pull()
         git clone "$repo" "$dir" || return $?
     fi
     (
+        cd "$dir" || return $?
         echo "$dir: pull: $repo"
-        cd "$dir"
-        git pull
-    )
-}
-
-function git_clone_pull_checkout()
-{
-    local repo=$1
-    local dir=$2
-    local checkout=$3
-    assert_str "$checkout"
-    git_clone_pull "$repo" "$dir"
-    (
+        git pull || return $?
         echo "$dir: checkout: $checkout"
-        cd "$dir"
-        git checkout "$checkout"
+        git checkout "$checkout" || return $?
     )
 }
