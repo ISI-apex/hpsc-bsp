@@ -193,10 +193,8 @@ shift $((OPTIND-1))
 if [ -z "$BUILD" ]; then
     usage
 fi
-if [ -z "$WORKING_DIR" ]; then
-    WORKING_DIR="$BUILD"
-fi
-if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
+WORKING_DIR=${WORKING_DIR:-"$BUILD"}
+if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     # do everything
     IS_ONLINE=1
     IS_BUILD=1
@@ -230,14 +228,9 @@ if [ $IS_ONLINE -ne 0 ]; then
     cd "$WORKING_DIR"
     mkdir -p "$TC_TOPDIR"
     if [ ! -e "$BM_TC_TBZ2" ]; then
+        echo "Downloading bare metal toolchain installer..."
         wget -O "$BM_TC_TBZ2" "$BM_URL"
-        md5=$(md5sum "$BM_TC_TBZ2" | awk '{print $1}')
-        if [ "$md5" != "$BM_MD5" ]; then
-            echo "md5sum mismatch for: $BM_TC_TBZ2"
-            echo "  got: $md5"
-            echo "  expected: $ECLIPSE_MD5"
-            exit 1
-        fi
+        check_md5sum "$BM_TC_TBZ2" "$BM_MD5"
     fi
     cd "$TOPDIR"
     # fetch sources

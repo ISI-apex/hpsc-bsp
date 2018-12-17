@@ -71,11 +71,13 @@ while getopts "h?a:w:" o; do
     esac
 done
 shift $((OPTIND-1))
-if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
+if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     # do everything
     IS_ONLINE=1
     IS_BUILD=1
 fi
+
+. ./build-common.sh
 
 TOPDIR=${PWD}
 mkdir -p "$WORKING_DIR" || exit 1
@@ -85,13 +87,7 @@ if [ $IS_ONLINE -ne 0 ]; then
     if [ ! -e "$ECLIPSE_TGZ" ]; then
         echo "Downloading eclipse..."
         wget -O "$ECLIPSE_TGZ" "$ECLIPSE_URL" || exit $?
-        md5=$(md5sum "$ECLIPSE_TGZ" | awk '{print $1}')
-        if [ "$md5" != "$ECLIPSE_MD5" ]; then
-            echo "md5sum mismatch for: $ECLIPSE_TGZ"
-            echo "  got: $md5"
-            echo "  expected: $ECLIPSE_MD5"
-            exit 1
-        fi
+        check_md5sum "$ECLIPSE_TGZ" "$ECLIPSE_MD5" || exit $?
     fi
 fi
 

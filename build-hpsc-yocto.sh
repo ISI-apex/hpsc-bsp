@@ -25,7 +25,7 @@ function conf_replace_or_append()
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetchall|populate_sdk|buildall|taskexp>] [-h] [-w DIR]"
+    echo "Usage: $0 -b ID [-a <all|fetchall|buildall|populate_sdk|taskexp>] [-h] [-w DIR]"
     echo "    -b ID: build using git tag=ID"
     echo "       If ID=HEAD, a development release is built instead"
     echo "    -a ACTION"
@@ -87,9 +87,7 @@ shift $((OPTIND-1))
 if [ -z "$BUILD" ]; then
     usage
 fi
-if [ -z "$WORKING_DIR" ]; then
-    WORKING_DIR="$BUILD"
-fi
+WORKING_DIR=${WORKING_DIR:-"$BUILD"}
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
     # do everything except taskexp
     IS_ONLINE=1

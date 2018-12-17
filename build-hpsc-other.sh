@@ -150,10 +150,8 @@ shift $((OPTIND-1))
 if [ -z "$BUILD" ]; then
     usage
 fi
-if [ -z "$WORKING_DIR" ]; then
-    WORKING_DIR="$BUILD"
-fi
-if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
+WORKING_DIR=${WORKING_DIR:-"$BUILD"}
+if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     # do everything
     IS_ONLINE=1
     IS_BUILD=1

@@ -91,3 +91,18 @@ function git_clone_pull_checkout()
         git checkout "$checkout" || return $?
     )
 }
+
+function check_md5sum()
+{
+    local file=$1
+    local md5_expected=$2
+    assert_str "$file"
+    assert_str "$md5_expected"
+    local md5=$(md5sum "$file" | awk '{print $1}') || return $?
+    if [ "$md5" != "$md5_expected" ]; then
+        echo "md5sum mismatch for: $file"
+        echo "  got: $md5"
+        echo "  expected: $md5_expected"
+        return 1
+    fi
+}
