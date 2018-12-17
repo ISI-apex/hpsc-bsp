@@ -293,6 +293,7 @@ EOF
                 setup_screen $session
             done
             attach_consoles &
+            RUN=1
             ;;
     esac
 done

@@ -12,7 +12,6 @@ Uses the Yocto SDK toolchain to build test utilities.
 Uses the host compiler to build QEMU.
 1. `build-hpsc-eclipse.sh` - downloads and builds the HPSC Eclipse distribution.
 1. `run-qemu.sh` - uses the output from the build scripts above to boot QEMU.
-1. `create_rootfs_nand.sh` - creates nand image file and put root filesystem in the nand image file.
 
 Scripts must be run from the same directory.
 Most scripts support the `-h` flag to print usage help.
@@ -106,15 +105,6 @@ Booting QEMU
 ------------
 
 After the builds complete, the user can run the `run-qemu.sh` script to launch QEMU.
-
-Creating nand image with root file system
-------------
-
-Nand image generation can be done when all the above steps are done. 
-Several of the other needed files are located in the following directory:
-
-1. `core-image-minimal-hpsc-chiplet.cpio` - archive file of the root file system
-1. `qemu-nand-creator` - The binary file which generates empty nand image
 
 Eclipse
 -------
