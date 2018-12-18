@@ -144,7 +144,9 @@ fi
 
 # force offline now to catch anything that still tries to fetch
 # this (hopefully) ensures that offline builds will work
-export BB_NO_NETWORK=1
+if [ "$BUILD" != "HEAD" ]; then
+    export BB_NO_NETWORK=1
+fi
 
 if [ $IS_BUILD -ne 0 ]; then
     bitbake core-image-minimal
