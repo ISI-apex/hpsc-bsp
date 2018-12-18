@@ -77,25 +77,20 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_BUILD=1
 fi
 
+# Fail-fast
+set -e
+
 . ./build-common.sh
 
 TOPDIR=${PWD}
-mkdir -p "$WORKING_DIR" || exit 1
+mkdir -p "$WORKING_DIR"
 cd "$WORKING_DIR"
 
 if [ $IS_ONLINE -ne 0 ]; then
     if [ ! -e "$ECLIPSE_TGZ" ]; then
         echo "Downloading eclipse..."
-        wget -O "$ECLIPSE_TGZ" "$ECLIPSE_URL" || exit $?
-        check_md5sum "$ECLIPSE_TGZ" "$ECLIPSE_MD5" || exit $?
-    fi
-fi
-
-if [ $IS_BUILD -ne 0 ]; then
-    # Verify prerequisites
-    if [ ! -e "$ECLIPSE_TGZ" ]; then
-        echo "Error: must fetch sources before build"
-        exit 1
+        wget -O "$ECLIPSE_TGZ" "$ECLIPSE_URL"
+        check_md5sum "$ECLIPSE_TGZ" "$ECLIPSE_MD5"
     fi
 
     # Extract eclipse
@@ -115,10 +110,13 @@ if [ $IS_BUILD -ne 0 ]; then
                            -nosplash \
                            -repository "$ECLIPSE_REPOSITORY_LIST" \
                            -installIUs "$ECLIPSE_PLUGIN_IU_LIST"
-    RC=$?
-    if [ $RC -ne 0 ]; then
-        echo "Eclipse configuration failed with exit code: $RC"
-        exit $RC
+fi
+
+if [ $IS_BUILD -ne 0 ]; then
+    # Verify prerequisites
+    if [ ! -d "$ECLIPSE_DIR" ]; then
+        echo "Error: must fetch sources before build"
+        exit 1
     fi
 
     # Create distribution archive
