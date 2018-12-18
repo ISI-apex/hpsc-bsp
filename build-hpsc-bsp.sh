@@ -4,8 +4,8 @@
 #
 
 RELEASE_DIR=HPSC_2.0
-RELEASE_TGZ=${RELEASE_DIR}.tar.gz
-RELEASE_SRC_FETCH_TGZ=${RELEASE_DIR}_src_fetch.tar.gz
+RELEASE_TGZ=${RELEASE_DIR}_bin.tar.gz
+RELEASE_SRC_FETCH_TGZ=${RELEASE_DIR}_src.tar.gz
 
 TC_TOPDIR=sdk
 TC_BM_DIR=${TC_TOPDIR}/gcc-arm-none-eabi-7-2018-q2-update
@@ -240,11 +240,23 @@ if [ $IS_ONLINE -ne 0 ]; then
     ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a fetchall
     ./build-hpsc-eclipse.sh -w "$WORKING_DIR" -a fetchall
     if [ $IS_FIRST_FETCH -ne 0 ]; then
+        # This packaging is dirty and disgusting and makes me sick, but oh well
         echo "First fetch - creating source release: $RELEASE_SRC_FETCH_TGZ"
+        # get the build scripts
+        basedir=$(basename "$TOPDIR")
+        bsp_files=("${basedir}/.git")
+        while read f; do
+            bsp_files+=("${basedir}/${f}")
+        done< <(git ls-tree --name-only HEAD)
         # create in the working directory to avoid conflicts in $TOPDIR
         touch "${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}"
-        tar czf "${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}" "$WORKING_DIR" \
-            --exclude "$RELEASE_SRC_FETCH_TGZ"
+        # cd'ing up seems to be the only way to get TOPDIR as the root directory
+        # using --transform with tar broke symlinks in poky
+        cd ..
+        tar czf "${basedir}/${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}" \
+            "${bsp_files[@]}" "${basedir}/${WORKING_DIR}" \
+            --exclude "${basedir}/${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}"
+        cd "${TOPDIR}"
     fi
 fi
 
