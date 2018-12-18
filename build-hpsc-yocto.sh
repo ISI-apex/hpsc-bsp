@@ -138,8 +138,11 @@ if [ $IS_ONLINE -ne 0 ]; then
     conf_replace_or_append "CORE_IMAGE_EXTRA_INSTALL" "\"${YOCTO_INSTALL[*]}\""
     conf_replace_or_append "FORTRAN_forcevariable" "\",fortran\""
     bitbake core-image-minimal -c fetchall
+    # The following are needed by populate_sdk but not fetched with fetchall...
+    bitbake chrpath libtirpc unfs3 ca-certificates debianutils pixz -c fetch
 fi
-# TODO: Force bitbake offline after fetch? (may involve setting BB_NO_NETWORK)
+# force offline (verifies offline build works by catching anything that fetches)
+export BB_NO_NETWORK=1
 if [ $IS_BUILD -ne 0 ]; then
     bitbake core-image-minimal
 fi
