@@ -141,14 +141,19 @@ if [ $IS_ONLINE -ne 0 ]; then
     # The following are needed by populate_sdk but not fetched with fetchall...
     bitbake chrpath libtirpc unfs3 ca-certificates debianutils pixz -c fetch
 fi
-# force offline (verifies offline build works by catching anything that fetches)
+
+# force offline now to catch anything that still tries to fetch
+# this (hopefully) ensures that offline builds will work
 export BB_NO_NETWORK=1
+
 if [ $IS_BUILD -ne 0 ]; then
     bitbake core-image-minimal
 fi
+
 if [ $IS_POPULATE_SDK -ne 0 ]; then
     bitbake core-image-minimal -c populate_sdk
 fi
+
 if [ $IS_TASKEXP -ne 0 ]; then
     bitbake -u taskexp -g core-image-minimal
 fi
