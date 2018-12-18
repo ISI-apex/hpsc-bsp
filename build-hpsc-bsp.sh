@@ -251,8 +251,8 @@ fi
 if [ $IS_BUILD -ne 0 ]; then
     echo "Building..."
     # build Yocto
-    ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a populate_sdk
     ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a buildall
+    ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a populate_sdk
     # build other packages
     cd "$WORKING_DIR"
     mkdir -p "$TC_TOPDIR"
