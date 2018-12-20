@@ -255,6 +255,7 @@ if [ $IS_ONLINE -ne 0 ]; then
         cd ..
         tar czf "${basedir}/${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}" \
             "${bsp_files[@]}" "${basedir}/${WORKING_DIR}" \
+            --exclude "${basedir}/${WORKING_DIR}/poky/build" \
             --exclude "${basedir}/${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}"
         cd "${TOPDIR}"
     fi

@@ -1,25 +1,12 @@
 #!/bin/bash
 
-# Yocto packages to install
-# Please list alphabetically and group items together appropriately
-YOCTO_INSTALL=(gdb gdbserver
-               libgfortran
-               libgomp
-               libstdc++
-               mpich
-               mtd-utils
-               openssh openssh-sftp-server
-               python-core python-numpy
-               # qemu
-               util-linux
-               watchdog)
-
 function conf_replace_or_append()
 {
     local key=$1
     local value=$2
     local file="conf/local.conf"
-    grep -q "^$key =" "$file" && sed -i "s/^$key.*/$key = $value/" "$file" ||\
+    # Using '@' instead of '/' in sed so paths can be values
+    grep -q "^$key =" "$file" && sed -i "s@^$key.*@$key = $value@" "$file" ||\
         echo "$key = $value" >> "$file"
 }
 
@@ -88,6 +75,7 @@ if [ -z "$BUILD" ]; then
     usage
 fi
 WORKING_DIR=${WORKING_DIR:-"$BUILD"}
+POKY_DL_DIR=${PWD}/${WORKING_DIR}/poky_dl
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
     # do everything except taskexp
     IS_ONLINE=1
@@ -125,19 +113,23 @@ BITBAKE_LAYERS=("${PWD}/meta-openembedded/meta-oe"
                 "${PWD}/meta-hpsc/meta-xilinx-bsp")
 
 cd poky
+
 # create build directory if it doesn't exist and configure it
+# poky's sanity checker tries to reach example.com unless we force it offline
+export BB_NO_NETWORK=1
 . ./oe-init-build-env build
+for layer in "${BITBAKE_LAYERS[@]}"; do
+    bitbake-layers add-layer "$layer"
+done
+unset BB_NO_NETWORK
+
+# configure local.conf
+conf_replace_or_append "MACHINE" "\"hpsc-chiplet\""
+conf_replace_or_append "DL_DIR" "\"${POKY_DL_DIR}\""
 
 # finally, execute the requested action(s)
 if [ $IS_ONLINE -ne 0 ]; then
-    for layer in "${BITBAKE_LAYERS[@]}"; do
-        bitbake-layers add-layer "$layer"
-    done
-    # configure local.conf
-    conf_replace_or_append "MACHINE" "\"hpsc-chiplet\""
-    conf_replace_or_append "CORE_IMAGE_EXTRA_INSTALL" "\"${YOCTO_INSTALL[*]}\""
-    conf_replace_or_append "FORTRAN_forcevariable" "\",fortran\""
-    bitbake core-image-minimal -c fetchall
+    bitbake core-image-hpsc -c fetchall
     # The following are needed by populate_sdk but not fetched with fetchall...
     bitbake chrpath libtirpc unfs3 ca-certificates debianutils pixz -c fetch
 fi
@@ -145,19 +137,20 @@ fi
 # force offline now to catch anything that still tries to fetch
 # this (hopefully) ensures that offline builds will work
 if [ "$BUILD" != "HEAD" ]; then
+    echo "Setting BB_NO_NETWORK=1 after fetch for release build"
     export BB_NO_NETWORK=1
 fi
 
 if [ $IS_BUILD -ne 0 ]; then
-    bitbake core-image-minimal
+    bitbake core-image-hpsc
 fi
 
 if [ $IS_POPULATE_SDK -ne 0 ]; then
-    bitbake core-image-minimal -c populate_sdk
+    bitbake core-image-hpsc -c populate_sdk
 fi
 
 if [ $IS_TASKEXP -ne 0 ]; then
-    bitbake -u taskexp -g core-image-minimal
+    bitbake -u taskexp -g core-image-hpsc
 fi
 
 cd "$TOPDIR"
