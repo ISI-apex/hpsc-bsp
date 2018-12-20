@@ -203,12 +203,12 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_STAGE=1
     IS_PACKAGE=1
 fi
-if [ $IS_STAGE -ne 0 ] && [ -d "$RELEASE_DIR" ]; then
-    echo "Staging directory already exists, please remove: $RELEASE_DIR"
+if [ $IS_STAGE -ne 0 ] && [ -d "${WORKING_DIR}/${RELEASE_DIR}" ]; then
+    echo "Staging directory already exists, please remove: ${WORKING_DIR}/${RELEASE_DIR}"
     exit 1
 fi
-if [ $IS_PACKAGE -ne 0 ] && [ -e "$RELEASE_TGZ" ]; then
-    echo "Packaged artifact already exists, please remove: $RELEASE_TGZ"
+if [ $IS_PACKAGE -ne 0 ] && [ -e "${WORKING_DIR}/${RELEASE_TGZ}" ]; then
+    echo "Packaged artifact already exists, please remove: ${WORKING_DIR}/${RELEASE_TGZ}"
     exit 1
 fi
 
