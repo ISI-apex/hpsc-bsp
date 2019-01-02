@@ -257,6 +257,8 @@ if [ $IS_ONLINE -ne 0 ]; then
             "${bsp_files[@]}" "${basedir}/${WORKING_DIR}" \
             --exclude "${basedir}/${WORKING_DIR}/poky/build" \
             --exclude "${basedir}/${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}"
+        cd "${basedir}/${WORKING_DIR}"
+        md5sum "$RELEASE_SRC_FETCH_TGZ" > "${RELEASE_SRC_FETCH_TGZ}.md5"
         cd "${TOPDIR}"
     fi
 fi
@@ -332,6 +334,7 @@ fi
 if [ $IS_PACKAGE -ne 0 ]; then
     echo "Packaging: $RELEASE_TGZ..."
     tar czf "$RELEASE_TGZ" "$RELEASE_DIR"
+    md5sum "$RELEASE_TGZ" > "${RELEASE_TGZ}.md5"
 fi
 
 cd "$TOPDIR"
