@@ -126,6 +126,7 @@ unset BB_NO_NETWORK
 # configure local.conf
 conf_replace_or_append "MACHINE" "\"hpsc-chiplet\""
 conf_replace_or_append "DL_DIR" "\"${POKY_DL_DIR}\""
+conf_replace_or_append "FORTRAN_forcevariable" "\",fortran\""
 
 # finally, execute the requested action(s)
 if [ $IS_ONLINE -ne 0 ]; then
