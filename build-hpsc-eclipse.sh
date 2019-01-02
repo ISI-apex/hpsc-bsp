@@ -12,18 +12,12 @@ ECLIPSE_REPOSITORIES=("http://download.eclipse.org/releases/photon"
                       "http://gnu-mcu-eclipse.netlify.com/v4-neon-updates/"
                       "http://downloads.yoctoproject.org/releases/eclipse-plugin/2.5.0/oxygen")
 # Plugins to install
-ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group
-                    org.yocto.sdk.feature.group
-                    org.yocto.sdk.source.feature.group
-                    ilg.gnumcueclipse.managedbuild.cross.arm
-                    ilg.gnumcueclipse.core
-                    ilg.gnumcueclipse.managedbuild.cross
-                    ilg.gnumcueclipse.managedbuild.packs
-                    ilg.gnumcueclipse.debug.core
-                    ilg.gnumcueclipse.templates.cortexm
-                    ilg.gnumcueclipse.packs.core
-                    ilg.gnumcueclipse.packs.data
-                    ilg.gnumcueclipse.templates.core)
+ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group/1.4.1.201804240009
+                    org.yocto.sdk.feature.group/1.4.1.201804240009
+                    ilg.gnumcueclipse.core/4.5.1.201901011632
+                    ilg.gnumcueclipse.managedbuild.cross.arm/2.6.4.201901011632
+                    ilg.gnumcueclipse.debug.core/1.2.2.201901011632
+                    ilg.gnumcueclipse.templates.cortexm.feature.feature.group/1.4.4.201901011632)
 
 function usage()
 {
