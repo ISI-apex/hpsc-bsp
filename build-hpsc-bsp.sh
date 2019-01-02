@@ -18,7 +18,7 @@ BM_TC_TBZ2=gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
 # Paths generated as part of build
 POKY_DEPLOY_DIR=poky/build/tmp/deploy
 POKY_IMAGE_DIR=${POKY_DEPLOY_DIR}/images/hpsc-chiplet
-POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-minimal-aarch64-toolchain-2.4.3.sh
+POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.4.3.sh
 BAREMETAL_DIR=hpsc-baremetal
 UTILS_DIR=hpsc-utils
 R52_UBOOT_DIR=u-boot-r52
@@ -32,9 +32,9 @@ BSP_ARTIFACTS_HPPS=("${POKY_IMAGE_DIR}/arm-trusted-firmware.bin"
                     "${POKY_IMAGE_DIR}/u-boot.bin"
                     "${POKY_IMAGE_DIR}/hpsc.dtb"
                     "${POKY_IMAGE_DIR}/Image.gz"
-                    "${POKY_IMAGE_DIR}/core-image-minimal-hpsc-chiplet.cpio.gz.u-boot"
+                    "${POKY_IMAGE_DIR}/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot"
                     # plain cpio file not used by run-qemu, but used elsewhere
-                    "${POKY_IMAGE_DIR}/core-image-minimal-hpsc-chiplet.cpio")
+                    "${POKY_IMAGE_DIR}/core-image-hpsc-hpsc-chiplet.cpio")
 BSP_ARTIFACTS_AARCH64_UTIL=("${UTILS_DIR}/linux/mboxtester"
                             "${UTILS_DIR}/linux/wdtester")
 BSP_ARTIFACTS_HOST_UTIL=("${UTILS_DIR}/host/qemu-nand-creator"
@@ -91,7 +91,7 @@ function transform_run_qemu()
         HPPS_DT=hpps/hpsc.dtb
         HPPS_KERN_BIN=hpps/Image.gz
         HPPS_KERN=hpps/uImage
-        HPPS_RAMDISK=hpps/core-image-minimal-hpsc-chiplet.cpio.gz.u-boot
+        HPPS_RAMDISK=hpps/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot
 
         TRCH_APP=trch/trch.elf
         RTPS_APP=rtps-r52/rtps.elf
