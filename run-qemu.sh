@@ -54,7 +54,7 @@ RTPS_BOOT_SMP=0x00000002
 
 # Controlling boot mode of HPPS (ramdisk or rootfs in NAND)
 # how to use:
-#    -device loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE,data-len=4,cpu-num=3 \
+#    -device loader,addr=$BOOT_MODE_ADDR,data=$BOOT_MODE,data-len=4,cpu-num=4 \
 
 HPPS_BOOT_MODE_ADDR=0x9f000000    # memory location to store boot mode code for HPPS U-boot
 HPPS_BOOT_MODE_DRAM=0x00000000    # HPPS rootfs in RAM
@@ -336,12 +336,12 @@ TRCH_APP_LOAD=(-device "loader,file=${TRCH_APP},cpu-num=0")
 BOOT_IMGS_LOAD=(
 -device "loader,addr=${RTPS_BL_ADDR},file=${RTPS_BL},force-raw,cpu-num=1"
 -device "loader,addr=${RTPS_APP_ADDR},file=${RTPS_APP},force-raw,cpu-num=1"
--device "loader,addr=${HPPS_BL_ADDR},file=${HPPS_BL},force-raw,cpu-num=3"
--device "loader,addr=${HPPS_FW_ADDR},file=${HPPS_FW},force-raw,cpu-num=3"
--device "loader,addr=${HPPS_DT_ADDR},file=${HPPS_DT},force-raw,cpu-num=3"
--device "loader,addr=${HPPS_KERN_ADDR},file=${HPPS_KERN},force-raw,cpu-num=3"
+-device "loader,addr=${HPPS_BL_ADDR},file=${HPPS_BL},force-raw,cpu-num=4"
+-device "loader,addr=${HPPS_FW_ADDR},file=${HPPS_FW},force-raw,cpu-num=4"
+-device "loader,addr=${HPPS_DT_ADDR},file=${HPPS_DT},force-raw,cpu-num=4"
+-device "loader,addr=${HPPS_KERN_ADDR},file=${HPPS_KERN},force-raw,cpu-num=4"
 )
-HPPS_RAMDISK_LOAD=(-device "loader,addr=${HPPS_RAMDISK_ADDR},file=${HPPS_RAMDISK},force-raw,cpu-num=3")
+HPPS_RAMDISK_LOAD=(-device "loader,addr=${HPPS_RAMDISK_ADDR},file=${HPPS_RAMDISK},force-raw,cpu-num=4")
 
 # Non-volatile memory (modeled by persistent files on the host machine)
 HPPS_NAND_DRIVE=(-drive "file=$HPPS_NAND_IMAGE,if=pflash,format=raw,index=3")
@@ -392,7 +392,7 @@ RTPS_BOOT_MODE="${RTPS_BOOT_LOCKSTEP}"
 BOOT_CFG_LOAD=(
 -device "loader,addr=${TRCH_BOOT_MODE_ADDR},data=${TRCH_BOOT_MODE},data-len=4,cpu-num=0"
 -device "loader,addr=${RTPS_BOOT_MODE_ADDR},data=${RTPS_BOOT_MODE},data-len=4,cpu-num=0"
--device "loader,addr=${HPPS_BOOT_MODE_ADDR},data=${HPPS_BOOT_MODE},data-len=4,cpu-num=3"
+-device "loader,addr=${HPPS_BOOT_MODE_ADDR},data=${HPPS_BOOT_MODE},data-len=4,cpu-num=4"
 )
 COMMAND+=("${BOOT_CFG_LOAD[@]}")
 
