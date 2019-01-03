@@ -4,8 +4,8 @@
 #
 
 RELEASE_DIR=HPSC_2.0
-RELEASE_TGZ=${RELEASE_DIR}.tar.gz
-RELEASE_SRC_FETCH_TGZ=${RELEASE_DIR}_src_fetch.tar.gz
+RELEASE_TGZ=${RELEASE_DIR}_bin.tar.gz
+RELEASE_SRC_FETCH_TGZ=${RELEASE_DIR}_src.tar.gz
 
 TC_TOPDIR=sdk
 TC_BM_DIR=${TC_TOPDIR}/gcc-arm-none-eabi-7-2018-q2-update
@@ -18,7 +18,7 @@ BM_TC_TBZ2=gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
 # Paths generated as part of build
 POKY_DEPLOY_DIR=poky/build/tmp/deploy
 POKY_IMAGE_DIR=${POKY_DEPLOY_DIR}/images/hpsc-chiplet
-POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-minimal-aarch64-toolchain-2.4.3.sh
+POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.4.3.sh
 BAREMETAL_DIR=hpsc-baremetal
 UTILS_DIR=hpsc-utils
 R52_UBOOT_DIR=u-boot-r52
@@ -32,9 +32,9 @@ BSP_ARTIFACTS_HPPS=("${POKY_IMAGE_DIR}/arm-trusted-firmware.bin"
                     "${POKY_IMAGE_DIR}/u-boot.bin"
                     "${POKY_IMAGE_DIR}/hpsc.dtb"
                     "${POKY_IMAGE_DIR}/Image.gz"
-                    "${POKY_IMAGE_DIR}/core-image-minimal-hpsc-chiplet.cpio.gz.u-boot"
+                    "${POKY_IMAGE_DIR}/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot"
                     # plain cpio file not used by run-qemu, but used elsewhere
-                    "${POKY_IMAGE_DIR}/core-image-minimal-hpsc-chiplet.cpio")
+                    "${POKY_IMAGE_DIR}/core-image-hpsc-hpsc-chiplet.cpio")
 BSP_ARTIFACTS_AARCH64_UTIL=("${UTILS_DIR}/linux/mboxtester"
                             "${UTILS_DIR}/linux/wdtester")
 BSP_ARTIFACTS_HOST_UTIL=("${UTILS_DIR}/host/qemu-nand-creator"
@@ -91,7 +91,7 @@ function transform_run_qemu()
         HPPS_DT=hpps/hpsc.dtb
         HPPS_KERN_BIN=hpps/Image.gz
         HPPS_KERN=hpps/uImage
-        HPPS_RAMDISK=hpps/core-image-minimal-hpsc-chiplet.cpio.gz.u-boot
+        HPPS_RAMDISK=hpps/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot
 
         TRCH_APP=trch/trch.elf
         RTPS_APP=rtps-r52/rtps.elf
@@ -203,12 +203,12 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_STAGE=1
     IS_PACKAGE=1
 fi
-if [ $IS_STAGE -ne 0 ] && [ -d "$RELEASE_DIR" ]; then
-    echo "Staging directory already exists, please remove: $RELEASE_DIR"
+if [ $IS_STAGE -ne 0 ] && [ -d "${WORKING_DIR}/${RELEASE_DIR}" ]; then
+    echo "Staging directory already exists, please remove: ${WORKING_DIR}/${RELEASE_DIR}"
     exit 1
 fi
-if [ $IS_PACKAGE -ne 0 ] && [ -e "$RELEASE_TGZ" ]; then
-    echo "Packaged artifact already exists, please remove: $RELEASE_TGZ"
+if [ $IS_PACKAGE -ne 0 ] && [ -e "${WORKING_DIR}/${RELEASE_TGZ}" ]; then
+    echo "Packaged artifact already exists, please remove: ${WORKING_DIR}/${RELEASE_TGZ}"
     exit 1
 fi
 
@@ -240,11 +240,26 @@ if [ $IS_ONLINE -ne 0 ]; then
     ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a fetchall
     ./build-hpsc-eclipse.sh -w "$WORKING_DIR" -a fetchall
     if [ $IS_FIRST_FETCH -ne 0 ]; then
+        # This packaging is dirty and disgusting and makes me sick, but oh well
         echo "First fetch - creating source release: $RELEASE_SRC_FETCH_TGZ"
+        # get the build scripts
+        basedir=$(basename "$TOPDIR")
+        bsp_files=("${basedir}/.git")
+        while read f; do
+            bsp_files+=("${basedir}/${f}")
+        done< <(git ls-tree --name-only HEAD)
         # create in the working directory to avoid conflicts in $TOPDIR
         touch "${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}"
-        tar czf "${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}" "$WORKING_DIR" \
-            --exclude "$RELEASE_SRC_FETCH_TGZ"
+        # cd'ing up seems to be the only way to get TOPDIR as the root directory
+        # using --transform with tar broke symlinks in poky
+        cd ..
+        tar czf "${basedir}/${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}" \
+            "${bsp_files[@]}" "${basedir}/${WORKING_DIR}" \
+            --exclude "${basedir}/${WORKING_DIR}/poky/build" \
+            --exclude "${basedir}/${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}"
+        cd "${basedir}/${WORKING_DIR}"
+        md5sum "$RELEASE_SRC_FETCH_TGZ" > "${RELEASE_SRC_FETCH_TGZ}.md5"
+        cd "${TOPDIR}"
     fi
 fi
 
@@ -319,6 +334,7 @@ fi
 if [ $IS_PACKAGE -ne 0 ]; then
     echo "Packaging: $RELEASE_TGZ..."
     tar czf "$RELEASE_TGZ" "$RELEASE_DIR"
+    md5sum "$RELEASE_TGZ" > "${RELEASE_TGZ}.md5"
 fi
 
 cd "$TOPDIR"

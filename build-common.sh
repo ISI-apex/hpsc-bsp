@@ -89,8 +89,11 @@ function git_clone_pull_checkout()
     fi
     (
         cd "$dir" || return $?
-        echo "$dir: pull: $repo"
-        git pull || return $?
+        local is_detached=$(git status | grep -c detached)
+        if [ "$is_detached" -eq 0 ]; then
+            echo "$dir: pull: $repo"
+            git pull || return $?
+        fi
         echo "$dir: checkout: $checkout"
         git checkout "$checkout" || return $?
     )

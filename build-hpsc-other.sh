@@ -11,12 +11,12 @@ export POKY_SDK=${POKY_SDK:-"/opt/poky/2.4.3"}
 # Check that baremetal toolchain is on PATH
 function check_bm_toolchain()
 {
-    which arm-none-eabi-gcc > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    which arm-none-eabi-gcc > /dev/null 2>&1 ||
+    (
         echo "Error: Bare metal cross compiler 'arm-none-eabi-gcc' is not on PATH"
         echo "  e.g., export PATH=\$PATH:/opt/gcc-arm-none-eabi-7-2018-q2-update/bin"
         exit 1
-    fi
+    )
 }
 
 # Verify poky toolchain components
@@ -29,11 +29,11 @@ function check_poky_toolchain()
     fi
     local POKY_CC_PATH=$POKY_SDK/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux
     export PATH=$PATH:$POKY_CC_PATH
-    which aarch64-poky-linux-gcc > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    which aarch64-poky-linux-gcc > /dev/null 2>&1 ||
+    (
         echo "Error: 'aarch64-poky-linux-gcc' not found in SDK: $POKY_CC_PATH"
         exit 1
-    fi
+    )
     export SYSROOT="$POKY_SDK/sysroots/aarch64-poky-linux"
     if [ ! -d "${SYSROOT}" ]; then
         echo "Error: sysroot 'aarch64-poky-linux' not found in SDK: $SYSROOT"
@@ -43,14 +43,14 @@ function check_poky_toolchain()
 
 function bm_build()
 {
-    make clean && \
+    make clean
     make all -j${BUILD_JOBS}
 }
 
 function uboot_r52_build()
 {
-    make clean && \
-    make hpsc_rtps_r52_defconfig && \
+    make clean
+    make hpsc_rtps_r52_defconfig
     make -j${BUILD_JOBS} CROSS_COMPILE=arm-none-eabi- CONFIG_LD_GCC=y
 }
 
@@ -63,18 +63,18 @@ function qemu_post_fetch()
 
 function qemu_build()
 {
-    rm -rf BUILD && \
-    mkdir BUILD && \
-    cd BUILD && \
+    rm -rf BUILD
+    mkdir BUILD
+    cd BUILD
     ../configure --target-list="aarch64-softmmu" --enable-fdt --disable-kvm \
-                 --disable-xen && \
-    make -j${BUILD_JOBS} && \
+                 --disable-xen
+    make -j${BUILD_JOBS}
     cd ..
 }
 
 function qemu_dt_build()
 {
-    make clean && \
+    make clean
     make -j${BUILD_JOBS}
 }
 
@@ -82,16 +82,16 @@ function utils_build()
 {
     # host utilities
     echo "hpsc-utils: build host sources..."
-    cd host && \
-    make clean && \
-    make -j${BUILD_JOBS} && \
-    cd .. || return $?
+    cd host
+    make clean
+    make -j${BUILD_JOBS}
+    cd ..
     # linux utilities
     echo "hpsc-utils: build linux sources..."
-    cd linux && \
-    make clean && \
-    make -j${BUILD_JOBS} && \
-    cd .. || return $?
+    cd linux
+    make clean
+    make -j${BUILD_JOBS}
+    cd ..
 }
 
 function usage()
@@ -157,7 +157,10 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_BUILD=1
 fi
 
-. ./build-common.sh || exit $?
+# Fail-fast
+set -e
+
+. ./build-common.sh
 build_set_environment "$BUILD"
 
 PREBUILD_FNS=(check_bm_toolchain
@@ -199,11 +202,11 @@ if [ $IS_ONLINE -ne 0 ]; then
     for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
         DIR="${BUILD_DIRS[$i]}"
         git_clone_pull_checkout "${BUILD_REPOS[$i]}" "$DIR" \
-                                "${BUILD_CHECKOUTS[$i]}" || exit $?
+                                "${BUILD_CHECKOUTS[$i]}"
         (
-            echo "$DIR: post-fetch..." && \
-            cd "$DIR" && \
-            "${BUILD_POST_FETCH[$i]}" || exit $?
+            echo "$DIR: post-fetch..."
+            cd "$DIR"
+            "${BUILD_POST_FETCH[$i]}"
         )
     done
 fi
@@ -221,16 +224,15 @@ if [ $IS_BUILD -ne 0 ]; then
             exit 1
         fi
         (
-            cd "$DIR" && \
-            "${BUILD_FNS[$i]}"
+            cd "$DIR"
+            "${BUILD_FNS[$i]}" && RC=0 || RC=$?
+            if [ $RC -eq 0 ]; then
+                echo "$DIR: build successful"
+            else
+                echo "$DIR: Error: build failed with exit code: $RC"
+                exit $RC
+            fi
         )
-        RC=$?
-        if [ $RC -eq 0 ]; then
-            echo "$DIR: build successful"
-        else
-            echo "$DIR: Error: build failed with exit code: $RC"
-            exit $RC
-        fi
     done
 fi
 
