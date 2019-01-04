@@ -110,7 +110,7 @@ if [ $IS_ONLINE -ne 0 ]; then
 fi
 BITBAKE_LAYERS=("${PWD}/meta-openembedded/meta-oe"
                 "${PWD}/meta-openembedded/meta-python"
-                "${PWD}/meta-hpsc/meta-xilinx-bsp")
+                "${PWD}/meta-hpsc/meta-hpsc-bsp")
 
 cd poky
 
