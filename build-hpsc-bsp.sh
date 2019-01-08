@@ -18,7 +18,7 @@ BM_TC_TBZ2=gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
 # Paths generated as part of build
 POKY_DEPLOY_DIR=poky/build/tmp/deploy
 POKY_IMAGE_DIR=${POKY_DEPLOY_DIR}/images/hpsc-chiplet
-POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.4.3.sh
+POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.sh
 BAREMETAL_DIR=hpsc-baremetal
 UTILS_DIR=hpsc-utils
 R52_UBOOT_DIR=u-boot-r52

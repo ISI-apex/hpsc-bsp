@@ -20,6 +20,8 @@ function build_set_environment()
     if [ "$BUILD" == "HEAD" ]; then
         # Anything goes - read from the environment, otherwise use the latest
         export GIT_CHECKOUT_DEFAULT=${GIT_CHECKOUT_DEFAULT:-"hpsc"}
+        export GIT_CHECKOUT_POKY=${GIT_CHECKOUT_POKY:-"thud-20.0.0"}
+        export GIT_CHECKOUT_META_OE=${GIT_CHECKOUT_META_OE:-"thud"}
         # HPSC repositories built by poky
         # The following SRCREV_* env vars specify the commit hash or tag
         # (e.g. 'hpsc-0.9') that will be checked out for each repository.
@@ -38,6 +40,8 @@ function build_set_environment()
     else
         # Force git revisions for release
         export GIT_CHECKOUT_DEFAULT="$BUILD"
+        export GIT_CHECKOUT_POKY="thud-20.0.0"
+        export GIT_CHECKOUT_META_OE="thud"
         unset SRCREV_atf
         unset SRCREV_linux_hpsc
         unset SRCREV_u_boot
@@ -46,6 +50,8 @@ function build_set_environment()
         echo "The following environment variables are fixed:"
     fi
     echo "  GIT_CHECKOUT_DEFAULT = $GIT_CHECKOUT_DEFAULT"
+    echo "  GIT_CHECKOUT_POKY    = $GIT_CHECKOUT_POKY"
+    echo "  GIT_CHECKOUT_META_OE = $GIT_CHECKOUT_META_OE"
     echo "  SRCREV_DEFAULT       = $SRCREV_DEFAULT"
     echo "  SRCREV_atf           = $SRCREV_atf"
     echo "  SRCREV_linux_hpsc    = $SRCREV_linux_hpsc"
@@ -59,8 +65,6 @@ function build_set_environment()
     #
 
     # Repositories used for poky and its layer configuration
-    export GIT_CHECKOUT_POKY="$GIT_CHECKOUT_DEFAULT"
-    export GIT_CHECKOUT_META_OE="$GIT_CHECKOUT_DEFAULT"
     export GIT_CHECKOUT_META_HPSC="$GIT_CHECKOUT_DEFAULT"
 
     # Repositories not built by poky

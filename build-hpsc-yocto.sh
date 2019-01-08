@@ -130,9 +130,8 @@ conf_replace_or_append "FORTRAN_forcevariable" "\",fortran\""
 
 # finally, execute the requested action(s)
 if [ $IS_ONLINE -ne 0 ]; then
-    bitbake core-image-hpsc -c fetchall
-    # The following are needed by populate_sdk but not fetched with fetchall...
-    bitbake chrpath libtirpc unfs3 ca-certificates debianutils pixz -c fetch
+    bitbake core-image-hpsc --runall="fetch"
+    bitbake core-image-hpsc -c populate_sdk --runall="fetch"
 fi
 
 # force offline now to catch anything that still tries to fetch

@@ -6,7 +6,7 @@
 BUILD_JOBS=4
 
 # Must know where the POKY SDK is - fall back on default install location
-export POKY_SDK=${POKY_SDK:-"/opt/poky/2.4.3"}
+export POKY_SDK=${POKY_SDK:-"/opt/poky/2.6"}
 
 # Check that baremetal toolchain is on PATH
 function check_bm_toolchain()
