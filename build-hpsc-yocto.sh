@@ -96,7 +96,7 @@ cd "$WORKING_DIR"
 # clone our repositories and checkout correct revisions
 if [ $IS_ONLINE -ne 0 ]; then
     # add the meta-openembedded layer (for the mpich package)
-    git_clone_pull_checkout "https://github.com/ISI-apex/meta-openembedded" \
+    git_clone_pull_checkout "https://github.com/openembedded/meta-openembedded.git" \
                             "meta-openembedded" \
                             "$GIT_CHECKOUT_META_OE"
     # add the meta-hpsc layer
@@ -104,7 +104,7 @@ if [ $IS_ONLINE -ne 0 ]; then
                             "meta-hpsc" \
                             "$GIT_CHECKOUT_META_HPSC"
     # download the yocto poky git repository
-    git_clone_pull_checkout "https://github.com/ISI-apex/poky" \
+    git_clone_pull_checkout "https://git.yoctoproject.org/git/poky" \
                             "poky" \
                             "$GIT_CHECKOUT_POKY"
 fi

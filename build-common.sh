@@ -12,6 +12,10 @@ function assert_str()
     fi
 }
 
+GIT_TAG_POKY=thud-20.0.0
+# meta-openembedded doesn't tag releases, so we must choose a known revision
+GIT_REV_META_OE=6094ae18c8a35e5cc9998ac39869390d7f3bb1e2
+
 # Set git revisions to use - takes one argument, either "HEAD" or a tag name
 function build_set_environment()
 {
@@ -20,8 +24,8 @@ function build_set_environment()
     if [ "$BUILD" == "HEAD" ]; then
         # Anything goes - read from the environment, otherwise use the latest
         export GIT_CHECKOUT_DEFAULT=${GIT_CHECKOUT_DEFAULT:-"hpsc"}
-        export GIT_CHECKOUT_POKY=${GIT_CHECKOUT_POKY:-"thud-20.0.0"}
-        export GIT_CHECKOUT_META_OE=${GIT_CHECKOUT_META_OE:-"thud"}
+        export GIT_CHECKOUT_POKY=${GIT_CHECKOUT_POKY:-"$GIT_TAG_POKY"}
+        export GIT_CHECKOUT_META_OE=${GIT_CHECKOUT_META_OE:-"$GIT_REV_META_OE"}
         # HPSC repositories built by poky
         # The following SRCREV_* env vars specify the commit hash or tag
         # (e.g. 'hpsc-0.9') that will be checked out for each repository.
@@ -40,8 +44,8 @@ function build_set_environment()
     else
         # Force git revisions for release
         export GIT_CHECKOUT_DEFAULT="$BUILD"
-        export GIT_CHECKOUT_POKY="thud-20.0.0"
-        export GIT_CHECKOUT_META_OE="thud"
+        export GIT_CHECKOUT_POKY="$GIT_TAG_POKY"
+        export GIT_CHECKOUT_META_OE="$GIT_REV_META_OE"
         unset SRCREV_atf
         unset SRCREV_linux_hpsc
         unset SRCREV_u_boot
@@ -93,10 +97,12 @@ function git_clone_pull_checkout()
     fi
     (
         cd "$dir" || return $?
+        # in case remote URI changed
+        git remote set-url origin "$repo"
         local is_detached=$(git status | grep -c detached)
         if [ "$is_detached" -eq 0 ]; then
             echo "$dir: pull: $repo"
-            git pull || return $?
+            git pull origin "$checkout" || return $?
         fi
         echo "$dir: checkout: $checkout"
         git checkout "$checkout" || return $?
