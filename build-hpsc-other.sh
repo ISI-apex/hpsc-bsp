@@ -24,7 +24,7 @@ function check_poky_toolchain()
 {
     if [ ! -d "$POKY_SDK" ]; then
         echo "Error: POKY_SDK not found: $POKY_SDK"
-        echo "  e.g., export POKY_SDK=/opt/poky/2.4.3"
+        echo "  e.g., export POKY_SDK=/opt/poky/2.6"
         exit 1
     fi
     local POKY_CC_PATH=$POKY_SDK/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux
