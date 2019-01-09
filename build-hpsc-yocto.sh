@@ -16,10 +16,11 @@ function usage()
     echo "    -b ID: build using git tag=ID"
     echo "       If ID=HEAD, a development release is built instead"
     echo "    -a ACTION"
-    echo "       all: (default) perform fetchall, buildall, and populate_sdk (not taskexp)"
+    echo "       all: (default) perform fetchall, buildall, and populate_sdk (not runtests nor taskexp)"
     echo "       fetchall: download sources"
     echo "       buildall: like all, but try offline"
     echo "       populate_sdk: build poky SDK installer, including sysroot (rootfs)"
+    echo "       runtests: run the Yocto automated runtime tests (requires build)"
     echo "       taskexp: run the task dependency explorer (requires build)"
     echo "    -h: show this message and exit"
     echo "    -w DIR: Set the working directory (default=ID from -b)"
@@ -32,6 +33,7 @@ IS_ALL=0
 IS_ONLINE=0
 IS_BUILD=0
 IS_POPULATE_SDK=0
+IS_RUNTESTS=0
 IS_TASKEXP=0
 BUILD=""
 WORKING_DIR=""
@@ -48,6 +50,8 @@ while getopts "h?a:b:w:" o; do
                 IS_BUILD=1
             elif [ "${OPTARG}" == "populate_sdk" ]; then
                 IS_POPULATE_SDK=1
+            elif [ "${OPTARG}" == "runtests" ]; then
+                IS_RUNTESTS=1
             elif [ "${OPTARG}" == "taskexp" ]; then
                 IS_TASKEXP=1
             else
@@ -77,7 +81,7 @@ fi
 WORKING_DIR=${WORKING_DIR:-"$BUILD"}
 POKY_DL_DIR=${PWD}/${WORKING_DIR}/poky_dl
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
-    # do everything except taskexp
+    # do everything except runtests and taskexp
     IS_ONLINE=1
     IS_BUILD=1
     IS_POPULATE_SDK=1
@@ -127,6 +131,13 @@ unset BB_NO_NETWORK
 conf_replace_or_append "MACHINE" "\"hpsc-chiplet\""
 conf_replace_or_append "DL_DIR" "\"${POKY_DL_DIR}\""
 conf_replace_or_append "FORTRAN_forcevariable" "\",fortran\""
+# the following commands are needed for enabling runtime tests
+conf_replace_or_append "INHERIT_append" "\" testimage\""
+conf_replace_or_append "TEST_TARGET" "\"simpleremote\""
+conf_replace_or_append "TEST_SERVER_IP" "\"$(hostname -I | cut -d ' ' -f 1)\""
+conf_replace_or_append "TEST_TARGET_IP" "\"127.0.0.1:10022\""
+conf_replace_or_append "IMAGE_FSTYPES_append" "\" cpio.gz\""
+conf_replace_or_append "TEST_SUITES" "\"perl ping scp ssh date\""
 
 # finally, execute the requested action(s)
 if [ $IS_ONLINE -ne 0 ]; then
@@ -147,6 +158,10 @@ fi
 
 if [ $IS_POPULATE_SDK -ne 0 ]; then
     bitbake core-image-hpsc -c populate_sdk
+fi
+
+if [ $IS_RUNTESTS -ne 0 ]; then
+    bitbake core-image-hpsc -c testimage
 fi
 
 if [ $IS_TASKEXP -ne 0 ]; then
