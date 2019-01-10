@@ -4,7 +4,7 @@ ECLIPSE_URL="https://www.eclipse.org/downloads/download.php?file=/technology/epp
 ECLIPSE_MD5=6087e4def4382fd334de658f9bde190b
 ECLIPSE_TGZ=src/eclipse.tar.gz
 ECLIPSE_DIR=work/eclipse
-ECLIPSE_HPSC=hpsc-eclipse.tar.gz
+ECLIPSE_HPSC=work/hpsc-eclipse.tar.gz
 
 # Eclipse update sites
 ECLIPSE_REPOSITORIES=("http://download.eclipse.org/releases/photon"
@@ -115,7 +115,11 @@ if [ $IS_BUILD -ne 0 ]; then
 
     # Create distribution archive
     echo "Creating HPSC eclipse distribution: $ECLIPSE_HPSC"
-    tar czf "work/${ECLIPSE_HPSC}" "$ECLIPSE_DIR"
+    (
+        cd "$(dirname "$ECLIPSE_DIR")"
+        tar czf "${TOPDIR}/${WORKING_DIR}/${ECLIPSE_HPSC}" \
+                "$(basename "$ECLIPSE_DIR")"
+    )
 fi
 
 cd "$TOPDIR"
