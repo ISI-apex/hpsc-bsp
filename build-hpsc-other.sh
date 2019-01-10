@@ -75,6 +75,10 @@ function qemu_build()
         make_parallel
     )
 }
+function qemu_test()
+{
+    make_parallel -C BUILD check-unit
+}
 
 function utils_clean()
 {
@@ -93,7 +97,7 @@ function utils_build()
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetch|clean|build>] [-h] [-w DIR]"
+    echo "Usage: $0 -b ID [-a <all|fetch|clean|build|test>] [-h] [-w DIR]"
     echo "    -b ID: build using git tag=ID"
     echo "       If ID=HEAD, a development release is built instead"
     echo "    -a ACTION"
@@ -101,6 +105,7 @@ function usage()
     echo "       fetch: download sources"
     echo "       clean: clean compiled sources"
     echo "       build: compile pre-downloaded sources"
+    echo "       test: run unit tests"
     echo "    -h: show this message and exit"
     echo "    -w DIR: set the working directory (default=ID from -b)"
     exit 1
@@ -112,6 +117,7 @@ IS_ALL=0
 IS_FETCH=0
 IS_CLEAN=0
 IS_BUILD=0
+IS_TEST=0
 BUILD=""
 WORKING_DIR=""
 while getopts "h?a:b:w:" o; do
@@ -120,10 +126,12 @@ while getopts "h?a:b:w:" o; do
             HAS_ACTION=1
             if [ "${OPTARG}" == "fetch" ]; then
                 IS_FETCH=1
-            elif [ "${OPTARG}" == "build" ]; then
-                IS_BUILD=1
             elif [ "${OPTARG}" == "clean" ]; then
                 IS_CLEAN=1
+            elif [ "${OPTARG}" == "build" ]; then
+                IS_BUILD=1
+            elif [ "${OPTARG}" == "test" ]; then
+                IS_TEST=1
             elif [ "${OPTARG}" == "all" ]; then
                 IS_ALL=1
             else
@@ -152,7 +160,7 @@ if [ -z "$BUILD" ]; then
 fi
 WORKING_DIR=${WORKING_DIR:-"$BUILD"}
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
-    # do everything except clean
+    # do everything except clean and test
     IS_FETCH=1
     IS_BUILD=1
 fi
@@ -197,6 +205,11 @@ BUILD_FNS=(make_parallel
            qemu_build
            make_parallel
            utils_build)
+BUILD_TEST_FNS=(:
+                :
+                qemu_test
+                :
+                :)
 
 TOPDIR=${PWD}
 build_work_dirs "$WORKING_DIR"
@@ -220,12 +233,11 @@ fi
 if [ $IS_CLEAN -ne 0 ]; then
     echo "Running clean..."
     for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
-        name="${BUILD_DIRS[$i]}"
         work="work/${BUILD_DIRS[$i]}"
         # ignore if directory isn't present
         if [ -d "$work" ]; then
-            echo "$name: clean"
             (
+                echo "${BUILD_DIRS[$i]}: clean"
                 cd "$work"
                 "${BUILD_CLEAN_FNS[$i]}"
             )
@@ -256,6 +268,23 @@ if [ $IS_BUILD -ne 0 ]; then
                 echo "$name: Error: build failed with exit code: $RC"
                 exit $RC
             fi
+        )
+    done
+fi
+
+if [ $IS_TEST -ne 0 ]; then
+    echo "Running test..."
+    for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
+        name="${BUILD_DIRS[$i]}"
+        work="work/${BUILD_DIRS[$i]}"
+        if [ ! -d "$work" ]; then
+            echo "$name: Error: must fetch sources before test"
+            exit 1
+        fi
+        (
+            echo "$name: test"
+            cd "$work"
+            "${BUILD_TEST_FNS[$i]}"
         )
     done
 fi
