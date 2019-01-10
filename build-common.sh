@@ -98,14 +98,17 @@ function git_clone_fetch_bare()
         cd "$dir"
         # in case remote URI changed
         echo "$dir: set-url origin: $repo"
-        git remote set-url origin "$repo"
+        git --bare remote set-url origin "$repo"
+        # by default, bare git repo won't fetch anything...
+        git config remote.origin.fetch 'refs/heads/*:refs/heads/*'
         echo "$dir: fetch"
-        git fetch origin
+        git --bare fetch origin --prune
     )
 }
 
 function git_clone_fetch_checkout()
 {
+    # repo is expected to be a filesystem directory - the full path is needed
     local repo=$1
     local dir=$2
     local checkout=$3
@@ -119,10 +122,19 @@ function git_clone_fetch_checkout()
             git clone "$repo" "$dir"
         fi
         cd "$dir"
+        # in case remote URI changed (e.g., moved sources to a new system/path)
+        echo "$dir: set-url origin: $repo"
+        git remote set-url origin "$repo"
         echo "$dir: fetch"
-        git fetch origin
+        git fetch origin --prune
         echo "$dir: checkout: $checkout"
         git checkout "$checkout"
+        # pull, if needed
+        local is_detached=$(git status | grep -c detached)
+        if [ "$is_detached" -eq 0 ]; then
+            echo "$dir: pull: $repo"
+            git pull origin
+        fi
     )
 }
 

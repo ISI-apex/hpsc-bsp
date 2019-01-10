@@ -102,16 +102,17 @@ if [ $IS_ONLINE -ne 0 ]; then
     # add the meta-openembedded layer (for the mpich package)
     git_clone_fetch_bare "https://github.com/openembedded/meta-openembedded.git" \
                          "src/meta-openembedded.git"
-    git_clone_fetch_checkout "src/meta-openembedded.git" \
-                            "work/meta-openembedded" "$GIT_CHECKOUT_META_OE"
+    git_clone_fetch_checkout "${PWD}/src/meta-openembedded.git" \
+                             "work/meta-openembedded" "$GIT_CHECKOUT_META_OE"
     # add the meta-hpsc layer
     git_clone_fetch_bare "https://github.com/ISI-apex/meta-hpsc" \
                          "src/meta-hpsc.git"
-    git_clone_fetch_checkout "src/meta-hpsc.git" "work/meta-hpsc" \
-                            "$GIT_CHECKOUT_META_HPSC"
+    git_clone_fetch_checkout "${PWD}/src/meta-hpsc.git" "work/meta-hpsc" \
+                             "$GIT_CHECKOUT_META_HPSC"
     # download the yocto poky git repository
     git_clone_fetch_bare "https://git.yoctoproject.org/git/poky" "src/poky.git"
-    git_clone_fetch_checkout "src/poky.git" "work/poky" "$GIT_CHECKOUT_POKY"
+    git_clone_fetch_checkout "${PWD}/src/poky.git" "work/poky" \
+                             "$GIT_CHECKOUT_POKY"
 fi
 BITBAKE_LAYERS=("${PWD}/work/meta-openembedded/meta-oe"
                 "${PWD}/work/meta-openembedded/meta-python"

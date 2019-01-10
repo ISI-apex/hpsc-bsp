@@ -200,7 +200,7 @@ cd "$WORKING_DIR"
 if [ $IS_ONLINE -ne 0 ]; then
     echo "Fetching sources..."
     for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
-        src="src/${BUILD_DIRS[$i]}.git"
+        src="${PWD}/src/${BUILD_DIRS[$i]}.git"
         work="work/${BUILD_DIRS[$i]}"
         git_clone_fetch_bare "${BUILD_REPOS[$i]}" "$src"
         git_clone_fetch_checkout "$src" "$work" "${BUILD_CHECKOUTS[$i]}"
