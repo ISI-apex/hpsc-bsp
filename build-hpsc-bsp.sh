@@ -3,9 +3,8 @@
 # Parent build script
 #
 
-TC_TOPDIR=env
-TC_BM_DIR=${TC_TOPDIR}/gcc-arm-none-eabi-7-2018-q2-update
-TC_POKY_DIR=${TC_TOPDIR}/poky
+TC_BM_DIR=env/gcc-arm-none-eabi-7-2018-q2-update
+TC_POKY_DIR=env/poky
 
 BM_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2"
 BM_MD5=299ebd3f1c2c90930d28ab82e5d8d6c0
@@ -18,6 +17,7 @@ POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch
 BAREMETAL_DIR=work/hpsc-baremetal
 UTILS_DIR=work/hpsc-utils
 R52_UBOOT_DIR=work/u-boot-r52
+ECLIPSE_INSTALLER=work/hpsc-eclipse.tar.gz
 
 # Generated artifacts for BSP directory
 BSP_ARTIFACTS_TOP=("qmp.py"
@@ -45,28 +45,32 @@ TOOLCHAIN_ARTIFACTS=("$BM_TC_TBZ2"
 
 function sdk_bm_setup()
 {
-    WORKING_DIR="$1"
-    if [ ! -d "${WORKING_DIR}/${TC_BM_DIR}" ]; then
-        if [ ! -e "${WORKING_DIR}/${BM_TC_TBZ2}" ]; then
-            echo "Bare metal toolchain installer not found: $BM_TC_TBZ2"
-            exit 1
-        fi
-        tar xjf "${WORKING_DIR}/${BM_TC_TBZ2}" -C "${WORKING_DIR}/${TC_TOPDIR}"
+    local INSTALL_TBZ2=$1
+    local INSTALL_DIR=$2
+    if [ ! -e "$INSTALL_TBZ2" ]; then
+        echo "Bare metal toolchain installer not found: $INSTALL_TBZ2"
+        exit 1
+    fi
+    if [ ! -d "$INSTALL_DIR" ]; then
+        echo "Installing bare metal toolchain..."
+        tar xjf "$INSTALL_TBZ2" -C "$(dirname "$INSTALL_DIR")"
     fi
 }
 
 function sdk_poky_setup()
 {
-    WORKING_DIR="$1"
-    if [ ! -e "${WORKING_DIR}/${POKY_TC_INSTALLER}" ]; then
-        echo "Poky toolchain installer not found: $POKY_TC_INSTALLER"
+    local INSTALL_SH=$1
+    local INSTALL_DIR=$2
+    if [ ! -e "$INSTALL_SH" ]; then
+        echo "Poky toolchain installer not found: $INSTALL_SH"
         exit 1
     fi
     # always set +x - even if we don't extract it here, we deliver it in the BSP
-    chmod +x "${WORKING_DIR}/${POKY_TC_INSTALLER}"
-    if [ ! -d "${WORKING_DIR}/${TC_POKY_DIR}" ]; then
-        "${WORKING_DIR}/${POKY_TC_INSTALLER}" <<EOF
-${WORKING_DIR}/${TC_POKY_DIR}
+    chmod +x "$INSTALL_SH"
+    if [ ! -d "$INSTALL_DIR" ]; then
+        echo "Installing poky toolchain..."
+        "$INSTALL_SH" <<EOF
+$INSTALL_DIR
 y
 EOF
     fi
@@ -233,8 +237,9 @@ if [ $IS_BUILD -ne 0 ]; then
     ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a buildall
     ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a populate_sdk
     # build other packages
-    sdk_bm_setup "$WORKING_DIR"
-    sdk_poky_setup "$WORKING_DIR"
+    sdk_bm_setup "${WORKING_DIR}/${BM_TC_TBZ2}" "${WORKING_DIR}/${TC_BM_DIR}"
+    sdk_poky_setup "${WORKING_DIR}/${POKY_TC_INSTALLER}" \
+                   "${WORKING_DIR}/${TC_POKY_DIR}"
     export PATH=$PATH:${PWD}/${WORKING_DIR}/${TC_BM_DIR}/bin
     export POKY_SDK="${PWD}/${WORKING_DIR}/${TC_POKY_DIR}"
     ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a buildall
@@ -283,7 +288,7 @@ if [ $IS_STAGE -ne 0 ]; then
 
     # eclipse
     echo "Staging eclipse..."
-    cp work/hpsc-eclipse.tar.gz "$PREFIX"
+    cp "$ECLIPSE_INSTALLER" "$PREFIX"
 
     # toolchains
     echo "Staging toolchains..."
