@@ -3,8 +3,6 @@
 # Fetch and/or build sources that require the other toolchains
 #
 
-BUILD_JOBS=4
-
 # Must know where the POKY SDK is - fall back on default install location
 export POKY_SDK=${POKY_SDK:-"/opt/poky/2.6"}
 
@@ -41,17 +39,20 @@ function check_poky_toolchain()
     fi
 }
 
-function bm_build()
+function make_clean()
 {
-    make clean
-    make all -j${BUILD_JOBS}
+    make clean "$@"
+}
+
+function make_parallel()
+{
+    make -j "$(nproc)" "$@"
 }
 
 function uboot_r52_build()
 {
-    make clean
     make hpsc_rtps_r52_defconfig
-    make -j${BUILD_JOBS} CROSS_COMPILE=arm-none-eabi- CONFIG_LD_GCC=y
+    make_parallel CROSS_COMPILE=arm-none-eabi- CONFIG_LD_GCC=y
 }
 
 function qemu_post_fetch()
@@ -60,48 +61,45 @@ function qemu_post_fetch()
     # We only know which submodules are used b/c we've run configure before...
     ./scripts/git-submodule.sh update ui/keycodemapdb dtc capstone
 }
-
-function qemu_build()
+function qemu_clean()
 {
     rm -rf BUILD
-    mkdir BUILD
-    cd BUILD
-    ../configure --target-list="aarch64-softmmu" --enable-fdt --disable-kvm \
-                 --disable-xen
-    make -j${BUILD_JOBS}
-    cd ..
 }
-
-function qemu_dt_build()
+function qemu_build()
 {
-    make clean
-    make -j${BUILD_JOBS}
+    mkdir -p BUILD
+    (
+        cd BUILD
+        ../configure --target-list="aarch64-softmmu" --enable-fdt \
+                     --disable-kvm --disable-xen
+        make_parallel
+    )
 }
 
+function utils_clean()
+{
+    for s in host linux; do
+        echo "hpsc-utils: $s: clean"
+        make_clean -C "$s"
+    done
+}
 function utils_build()
 {
-    # host utilities
-    echo "hpsc-utils: build host sources..."
-    cd host
-    make clean
-    make -j${BUILD_JOBS}
-    cd ..
-    # linux utilities
-    echo "hpsc-utils: build linux sources..."
-    cd linux
-    make clean
-    make -j${BUILD_JOBS}
-    cd ..
+    for s in host linux; do
+        echo "hpsc-utils: $s: build"
+        make_parallel -C "$s"
+    done
 }
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetch|build>] [-h] [-w DIR]"
+    echo "Usage: $0 -b ID [-a <all|fetch|clean|build>] [-h] [-w DIR]"
     echo "    -b ID: build using git tag=ID"
     echo "       If ID=HEAD, a development release is built instead"
     echo "    -a ACTION"
     echo "       all: (default) fetch and build"
     echo "       fetch: download sources"
+    echo "       clean: clean compiled sources"
     echo "       build: compile pre-downloaded sources"
     echo "    -h: show this message and exit"
     echo "    -w DIR: set the working directory (default=ID from -b)"
@@ -112,10 +110,10 @@ function usage()
 HAS_ACTION=0
 IS_ALL=0
 IS_FETCH=0
+IS_CLEAN=0
 IS_BUILD=0
 BUILD=""
 WORKING_DIR=""
-# parse options
 while getopts "h?a:b:w:" o; do
     case "$o" in
         a)
@@ -124,6 +122,8 @@ while getopts "h?a:b:w:" o; do
                 IS_FETCH=1
             elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
+            elif [ "${OPTARG}" == "clean" ]; then
+                IS_CLEAN=1
             elif [ "${OPTARG}" == "all" ]; then
                 IS_ALL=1
             else
@@ -152,7 +152,7 @@ if [ -z "$BUILD" ]; then
 fi
 WORKING_DIR=${WORKING_DIR:-"$BUILD"}
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
-    # do everything
+    # do everything except clean
     IS_FETCH=1
     IS_BUILD=1
 fi
@@ -187,10 +187,15 @@ BUILD_CHECKOUTS=("$GIT_CHECKOUT_BM"
                  "$GIT_CHECKOUT_QEMU"
                  "$GIT_CHECKOUT_QEMU_DT"
                  "$GIT_CHECKOUT_HPSC_UTILS")
-BUILD_FNS=(bm_build
+BUILD_CLEAN_FNS=(make_clean
+                 make_clean
+                 qemu_clean
+                 make_clean
+                 utils_clean)
+BUILD_FNS=(make_parallel
            uboot_r52_build
            qemu_build
-           qemu_dt_build
+           make_parallel
            utils_build)
 
 TOPDIR=${PWD}
@@ -212,6 +217,22 @@ if [ $IS_FETCH -ne 0 ]; then
     done
 fi
 
+if [ $IS_CLEAN -ne 0 ]; then
+    echo "Running clean..."
+    for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
+        name="${BUILD_DIRS[$i]}"
+        work="work/${BUILD_DIRS[$i]}"
+        # ignore if directory isn't present
+        if [ -d "$work" ]; then
+            echo "$name: clean"
+            (
+                cd "$work"
+                "${BUILD_CLEAN_FNS[$i]}"
+            )
+        fi
+    done
+fi
+
 if [ $IS_BUILD -ne 0 ]; then
     echo "Running pre-build checks..."
     for pfn in "${PREBUILD_FNS[@]}"; do
@@ -226,6 +247,7 @@ if [ $IS_BUILD -ne 0 ]; then
             exit 1
         fi
         (
+            echo "$name: build"
             cd "$work"
             "${BUILD_FNS[$i]}" && RC=0 || RC=$?
             if [ $RC -eq 0 ]; then
