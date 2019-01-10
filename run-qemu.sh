@@ -9,7 +9,7 @@
 #     path) to create the baremetal firmware files "trch.elf" and "rtps.elf".
 
 # Output files from the Yocto build
-WORKING_DIR=${PWD}/HEAD
+WORKING_DIR=${PWD}/HEAD/work
 YOCTO_DEPLOY_DIR=${WORKING_DIR}/poky/build/tmp/deploy/images/hpsc-chiplet
 HPPS_FW=${YOCTO_DEPLOY_DIR}/arm-trusted-firmware.bin
 HPPS_BL=${YOCTO_DEPLOY_DIR}/u-boot.bin
