@@ -30,7 +30,7 @@ function usage()
 # Script options
 HAS_ACTION=0
 IS_ALL=0
-IS_ONLINE=0
+IS_FETCH=0
 IS_BUILD=0
 IS_POPULATE_SDK=0
 IS_TEST=0
@@ -45,7 +45,7 @@ while getopts "h?a:b:w:" o; do
             if [ "${OPTARG}" == "all" ]; then
                 IS_ALL=1
             elif [ "${OPTARG}" == "fetch" ]; then
-                IS_ONLINE=1
+                IS_FETCH=1
             elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
             elif [ "${OPTARG}" == "populate_sdk" ]; then
@@ -82,7 +82,7 @@ WORKING_DIR=${WORKING_DIR:-"$BUILD"}
 POKY_DL_DIR=${PWD}/${WORKING_DIR}/src/poky_dl
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
     # do everything except test and taskexp
-    IS_ONLINE=1
+    IS_FETCH=1
     IS_BUILD=1
     IS_POPULATE_SDK=1
 fi
@@ -98,7 +98,7 @@ build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
 
 # clone our repositories and checkout correct revisions
-if [ $IS_ONLINE -ne 0 ]; then
+if [ $IS_FETCH -ne 0 ]; then
     # add the meta-openembedded layer (for the mpich package)
     git_clone_fetch_bare "https://github.com/openembedded/meta-openembedded.git" \
                          "src/meta-openembedded.git"
@@ -142,7 +142,7 @@ conf_replace_or_append "IMAGE_FSTYPES_append" "\" cpio.gz\""
 conf_replace_or_append "TEST_SUITES" "\"perl ping scp ssh date\""
 
 # finally, execute the requested action(s)
-if [ $IS_ONLINE -ne 0 ]; then
+if [ $IS_FETCH -ne 0 ]; then
     bitbake core-image-hpsc --runall="fetch"
     bitbake core-image-hpsc -c populate_sdk --runall="fetch"
 fi

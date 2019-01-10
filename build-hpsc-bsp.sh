@@ -145,7 +145,7 @@ function usage()
 # Script options
 HAS_ACTION=0
 IS_ALL=0
-IS_ONLINE=0
+IS_FETCH=0
 IS_BUILD=0
 IS_STAGE=0
 IS_PACKAGE=0
@@ -157,7 +157,7 @@ while getopts "h?a:b:p:w:" o; do
         a)
             HAS_ACTION=1
             if [ "${OPTARG}" == "fetch" ]; then
-                IS_ONLINE=1
+                IS_FETCH=1
             elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
             elif [ "${OPTARG}" == "stage" ]; then
@@ -196,7 +196,7 @@ fi
 WORKING_DIR=${WORKING_DIR:-"$BUILD"}
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     # do everything
-    IS_ONLINE=1
+    IS_FETCH=1
     IS_BUILD=1
     IS_STAGE=1
     IS_PACKAGE=1
@@ -215,7 +215,7 @@ build_set_environment "$BUILD"
 TOPDIR=${PWD}
 build_work_dirs "$WORKING_DIR"
 
-if [ $IS_ONLINE -ne 0 ]; then
+if [ $IS_FETCH -ne 0 ]; then
     # get toolchains
     echo "Fetching toolchains..."
     if [ ! -e "${WORKING_DIR}/${BM_TC_TBZ2}" ]; then
