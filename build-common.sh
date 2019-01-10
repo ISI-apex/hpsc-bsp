@@ -12,6 +12,16 @@ function assert_str()
     fi
 }
 
+function build_work_dirs()
+{
+    WORKING_DIR=$1
+    mkdir -p "${WORKING_DIR}"
+    mkdir -p "${WORKING_DIR}/src"
+    mkdir -p "${WORKING_DIR}/work"
+    mkdir -p "${WORKING_DIR}/env"
+    mkdir -p "${WORKING_DIR}/stage"
+}
+
 # Set git revisions to use - takes one argument, either "HEAD" or a tag name
 function build_set_environment()
 {
@@ -71,8 +81,31 @@ function build_set_environment()
     export GIT_CHECKOUT_QEMU_DT="$GIT_CHECKOUT_DEFAULT"
 }
 
-# Clone repository if not already done, always pull and checkout
-function git_clone_pull_checkout()
+function git_clone_fetch_bare()
+{
+    local repo=$1
+    local dir=$2
+    assert_str "$repo"
+    assert_str "$dir"
+    (
+        set -e
+        # Don't ask for credentials if requests are bad
+        export GIT_TERMINAL_PROMPT=0 # for git > 2.3
+        export GIT_ASKPASS=/bin/echo
+        if [ ! -d "$dir" ]; then
+            echo "$dir: clone bare: $repo"
+            git clone --bare "$repo" "$dir"
+        fi
+        cd "$dir"
+        # in case remote URI changed
+        echo "$dir: set-url origin: $repo"
+        git remote set-url origin "$repo"
+        echo "$dir: fetch"
+        git fetch origin
+    )
+}
+
+function git_clone_fetch_checkout()
 {
     local repo=$1
     local dir=$2
@@ -80,24 +113,17 @@ function git_clone_pull_checkout()
     assert_str "$repo"
     assert_str "$dir"
     assert_str "$checkout"
-    # Don't ask for credentials if requests are bad
-    export GIT_TERMINAL_PROMPT=0 # for git > 2.3
-    export GIT_ASKPASS=/bin/echo
-    if [ ! -d "$dir" ]; then
-        echo "$dir: fetch: $repo"
-        git clone "$repo" "$dir" || return $?
-    fi
     (
-        cd "$dir" || return $?
-        # in case remote URI changed
-        git remote set-url origin "$repo"
-        local is_detached=$(git status | grep -c detached)
-        if [ "$is_detached" -eq 0 ]; then
-            echo "$dir: pull: $repo"
-            git pull origin || return $?
+        set -e
+        if [ ! -d "$dir" ]; then
+            echo "$dir: clone: $repo"
+            git clone "$repo" "$dir"
         fi
+        cd "$dir"
+        echo "$dir: fetch"
+        git fetch origin
         echo "$dir: checkout: $checkout"
-        git checkout "$checkout" || return $?
+        git checkout "$checkout"
     )
 }
 

@@ -194,18 +194,19 @@ BUILD_FNS=(bm_build
            utils_build)
 
 TOPDIR=${PWD}
-mkdir -p "$WORKING_DIR" || exit 1
+build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
 
 if [ $IS_ONLINE -ne 0 ]; then
     echo "Fetching sources..."
     for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
-        DIR="${BUILD_DIRS[$i]}"
-        git_clone_pull_checkout "${BUILD_REPOS[$i]}" "$DIR" \
-                                "${BUILD_CHECKOUTS[$i]}"
+        src="src/${BUILD_DIRS[$i]}.git"
+        work="work/${BUILD_DIRS[$i]}"
+        git_clone_fetch_bare "${BUILD_REPOS[$i]}" "$src"
+        git_clone_fetch_checkout "$src" "$work" "${BUILD_CHECKOUTS[$i]}"
         (
-            echo "$DIR: post-fetch..."
-            cd "$DIR"
+            echo "${BUILD_DIRS[$i]}: post-fetch..."
+            cd "$work"
             "${BUILD_POST_FETCH[$i]}"
         )
     done
@@ -218,18 +219,19 @@ if [ $IS_BUILD -ne 0 ]; then
     done
     echo "Running builds..."
     for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
-        DIR="${BUILD_DIRS[$i]}"
-        if [ ! -d "$DIR" ]; then
-            echo "$DIR: Error: must fetch sources before build"
+        name="${BUILD_DIRS[$i]}"
+        work="work/${BUILD_DIRS[$i]}"
+        if [ ! -d "$work" ]; then
+            echo "$name: Error: must fetch sources before build"
             exit 1
         fi
         (
-            cd "$DIR"
+            cd "$work"
             "${BUILD_FNS[$i]}" && RC=0 || RC=$?
             if [ $RC -eq 0 ]; then
-                echo "$DIR: build successful"
+                echo "$name: build successful"
             else
-                echo "$DIR: Error: build failed with exit code: $RC"
+                echo "$name: Error: build failed with exit code: $RC"
                 exit $RC
             fi
         )

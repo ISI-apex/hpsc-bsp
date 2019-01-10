@@ -79,7 +79,7 @@ if [ -z "$BUILD" ]; then
     usage
 fi
 WORKING_DIR=${WORKING_DIR:-"$BUILD"}
-POKY_DL_DIR=${PWD}/${WORKING_DIR}/poky_dl
+POKY_DL_DIR=${PWD}/${WORKING_DIR}/src/poky_dl
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
     # do everything except runtests and taskexp
     IS_ONLINE=1
@@ -94,29 +94,30 @@ set -e
 build_set_environment "$BUILD"
 
 TOPDIR=${PWD}
-mkdir -p "$WORKING_DIR"
+build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
 
 # clone our repositories and checkout correct revisions
 if [ $IS_ONLINE -ne 0 ]; then
     # add the meta-openembedded layer (for the mpich package)
-    git_clone_pull_checkout "https://github.com/openembedded/meta-openembedded.git" \
-                            "meta-openembedded" \
-                            "$GIT_CHECKOUT_META_OE"
+    git_clone_fetch_bare "https://github.com/openembedded/meta-openembedded.git" \
+                         "src/meta-openembedded.git"
+    git_clone_fetch_checkout "src/meta-openembedded.git" \
+                            "work/meta-openembedded" "$GIT_CHECKOUT_META_OE"
     # add the meta-hpsc layer
-    git_clone_pull_checkout "https://github.com/ISI-apex/meta-hpsc" \
-                            "meta-hpsc" \
+    git_clone_fetch_bare "https://github.com/ISI-apex/meta-hpsc" \
+                         "src/meta-hpsc.git"
+    git_clone_fetch_checkout "src/meta-hpsc.git" "work/meta-hpsc" \
                             "$GIT_CHECKOUT_META_HPSC"
     # download the yocto poky git repository
-    git_clone_pull_checkout "https://git.yoctoproject.org/git/poky" \
-                            "poky" \
-                            "$GIT_CHECKOUT_POKY"
+    git_clone_fetch_bare "https://git.yoctoproject.org/git/poky" "src/poky.git"
+    git_clone_fetch_checkout "src/poky.git" "work/poky" "$GIT_CHECKOUT_POKY"
 fi
-BITBAKE_LAYERS=("${PWD}/meta-openembedded/meta-oe"
-                "${PWD}/meta-openembedded/meta-python"
-                "${PWD}/meta-hpsc/meta-hpsc-bsp")
+BITBAKE_LAYERS=("${PWD}/work/meta-openembedded/meta-oe"
+                "${PWD}/work/meta-openembedded/meta-python"
+                "${PWD}/work/meta-hpsc/meta-hpsc-bsp")
 
-cd poky
+cd work/poky
 
 # create build directory if it doesn't exist and configure it
 # poky's sanity checker tries to reach example.com unless we force it offline

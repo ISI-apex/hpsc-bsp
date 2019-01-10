@@ -7,27 +7,27 @@ RELEASE_DIR=HPSC_2.0
 RELEASE_TGZ=${RELEASE_DIR}_bin.tar.gz
 RELEASE_SRC_FETCH_TGZ=${RELEASE_DIR}_src.tar.gz
 
-TC_TOPDIR=sdk
+TC_TOPDIR=env
 TC_BM_DIR=${TC_TOPDIR}/gcc-arm-none-eabi-7-2018-q2-update
 TC_POKY_DIR=${TC_TOPDIR}/poky
 
 BM_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2"
 BM_MD5=299ebd3f1c2c90930d28ab82e5d8d6c0
-BM_TC_TBZ2=gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
+BM_TC_TBZ2=src/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
 
 # Paths generated as part of build
-POKY_DEPLOY_DIR=poky/build/tmp/deploy
+POKY_DEPLOY_DIR=work/poky/build/tmp/deploy
 POKY_IMAGE_DIR=${POKY_DEPLOY_DIR}/images/hpsc-chiplet
 POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.sh
-BAREMETAL_DIR=hpsc-baremetal
-UTILS_DIR=hpsc-utils
-R52_UBOOT_DIR=u-boot-r52
+BAREMETAL_DIR=work/hpsc-baremetal
+UTILS_DIR=work/hpsc-utils
+R52_UBOOT_DIR=work/u-boot-r52
 
 # Generated artifacts for BSP directory
 BSP_ARTIFACTS_TOP=("qmp.py"
                    "run-qemu.sh")
-BSP_ARTIFACTS_QEMU=("qemu/BUILD/aarch64-softmmu/qemu-system-aarch64"
-                    "qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb")
+BSP_ARTIFACTS_QEMU=("work/qemu/BUILD/aarch64-softmmu/qemu-system-aarch64"
+                    "work/qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb")
 BSP_ARTIFACTS_HPPS=("${POKY_IMAGE_DIR}/arm-trusted-firmware.bin"
                     "${POKY_IMAGE_DIR}/u-boot.bin"
                     "${POKY_IMAGE_DIR}/hpsc.dtb"
@@ -56,26 +56,28 @@ TOOLCHAIN_ARTIFACTS=("$BM_TC_TBZ2"
 
 function sdk_bm_setup()
 {
-    if [ ! -d "$TC_BM_DIR" ]; then
-        if [ ! -e "$BM_TC_TBZ2" ]; then
+    WORKING_DIR="$1"
+    if [ ! -d "${WORKING_DIR}/${TC_BM_DIR}" ]; then
+        if [ ! -e "${WORKING_DIR}/${BM_TC_TBZ2}" ]; then
             echo "Bare metal toolchain installer not found: $BM_TC_TBZ2"
             exit 1
         fi
-        tar xjf "$BM_TC_TBZ2" -C "$TC_TOPDIR"
+        tar xjf "${WORKING_DIR}/${BM_TC_TBZ2}" -C "${WORKING_DIR}/${TC_TOPDIR}"
     fi
 }
 
 function sdk_poky_setup()
 {
-    if [ ! -e "$POKY_TC_INSTALLER" ]; then
+    WORKING_DIR="$1"
+    if [ ! -e "${WORKING_DIR}/${POKY_TC_INSTALLER}" ]; then
         echo "Poky toolchain installer not found: $POKY_TC_INSTALLER"
         exit 1
     fi
     # always set +x - even if we don't extract it here, we deliver it in the BSP
-    chmod +x "$POKY_TC_INSTALLER"
-    if [ ! -d "$TC_POKY_DIR" ]; then
-        "$POKY_TC_INSTALLER" <<EOF
-$TC_POKY_DIR
+    chmod +x "${WORKING_DIR}/${POKY_TC_INSTALLER}"
+    if [ ! -d "${WORKING_DIR}/${TC_POKY_DIR}" ]; then
+        "${WORKING_DIR}/${POKY_TC_INSTALLER}" <<EOF
+${WORKING_DIR}/${TC_POKY_DIR}
 y
 EOF
     fi
@@ -156,7 +158,6 @@ IS_STAGE=0
 IS_PACKAGE=0
 BUILD=""
 WORKING_DIR=""
-IS_FIRST_FETCH=0
 while getopts "h?a:b:w:" o; do
     case "$o" in
         a)
@@ -207,10 +208,6 @@ if [ $IS_STAGE -ne 0 ] && [ -d "${WORKING_DIR}/${RELEASE_DIR}" ]; then
     echo "Staging directory already exists, please remove: ${WORKING_DIR}/${RELEASE_DIR}"
     exit 1
 fi
-if [ $IS_PACKAGE -ne 0 ] && [ -e "${WORKING_DIR}/${RELEASE_TGZ}" ]; then
-    echo "Packaged artifact already exists, please remove: ${WORKING_DIR}/${RELEASE_TGZ}"
-    exit 1
-fi
 
 # Fail-fast
 set -e
@@ -219,48 +216,21 @@ set -e
 build_set_environment "$BUILD"
 
 TOPDIR=${PWD}
+build_work_dirs "$WORKING_DIR"
 
 if [ $IS_ONLINE -ne 0 ]; then
-    if [ ! -d "$WORKING_DIR" ]; then
-        IS_FIRST_FETCH=1
-        mkdir "$WORKING_DIR"
-    fi
     # get toolchains
     echo "Fetching toolchains..."
-    cd "$WORKING_DIR"
-    if [ ! -e "$BM_TC_TBZ2" ]; then
+    if [ ! -e "${WORKING_DIR}/${BM_TC_TBZ2}" ]; then
         echo "Downloading bare metal toolchain installer..."
-        wget -O "$BM_TC_TBZ2" "$BM_URL"
-        check_md5sum "$BM_TC_TBZ2" "$BM_MD5"
+        wget -O "${WORKING_DIR}/${BM_TC_TBZ2}" "$BM_URL"
+        check_md5sum "${WORKING_DIR}/${BM_TC_TBZ2}" "$BM_MD5"
     fi
-    cd "$TOPDIR"
     # fetch sources
     echo "Fetching sources..."
     ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a fetchall
     ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a fetchall
     ./build-hpsc-eclipse.sh -w "$WORKING_DIR" -a fetchall
-    if [ $IS_FIRST_FETCH -ne 0 ]; then
-        # This packaging is dirty and disgusting and makes me sick, but oh well
-        echo "First fetch - creating source release: $RELEASE_SRC_FETCH_TGZ"
-        # get the build scripts
-        basedir=$(basename "$TOPDIR")
-        bsp_files=("${basedir}/.git")
-        while read f; do
-            bsp_files+=("${basedir}/${f}")
-        done< <(git ls-tree --name-only HEAD)
-        # create in the working directory to avoid conflicts in $TOPDIR
-        touch "${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}"
-        # cd'ing up seems to be the only way to get TOPDIR as the root directory
-        # using --transform with tar broke symlinks in poky
-        cd ..
-        tar czf "${basedir}/${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}" \
-            "${bsp_files[@]}" "${basedir}/${WORKING_DIR}" \
-            --exclude "${basedir}/${WORKING_DIR}/poky/build" \
-            --exclude "${basedir}/${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}"
-        cd "${basedir}/${WORKING_DIR}"
-        md5sum "$RELEASE_SRC_FETCH_TGZ" > "${RELEASE_SRC_FETCH_TGZ}.md5"
-        cd "${TOPDIR}"
-    fi
 fi
 
 if [ $IS_BUILD -ne 0 ]; then
@@ -269,13 +239,10 @@ if [ $IS_BUILD -ne 0 ]; then
     ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a buildall
     ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a populate_sdk
     # build other packages
-    cd "$WORKING_DIR"
-    mkdir -p "$TC_TOPDIR"
-    sdk_bm_setup
-    sdk_poky_setup
-    export PATH=$PATH:${PWD}/$TC_BM_DIR/bin
-    export POKY_SDK="${PWD}/${TC_POKY_DIR}"
-    cd "$TOPDIR"
+    sdk_bm_setup "$WORKING_DIR"
+    sdk_poky_setup "$WORKING_DIR"
+    export PATH=$PATH:${PWD}/${WORKING_DIR}/${TC_BM_DIR}/bin
+    export POKY_SDK="${PWD}/${WORKING_DIR}/${TC_POKY_DIR}"
     ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a buildall
     # build Eclipse
     ./build-hpsc-eclipse.sh -w "$WORKING_DIR" -a buildall
@@ -321,7 +288,7 @@ if [ $IS_STAGE -ne 0 ]; then
 
     # eclipse
     echo "Staging eclipse..."
-    cp hpsc-eclipse.tar.gz "$RELEASE_DIR"
+    cp work/hpsc-eclipse.tar.gz "$RELEASE_DIR"
 
     # toolchains
     echo "Staging toolchains..."
@@ -335,6 +302,23 @@ if [ $IS_PACKAGE -ne 0 ]; then
     echo "Packaging: $RELEASE_TGZ..."
     tar czf "$RELEASE_TGZ" "$RELEASE_DIR"
     md5sum "$RELEASE_TGZ" > "${RELEASE_TGZ}.md5"
+    # This packaging is dirty and disgusting and makes me sick, but oh well
+    echo "Packaging sources: $RELEASE_SRC_FETCH_TGZ..."
+    # get the build scripts
+    basedir=$(basename "$TOPDIR")
+    bsp_files=("${basedir}/.git")
+    while read f; do
+        bsp_files+=("${basedir}/${f}")
+    done< <(git ls-tree --name-only HEAD)
+    # cd'ing up seems to be the only way to get TOPDIR as the root directory
+    # using --transform with tar broke symlinks in poky
+    (
+        cd "${TOPDIR}/.."
+        tar czf "${basedir}/${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}" \
+            "${bsp_files[@]}" "${basedir}/${WORKING_DIR}/src"
+        cd "${TOPDIR}/${WORKING_DIR}"
+        md5sum "$RELEASE_SRC_FETCH_TGZ" > "${RELEASE_SRC_FETCH_TGZ}.md5"
+    )
 fi
 
 cd "$TOPDIR"
