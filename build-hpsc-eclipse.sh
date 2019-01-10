@@ -21,13 +21,13 @@ ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group/1.4.1.201804240009
 
 function usage()
 {
-    echo "Usage: $0 [-a <all|fetchall|buildall>] [-h] [-w DIR]"
+    echo "Usage: $0 [-a <all|fetch|build>] [-h] [-w DIR]"
     echo "    -a ACTION"
-    echo "       all: (default) download sources and build"
-    echo "       fetchall: download sources"
-    echo "       buildall: build eclipse package"
+    echo "       all: (default) fetch and build"
+    echo "       fetch: download sources"
+    echo "       build: build eclipse package"
     echo "    -h: show this message and exit"
-    echo "    -w DIR: Set the working directory (default=HEAD)"
+    echo "    -w DIR: set the working directory (default=HEAD)"
     exit 1
 }
 
@@ -41,9 +41,9 @@ while getopts "h?a:w:" o; do
     case "$o" in
         a)
             HAS_ACTION=1
-            if [ "${OPTARG}" == "fetchall" ]; then
+            if [ "${OPTARG}" == "fetch" ]; then
                 IS_ONLINE=1
-            elif [ "${OPTARG}" == "buildall" ]; then
+            elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
             elif [ "${OPTARG}" == "all" ]; then
                 IS_ALL=1

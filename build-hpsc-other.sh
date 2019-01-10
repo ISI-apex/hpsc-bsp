@@ -96,15 +96,15 @@ function utils_build()
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetchall|buildall>] [-h] [-w DIR]"
+    echo "Usage: $0 -b ID [-a <all|fetch|build>] [-h] [-w DIR]"
     echo "    -b ID: build using git tag=ID"
     echo "       If ID=HEAD, a development release is built instead"
     echo "    -a ACTION"
-    echo "       all: (default) download sources and compile"
-    echo "       fetchall: download sources"
-    echo "       buildall: compile pre-downloaded sources"
+    echo "       all: (default) fetch and build"
+    echo "       fetch: download sources"
+    echo "       build: compile pre-downloaded sources"
     echo "    -h: show this message and exit"
-    echo "    -w DIR: Set the working directory (default=ID from -b)"
+    echo "    -w DIR: set the working directory (default=ID from -b)"
     exit 1
 }
 
@@ -120,9 +120,9 @@ while getopts "h?a:b:w:" o; do
     case "$o" in
         a)
             HAS_ACTION=1
-            if [ "${OPTARG}" == "fetchall" ]; then
+            if [ "${OPTARG}" == "fetch" ]; then
                 IS_ONLINE=1
-            elif [ "${OPTARG}" == "buildall" ]; then
+            elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
             elif [ "${OPTARG}" == "all" ]; then
                 IS_ALL=1

@@ -12,18 +12,18 @@ function conf_replace_or_append()
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetchall|buildall|populate_sdk|taskexp>] [-h] [-w DIR]"
+    echo "Usage: $0 -b ID [-a <all|fetch|build|populate_sdk|test|taskexp>] [-h] [-w DIR]"
     echo "    -b ID: build using git tag=ID"
     echo "       If ID=HEAD, a development release is built instead"
     echo "    -a ACTION"
-    echo "       all: (default) perform fetchall, buildall, and populate_sdk (not runtests nor taskexp)"
-    echo "       fetchall: download sources"
-    echo "       buildall: like all, but try offline"
+    echo "       all: (default) fetch, build, and populate_sdk (not test nor taskexp)"
+    echo "       fetch: download sources"
+    echo "       build: compile poky image"
     echo "       populate_sdk: build poky SDK installer, including sysroot (rootfs)"
-    echo "       runtests: run the Yocto automated runtime tests (requires build)"
+    echo "       test: run the Yocto automated runtime tests (requires build)"
     echo "       taskexp: run the task dependency explorer (requires build)"
     echo "    -h: show this message and exit"
-    echo "    -w DIR: Set the working directory (default=ID from -b)"
+    echo "    -w DIR: set the working directory (default=ID from -b)"
     exit 1
 }
 
@@ -33,7 +33,7 @@ IS_ALL=0
 IS_ONLINE=0
 IS_BUILD=0
 IS_POPULATE_SDK=0
-IS_RUNTESTS=0
+IS_TEST=0
 IS_TASKEXP=0
 BUILD=""
 WORKING_DIR=""
@@ -44,14 +44,14 @@ while getopts "h?a:b:w:" o; do
             HAS_ACTION=1
             if [ "${OPTARG}" == "all" ]; then
                 IS_ALL=1
-            elif [ "${OPTARG}" == "fetchall" ]; then
+            elif [ "${OPTARG}" == "fetch" ]; then
                 IS_ONLINE=1
-            elif [ "${OPTARG}" == "buildall" ]; then
+            elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
             elif [ "${OPTARG}" == "populate_sdk" ]; then
                 IS_POPULATE_SDK=1
-            elif [ "${OPTARG}" == "runtests" ]; then
-                IS_RUNTESTS=1
+            elif [ "${OPTARG}" == "test" ]; then
+                IS_TEST=1
             elif [ "${OPTARG}" == "taskexp" ]; then
                 IS_TASKEXP=1
             else
@@ -81,7 +81,7 @@ fi
 WORKING_DIR=${WORKING_DIR:-"$BUILD"}
 POKY_DL_DIR=${PWD}/${WORKING_DIR}/src/poky_dl
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
-    # do everything except runtests and taskexp
+    # do everything except test and taskexp
     IS_ONLINE=1
     IS_BUILD=1
     IS_POPULATE_SDK=1
@@ -161,7 +161,7 @@ if [ $IS_POPULATE_SDK -ne 0 ]; then
     bitbake core-image-hpsc -c populate_sdk
 fi
 
-if [ $IS_RUNTESTS -ne 0 ]; then
+if [ $IS_TEST -ne 0 ]; then
     bitbake core-image-hpsc -c testimage
 fi
 

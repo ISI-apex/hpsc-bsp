@@ -127,19 +127,18 @@ function transform_run_qemu()
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetchall|buildall|stage|package>] [-h] [-w DIR]"
+    echo "Usage: $0 -b ID [-a <all|fetch|build|stage|package>] [-h] [-p PREFIX] [-w DIR]"
     echo "    -b ID: build using git tag=ID"
     echo "       If ID=HEAD, a development release is built instead"
     echo "    -a ACTION"
-    echo "       all: (default) download sources, compile, stage, and package"
-    echo "       fetchall: download toolchains and sources"
-    echo "                 Note: on first fetch, creates source archive"
-    echo "       buildall: compile pre-downloaded sources"
-    echo "       stage: stage everything into a directory before packaging"
-    echo "       package: package everything into the BSP"
+    echo "       all: (default) fetch, build, stage, and package"
+    echo "       fetch: download toolchains and sources"
+    echo "       build: compile pre-downloaded sources"
+    echo "       stage: stage artifacts into a directory before packaging"
+    echo "       package: create binary and source BSP archives from staged artifacts"
     echo "    -h: show this message and exit"
-    echo "    -p PREFIX: set the release package prefix (default=HPSC_<gitrev>)"
-    echo "    -w DIR: Set the working directory (default=ID from -b)"
+    echo "    -p PREFIX: set the release stage/package prefix (default=HPSC_<gitrev>)"
+    echo "    -w DIR: set the working directory (default=ID from -b)"
     exit 1
 }
 
@@ -157,9 +156,9 @@ while getopts "h?a:b:p:w:" o; do
     case "$o" in
         a)
             HAS_ACTION=1
-            if [ "${OPTARG}" == "fetchall" ]; then
+            if [ "${OPTARG}" == "fetch" ]; then
                 IS_ONLINE=1
-            elif [ "${OPTARG}" == "buildall" ]; then
+            elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
             elif [ "${OPTARG}" == "stage" ]; then
                 IS_STAGE=1
@@ -226,15 +225,15 @@ if [ $IS_ONLINE -ne 0 ]; then
     fi
     # fetch sources
     echo "Fetching sources..."
-    ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a fetchall
-    ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a fetchall
-    ./build-hpsc-eclipse.sh -w "$WORKING_DIR" -a fetchall
+    ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a fetch
+    ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a fetch
+    ./build-hpsc-eclipse.sh -w "$WORKING_DIR" -a fetch
 fi
 
 if [ $IS_BUILD -ne 0 ]; then
     echo "Building..."
     # build Yocto
-    ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a buildall
+    ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a build
     ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a populate_sdk
     # build other packages
     sdk_bm_setup "${WORKING_DIR}/${BM_TC_TBZ2}" "${WORKING_DIR}/${TC_BM_DIR}"
@@ -242,9 +241,9 @@ if [ $IS_BUILD -ne 0 ]; then
                    "${WORKING_DIR}/${TC_POKY_DIR}"
     export PATH=$PATH:${PWD}/${WORKING_DIR}/${TC_BM_DIR}/bin
     export POKY_SDK="${PWD}/${WORKING_DIR}/${TC_POKY_DIR}"
-    ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a buildall
+    ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a build
     # build Eclipse
-    ./build-hpsc-eclipse.sh -w "$WORKING_DIR" -a buildall
+    ./build-hpsc-eclipse.sh -w "$WORKING_DIR" -a build
 fi
 
 cd "$WORKING_DIR"
