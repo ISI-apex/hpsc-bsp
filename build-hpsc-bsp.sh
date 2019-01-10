@@ -3,10 +3,6 @@
 # Parent build script
 #
 
-RELEASE_DIR=HPSC_2.0
-RELEASE_TGZ=${RELEASE_DIR}_bin.tar.gz
-RELEASE_SRC_FETCH_TGZ=${RELEASE_DIR}_src.tar.gz
-
 TC_TOPDIR=env
 TC_BM_DIR=${TC_TOPDIR}/gcc-arm-none-eabi-7-2018-q2-update
 TC_POKY_DIR=${TC_TOPDIR}/poky
@@ -42,13 +38,6 @@ BSP_ARTIFACTS_HOST_UTIL=("${UTILS_DIR}/host/qemu-nand-creator"
 BSP_ARTIFACTS_RTPS_R52=("${BAREMETAL_DIR}/rtps/bld/rtps.elf"
                         "${R52_UBOOT_DIR}/u-boot.bin")
 BSP_ARTIFACTS_TRCH=("${BAREMETAL_DIR}/trch/bld/trch.elf")
-# target directories in BSP
-BSP_DIR=${RELEASE_DIR}/BSP
-BSP_DIR_HPPS=${BSP_DIR}/hpps
-BSP_DIR_RTPS_R52=${BSP_DIR}/rtps-r52
-BSP_DIR_TRCH=${BSP_DIR}/trch
-BSP_DIR_AARCH64_UTILS=${BSP_DIR}/aarch64-poky-linux-utils
-BSP_DIR_HOST_UTILS=${BSP_DIR}/host-utils
 
 # Toolchain installers for toolchains directory
 TOOLCHAIN_ARTIFACTS=("$BM_TC_TBZ2"
@@ -145,6 +134,7 @@ function usage()
     echo "       stage: stage everything into a directory before packaging"
     echo "       package: package everything into the BSP"
     echo "    -h: show this message and exit"
+    echo "    -p PREFIX: set the release package prefix (default=HPSC_<gitrev>)"
     echo "    -w DIR: Set the working directory (default=ID from -b)"
     exit 1
 }
@@ -157,8 +147,9 @@ IS_BUILD=0
 IS_STAGE=0
 IS_PACKAGE=0
 BUILD=""
+PREFIX="HPSC_$(git rev-parse --short HEAD)"
 WORKING_DIR=""
-while getopts "h?a:b:w:" o; do
+while getopts "h?a:b:p:w:" o; do
     case "$o" in
         a)
             HAS_ACTION=1
@@ -183,6 +174,9 @@ while getopts "h?a:b:w:" o; do
         h)
             usage
             ;;
+        p)
+            PREFIX="${OPTARG}"
+            ;;
         w)
             WORKING_DIR="${OPTARG}"
             ;;
@@ -204,8 +198,8 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_STAGE=1
     IS_PACKAGE=1
 fi
-if [ $IS_STAGE -ne 0 ] && [ -d "${WORKING_DIR}/${RELEASE_DIR}" ]; then
-    echo "Staging directory already exists, please remove: ${WORKING_DIR}/${RELEASE_DIR}"
+if [ $IS_STAGE -ne 0 ] && [ -d "${WORKING_DIR}/${PREFIX}" ]; then
+    echo "Staging directory already exists, please remove: ${WORKING_DIR}/${PREFIX}"
     exit 1
 fi
 
@@ -251,8 +245,9 @@ fi
 cd "$WORKING_DIR"
 
 if [ $IS_STAGE -ne 0 ]; then
-    echo "Staging $RELEASE_DIR..."
-    mkdir "$RELEASE_DIR"
+    BSP_DIR=${PREFIX}/BSP
+    echo "Staging $PREFIX..."
+    mkdir "$PREFIX"
 
     # BSP
     echo "Staging BSP..."
@@ -265,45 +260,49 @@ if [ $IS_STAGE -ne 0 ]; then
     for a in "${BSP_ARTIFACTS_QEMU[@]}"; do
         cp "$a" "${BSP_DIR}/"
     done
-    mkdir "$BSP_DIR_HPPS"
+    mkdir "${BSP_DIR}/hpps"
     for a in "${BSP_ARTIFACTS_HPPS[@]}"; do
-        cp "$a" "${BSP_DIR_HPPS}/"
+        cp "$a" "${BSP_DIR}/hpps/"
     done
-    mkdir "$BSP_DIR_RTPS_R52"
+    mkdir "${BSP_DIR}/rtps-r52"
     for a in "${BSP_ARTIFACTS_RTPS_R52[@]}"; do
-        cp "$a" "${BSP_DIR_RTPS_R52}/"
+        cp "$a" "${BSP_DIR}/rtps-r52/"
     done
-    mkdir "$BSP_DIR_TRCH"
+    mkdir "${BSP_DIR}/trch"
     for a in "${BSP_ARTIFACTS_TRCH[@]}"; do
-        cp "$a" "${BSP_DIR_TRCH}/"
+        cp "$a" "${BSP_DIR}/trch/"
     done
-    mkdir "$BSP_DIR_AARCH64_UTILS"
+    mkdir "${BSP_DIR}/aarch64-poky-linux-utils"
     for a in "${BSP_ARTIFACTS_AARCH64_UTIL[@]}"; do
-        cp "$a" "${BSP_DIR_AARCH64_UTILS}/"
+        cp "$a" "${BSP_DIR}/aarch64-poky-linux-utils/"
     done
-    mkdir "$BSP_DIR_HOST_UTILS"
+    mkdir "${BSP_DIR}/host-utils"
     for a in "${BSP_ARTIFACTS_HOST_UTIL[@]}"; do
-        cp "$a" "${BSP_DIR_HOST_UTILS}/"
+        cp "$a" "${BSP_DIR}/host-utils/"
     done
 
     # eclipse
     echo "Staging eclipse..."
-    cp work/hpsc-eclipse.tar.gz "$RELEASE_DIR"
+    cp work/hpsc-eclipse.tar.gz "$PREFIX"
 
     # toolchains
     echo "Staging toolchains..."
-    mkdir "${RELEASE_DIR}/toolchains"
+    mkdir "${PREFIX}/toolchains"
     for a in "${TOOLCHAIN_ARTIFACTS[@]}"; do
-        cp "$a" "${RELEASE_DIR}/toolchains/"
+        cp "$a" "${PREFIX}/toolchains/"
     done
 fi
 
 if [ $IS_PACKAGE -ne 0 ]; then
+    RELEASE_TGZ=${PREFIX}_bin.tar.gz
+    RELEASE_SRC_FETCH_TGZ=${PREFIX}_src.tar.gz
+
     echo "Packaging: $RELEASE_TGZ..."
-    tar czf "$RELEASE_TGZ" "$RELEASE_DIR"
+    tar czf "$RELEASE_TGZ" "$PREFIX"
     md5sum "$RELEASE_TGZ" > "${RELEASE_TGZ}.md5"
+
     # This packaging is dirty and disgusting and makes me sick, but oh well
-    echo "Packaging sources: $RELEASE_SRC_FETCH_TGZ..."
+    echo "Packaging: $RELEASE_SRC_FETCH_TGZ..."
     # get the build scripts
     basedir=$(basename "$TOPDIR")
     bsp_files=("${basedir}/.git")
