@@ -11,6 +11,7 @@ ECLIPSE_REPOSITORIES=("http://download.eclipse.org/releases/photon"
                       "http://download.eclipse.org/tm/updates/4.0/"
                       "http://gnu-mcu-eclipse.netlify.com/v4-neon-updates/"
                       "http://downloads.yoctoproject.org/releases/eclipse-plugin/2.5.0/oxygen")
+
 # Plugins to install
 ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group/1.4.1.201804240009
                     org.yocto.sdk.feature.group/1.4.1.201804240009
@@ -21,10 +22,11 @@ ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group/1.4.1.201804240009
 
 function usage()
 {
-    echo "Usage: $0 [-a <all|fetch|build>] [-h] [-w DIR]"
+    echo "Usage: $0 [-a <all|fetch|clean|build>] [-h] [-w DIR]"
     echo "    -a ACTION"
     echo "       all: (default) fetch and build"
     echo "       fetch: download sources"
+    echo "       clean: clean eclipse working directory"
     echo "       build: build eclipse package"
     echo "    -h: show this message and exit"
     echo "    -w DIR: set the working directory (default=HEAD)"
@@ -35,6 +37,7 @@ function usage()
 HAS_ACTION=0
 IS_ALL=0
 IS_FETCH=0
+IS_CLEAN=0
 IS_BUILD=0
 WORKING_DIR="HEAD"
 while getopts "h?a:w:" o; do
@@ -43,6 +46,8 @@ while getopts "h?a:w:" o; do
             HAS_ACTION=1
             if [ "${OPTARG}" == "fetch" ]; then
                 IS_FETCH=1
+            elif [ "${OPTARG}" == "clean" ]; then
+                IS_CLEAN=1
             elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
             elif [ "${OPTARG}" == "all" ]; then
@@ -66,7 +71,7 @@ while getopts "h?a:w:" o; do
 done
 shift $((OPTIND-1))
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
-    # do everything
+    # do everything except clean
     IS_FETCH=1
     IS_BUILD=1
 fi
@@ -104,6 +109,10 @@ if [ $IS_FETCH -ne 0 ]; then
                            -nosplash \
                            -repository "$ECLIPSE_REPOSITORY_LIST" \
                            -installIUs "$ECLIPSE_PLUGIN_IU_LIST"
+fi
+
+if [ $IS_CLEAN -ne 0 ]; then
+    rm -f "$ECLIPSE_HPSC"
 fi
 
 if [ $IS_BUILD -ne 0 ]; then
