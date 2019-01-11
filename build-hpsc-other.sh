@@ -3,9 +3,6 @@
 # Fetch and/or build sources that require the other toolchains
 #
 
-# Must know where the POKY SDK is - fall back on default install location
-export POKY_SDK=${POKY_SDK:-"/opt/poky/2.6"}
-
 # Check that baremetal toolchain is on PATH
 function check_bm_toolchain()
 {
@@ -17,24 +14,12 @@ function check_bm_toolchain()
     )
 }
 
-# Verify poky toolchain components
+# Verify poky toolchain
 function check_poky_toolchain()
 {
-    if [ ! -d "$POKY_SDK" ]; then
+    if [ -z "$POKY_SDK" ] || [ ! -d "$POKY_SDK" ]; then
         echo "Error: POKY_SDK not found: $POKY_SDK"
         echo "  e.g., export POKY_SDK=/opt/poky/2.6"
-        exit 1
-    fi
-    local POKY_CC_PATH=$POKY_SDK/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux
-    export PATH=$PATH:$POKY_CC_PATH
-    which aarch64-poky-linux-gcc > /dev/null 2>&1 ||
-    (
-        echo "Error: 'aarch64-poky-linux-gcc' not found in SDK: $POKY_CC_PATH"
-        exit 1
-    )
-    export SYSROOT="$POKY_SDK/sysroots/aarch64-poky-linux"
-    if [ ! -d "${SYSROOT}" ]; then
-        echo "Error: sysroot 'aarch64-poky-linux' not found in SDK: $SYSROOT"
         exit 1
     fi
 }
@@ -90,8 +75,15 @@ function utils_clean()
 function utils_build()
 {
     for s in host linux; do
-        echo "hpsc-utils: $s: build"
-        make_parallel -C "$s"
+        (
+            echo "hpsc-utils: $s: build"
+            if [ "$s" == "linux" ]; then
+                echo "hpsc-utils: source poky environment"
+                . "${POKY_SDK}/environment-setup-aarch64-poky-linux"
+                unset LDFLAGS
+            fi
+            make_parallel -C "$s"
+        )
     done
 }
 
@@ -108,6 +100,8 @@ function usage()
     echo "       test: run unit tests"
     echo "    -h: show this message and exit"
     echo "    -w DIR: set the working directory (default=ID from -b)"
+    echo ""
+    echo "The POKY_SDK environment variable must also be set to the SDK path."
     exit 1
 }
 
