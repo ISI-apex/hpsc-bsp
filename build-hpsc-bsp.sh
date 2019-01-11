@@ -149,7 +149,7 @@ function usage()
     echo "       stage: stage artifacts into a directory before packaging"
     echo "       package: create binary and source BSP archives from staged artifacts"
     echo "    -h: show this message and exit"
-    echo "    -p PREFIX: set the release stage/package prefix (default=HPSC_<gitrev>)"
+    echo "    -p PREFIX: set the release stage/package prefix (default=ID from -b)"
     echo "    -w DIR: set the working directory (default=ID from -b)"
     exit 1
 }
@@ -162,7 +162,6 @@ IS_BUILD=0
 IS_STAGE=0
 IS_PACKAGE=0
 BUILD=""
-PREFIX="HPSC_$(git rev-parse --short HEAD)"
 WORKING_DIR=""
 while getopts "h?a:b:p:w:" o; do
     case "$o" in
@@ -206,6 +205,7 @@ if [ -z "$BUILD" ]; then
     usage
 fi
 WORKING_DIR=${WORKING_DIR:-"$BUILD"}
+PREFIX=${PREFIX:-"$BUILD"}
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     # do everything
     IS_FETCH=1
@@ -258,10 +258,11 @@ cd "$WORKING_DIR"
 
 if [ $IS_STAGE -ne 0 ]; then
     # top-level
-    stage_artifacts "$PREFIX" "$ECLIPSE_INSTALLER"
+    STAGE_DIR="stage/${PREFIX}"
+    stage_artifacts "$STAGE_DIR" "$ECLIPSE_INSTALLER"
 
     # BSP
-    BSP_DIR=${PREFIX}/BSP
+    BSP_DIR=${STAGE_DIR}/BSP
     stage_artifacts "$BSP_DIR" "${BSP_ARTIFACTS_TOP[@]/#/${TOPDIR}/}" \
                                "${BSP_ARTIFACTS_QEMU[@]}"
     # run-qemu needs to be updated with new paths
@@ -274,34 +275,35 @@ if [ $IS_STAGE -ne 0 ]; then
     stage_artifacts "${BSP_DIR}/host-utils" "${BSP_ARTIFACTS_HOST_UTIL[@]}"
 
     # toolchains
-    stage_artifacts "${PREFIX}/toolchains" "${TOOLCHAIN_ARTIFACTS[@]}"
+    stage_artifacts "${STAGE_DIR}/toolchains" "${TOOLCHAIN_ARTIFACTS[@]}"
 fi
 
 if [ $IS_PACKAGE -ne 0 ]; then
-    RELEASE_TGZ=${PREFIX}_bin.tar.gz
-    RELEASE_SRC_FETCH_TGZ=${PREFIX}_src.tar.gz
+    RELEASE_BIN_TGZ=${PREFIX}_bin.tar.gz
+    RELEASE_SRC_TGZ=${PREFIX}_src.tar.gz
 
-    echo "Packaging: $RELEASE_TGZ..."
-    tar czf "$RELEASE_TGZ" "$PREFIX"
-    md5sum "$RELEASE_TGZ" > "${RELEASE_TGZ}.md5"
+    echo "Packaging: $RELEASE_BIN_TGZ"
+    tar czf "$RELEASE_BIN_TGZ" -C "stage" "$PREFIX"
+    echo "md5: $RELEASE_BIN_TGZ"
+    md5sum "$RELEASE_BIN_TGZ" > "${RELEASE_BIN_TGZ}.md5"
 
     # This packaging is dirty and disgusting and makes me sick, but oh well
-    echo "Packaging: $RELEASE_SRC_FETCH_TGZ..."
+    echo "Packaging: $RELEASE_SRC_TGZ"
     # get the build scripts
     basedir=$(basename "$TOPDIR")
     bsp_files=("${basedir}/.git")
     while read f; do
         bsp_files+=("${basedir}/${f}")
-    done< <(git ls-tree --name-only HEAD)
+    done< <(git ls-tree --name-only --full-tree HEAD)
     # cd'ing up seems to be the only way to get TOPDIR as the root directory
     # using --transform with tar broke symlinks in poky
     (
         cd "${TOPDIR}/.."
-        tar czf "${basedir}/${WORKING_DIR}/${RELEASE_SRC_FETCH_TGZ}" \
+        tar czf "${basedir}/${WORKING_DIR}/${RELEASE_SRC_TGZ}" \
             "${bsp_files[@]}" "${basedir}/${WORKING_DIR}/src"
-        cd "${TOPDIR}/${WORKING_DIR}"
-        md5sum "$RELEASE_SRC_FETCH_TGZ" > "${RELEASE_SRC_FETCH_TGZ}.md5"
     )
+    echo "md5: $RELEASE_SRC_TGZ"
+    md5sum "$RELEASE_SRC_TGZ" > "${RELEASE_SRC_TGZ}.md5"
 fi
 
 cd "$TOPDIR"
