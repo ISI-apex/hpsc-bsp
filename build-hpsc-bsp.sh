@@ -76,6 +76,18 @@ EOF
     fi
 }
 
+function stage_artifacts()
+{
+    local dest=$1
+    shift
+    mkdir -p "$dest"
+    echo "Staging: $dest"
+    for s in "$@"; do
+        echo "  $(basename "$s")"
+        cp -r "$s" "${dest}/"
+    done
+}
+
 function transform_run_qemu()
 {
     script=$1
@@ -201,10 +213,6 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_STAGE=1
     IS_PACKAGE=1
 fi
-if [ $IS_STAGE -ne 0 ] && [ -d "${WORKING_DIR}/${PREFIX}" ]; then
-    echo "Staging directory already exists, please remove: ${WORKING_DIR}/${PREFIX}"
-    exit 1
-fi
 
 # Fail-fast
 set -e
@@ -249,52 +257,24 @@ fi
 cd "$WORKING_DIR"
 
 if [ $IS_STAGE -ne 0 ]; then
-    BSP_DIR=${PREFIX}/BSP
-    echo "Staging $PREFIX..."
-    mkdir "$PREFIX"
+    # top-level
+    stage_artifacts "$PREFIX" "$ECLIPSE_INSTALLER"
 
     # BSP
-    echo "Staging BSP..."
-    mkdir "$BSP_DIR"
-    for a in "${BSP_ARTIFACTS_TOP[@]}"; do
-        cp "${TOPDIR}/${a}" "${BSP_DIR}/"
-    done
+    BSP_DIR=${PREFIX}/BSP
+    stage_artifacts "$BSP_DIR" "${BSP_ARTIFACTS_TOP[@]/#/${TOPDIR}/}" \
+                               "${BSP_ARTIFACTS_QEMU[@]}"
     # run-qemu needs to be updated with new paths
     transform_run_qemu "${BSP_DIR}/run-qemu.sh"
-    for a in "${BSP_ARTIFACTS_QEMU[@]}"; do
-        cp "$a" "${BSP_DIR}/"
-    done
-    mkdir "${BSP_DIR}/hpps"
-    for a in "${BSP_ARTIFACTS_HPPS[@]}"; do
-        cp "$a" "${BSP_DIR}/hpps/"
-    done
-    mkdir "${BSP_DIR}/rtps-r52"
-    for a in "${BSP_ARTIFACTS_RTPS_R52[@]}"; do
-        cp "$a" "${BSP_DIR}/rtps-r52/"
-    done
-    mkdir "${BSP_DIR}/trch"
-    for a in "${BSP_ARTIFACTS_TRCH[@]}"; do
-        cp "$a" "${BSP_DIR}/trch/"
-    done
-    mkdir "${BSP_DIR}/aarch64-poky-linux-utils"
-    for a in "${BSP_ARTIFACTS_AARCH64_UTIL[@]}"; do
-        cp "$a" "${BSP_DIR}/aarch64-poky-linux-utils/"
-    done
-    mkdir "${BSP_DIR}/host-utils"
-    for a in "${BSP_ARTIFACTS_HOST_UTIL[@]}"; do
-        cp "$a" "${BSP_DIR}/host-utils/"
-    done
-
-    # eclipse
-    echo "Staging eclipse..."
-    cp "$ECLIPSE_INSTALLER" "$PREFIX"
+    stage_artifacts "${BSP_DIR}/hpps" "${BSP_ARTIFACTS_HPPS[@]}"
+    stage_artifacts "${BSP_DIR}/rtps-r52" "${BSP_ARTIFACTS_RTPS_R52[@]}"
+    stage_artifacts "${BSP_DIR}/trch" "${BSP_ARTIFACTS_TRCH[@]}"
+    stage_artifacts "${BSP_DIR}/aarch64-poky-linux-utils" \
+                    "${BSP_ARTIFACTS_AARCH64_UTIL[@]}"
+    stage_artifacts "${BSP_DIR}/host-utils" "${BSP_ARTIFACTS_HOST_UTIL[@]}"
 
     # toolchains
-    echo "Staging toolchains..."
-    mkdir "${PREFIX}/toolchains"
-    for a in "${TOOLCHAIN_ARTIFACTS[@]}"; do
-        cp "$a" "${PREFIX}/toolchains/"
-    done
+    stage_artifacts "${PREFIX}/toolchains" "${TOOLCHAIN_ARTIFACTS[@]}"
 fi
 
 if [ $IS_PACKAGE -ne 0 ]; then
