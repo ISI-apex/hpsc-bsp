@@ -19,6 +19,7 @@ function build_work_dirs()
     mkdir -p "${WORKING_DIR}/src"
     mkdir -p "${WORKING_DIR}/work"
     mkdir -p "${WORKING_DIR}/env"
+    mkdir -p "${WORKING_DIR}/stage"
 }
 
 # Set git revisions to use - takes one argument, either "HEAD" or a tag name
