@@ -27,11 +27,12 @@ The top-level `build-hpsc-bsp.sh` script wraps the other build scripts, so pleas
 By default, it will run through fetch, build, stage, and package steps.
 The following steps may be run independently using the `-a` flag so long as previous steps are complete.
 
-* `fetchall` - download/build toolchains and fetch build sources
-* `buildall` - build all pre-downloaded sources.
+* `fetch` - download/build toolchains and fetch build sources
+* `build` - build all pre-downloaded sources.
 Note: Yocto may still attempt to fetch sources when doing a development build.
 * `stage` - stage sources and binaries into the directory structure to be packaged
 * `package` - package the staged directory structure into the final BSP archive
+* `package-sources` - package the sources into an archive for offline builds
 
 To perform a release build for `hpsc-2.0`:
 
@@ -55,7 +56,7 @@ For example to perform a development build, then create the SDK:
 	./build-hpsc-yocto.sh -b HEAD
 	./build-hpsc-yocto.sh -b HEAD -a populate_sdk
 
-The generated files needed to run QEMU are located in: `poky/build/tmp/deploy/images/hpsc-chiplet`.
+The generated files needed to run QEMU are located in: `${WORKING_DIR}/work/poky_build/tmp/deploy/images/hpsc-chiplet`.
 Specifically:
 
 1. `arm-trusted-firmware.bin` - the Arm Trusted Firmware binary
@@ -64,7 +65,7 @@ Specifically:
 1. `hpsc.dtb` - the Chiplet device tree for SMP Linux
 1. `u-boot.bin` - the U-boot bootloader for the dual A53 cluster
 
-The actual build directories for these files are located in the directory: `poky/build/tmp/work`.
+The actual build directories for these files are located in the directory: `${WORKING_DIR}/work/poky_build/tmp/work`.
 
 Other Build
 -----------
@@ -90,7 +91,7 @@ The host compiler is used to build:
 Finally, the Poky SDK must be installed to build test utilities.
 Set `POKY_SDK` to the install location, e.g. (using the default location):
 
-	export POKY_SDK=/opt/poky/2.4.3
+	export POKY_SDK=/opt/poky/2.6
 
 The Poky SDK is used to build:
 
