@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Fail-fast
+set -e
+
 function conf_replace_or_append()
 {
     local key=$1
@@ -87,43 +90,33 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
     IS_POPULATE_SDK=1
 fi
 
-# Fail-fast
-set -e
-
 . ./build-common.sh
 build_set_environment "$BUILD"
-
-TOPDIR=${PWD}
 build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
 
 # clone our repositories and checkout correct revisions
 if [ $IS_FETCH -ne 0 ]; then
     # add the meta-openembedded layer (for the mpich package)
-    git_clone_fetch_bare "https://github.com/openembedded/meta-openembedded.git" \
-                         "src/meta-openembedded.git"
-    git_clone_fetch_checkout "${PWD}/src/meta-openembedded.git" \
-                             "work/meta-openembedded" "$GIT_CHECKOUT_META_OE"
+    git_clone_fetch_checkout "https://github.com/openembedded/meta-openembedded.git" \
+                             "src/meta-openembedded" "$GIT_CHECKOUT_META_OE"
     # add the meta-hpsc layer
-    git_clone_fetch_bare "https://github.com/ISI-apex/meta-hpsc" \
-                         "src/meta-hpsc.git"
-    git_clone_fetch_checkout "${PWD}/src/meta-hpsc.git" "work/meta-hpsc" \
-                             "$GIT_CHECKOUT_META_HPSC"
+    git_clone_fetch_checkout "https://github.com/ISI-apex/meta-hpsc" \
+                             "src/meta-hpsc" "$GIT_CHECKOUT_META_HPSC"
     # download the yocto poky git repository
-    git_clone_fetch_bare "https://git.yoctoproject.org/git/poky" "src/poky.git"
-    git_clone_fetch_checkout "${PWD}/src/poky.git" "work/poky" \
-                             "$GIT_CHECKOUT_POKY"
+    git_clone_fetch_checkout "https://git.yoctoproject.org/git/poky" \
+                             "src/poky" "$GIT_CHECKOUT_POKY"
 fi
-BITBAKE_LAYERS=("${PWD}/work/meta-openembedded/meta-oe"
-                "${PWD}/work/meta-openembedded/meta-python"
-                "${PWD}/work/meta-hpsc/meta-hpsc-bsp")
 
-cd work/poky
-
-# create build directory if it doesn't exist and configure it
 # poky's sanity checker tries to reach example.com unless we force it offline
 export BB_NO_NETWORK=1
-. ./oe-init-build-env build
+# We can use poky and its layers in src dir since everything is out-of-tree
+BITBAKE_LAYERS=("${PWD}/src/meta-openembedded/meta-oe"
+                "${PWD}/src/meta-openembedded/meta-python"
+                "${PWD}/src/meta-hpsc/meta-hpsc-bsp")
+# create build directory and cd to it
+. ./src/poky/oe-init-build-env work/poky_build
+# configure layers
 for layer in "${BITBAKE_LAYERS[@]}"; do
     bitbake-layers add-layer "$layer"
 done
@@ -169,5 +162,3 @@ fi
 if [ $IS_TASKEXP -ne 0 ]; then
     bitbake -u taskexp -g core-image-hpsc
 fi
-
-cd "$TOPDIR"

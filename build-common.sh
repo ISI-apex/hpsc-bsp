@@ -81,35 +81,8 @@ function build_set_environment()
     export GIT_CHECKOUT_QEMU_DT="$GIT_CHECKOUT_DEFAULT"
 }
 
-function git_clone_fetch_bare()
-{
-    local repo=$1
-    local dir=$2
-    assert_str "$repo"
-    assert_str "$dir"
-    (
-        set -e
-        # Don't ask for credentials if requests are bad
-        export GIT_TERMINAL_PROMPT=0 # for git > 2.3
-        export GIT_ASKPASS=/bin/echo
-        if [ ! -d "$dir" ]; then
-            echo "$dir: clone bare: $repo"
-            git clone --bare "$repo" "$dir"
-        fi
-        cd "$dir"
-        # in case remote URI changed
-        echo "$dir: set-url origin: $repo"
-        git --bare remote set-url origin "$repo"
-        # by default, bare git repo won't fetch anything...
-        git config remote.origin.fetch 'refs/heads/*:refs/heads/*'
-        echo "$dir: fetch"
-        git --bare fetch origin --prune
-    )
-}
-
 function git_clone_fetch_checkout()
 {
-    # repo is expected to be a filesystem directory - the full path is needed
     local repo=$1
     local dir=$2
     local checkout=$3
@@ -123,11 +96,11 @@ function git_clone_fetch_checkout()
             git clone "$repo" "$dir"
         fi
         cd "$dir"
-        # in case remote URI changed (e.g., moved sources to a new system/path)
+        # in case remote URI changed
         echo "$dir: set-url origin: $repo"
         git remote set-url origin "$repo"
         echo "$dir: fetch"
-        git fetch origin --prune
+        git fetch origin --prune --force
         echo "$dir: checkout: $checkout"
         git checkout "$checkout"
         # pull, if needed

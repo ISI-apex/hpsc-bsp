@@ -3,6 +3,9 @@
 # Fetch and/or build sources that require the other toolchains
 #
 
+# Fail-fast
+set -e
+
 # Check that baremetal toolchain is on PATH
 function check_bm_toolchain()
 {
@@ -24,11 +27,6 @@ function check_poky_toolchain()
     fi
 }
 
-function make_clean()
-{
-    make clean "$@"
-}
-
 function make_parallel()
 {
     make -j "$(nproc)" "$@"
@@ -46,10 +44,6 @@ function qemu_post_fetch()
     # We only know which submodules are used b/c we've run configure before...
     ./scripts/git-submodule.sh update ui/keycodemapdb dtc capstone
 }
-function qemu_clean()
-{
-    rm -rf BUILD
-}
 function qemu_build()
 {
     mkdir -p BUILD
@@ -65,13 +59,6 @@ function qemu_test()
     make_parallel -C BUILD check-unit
 }
 
-function utils_clean()
-{
-    for s in host linux; do
-        echo "hpsc-utils: $s: clean"
-        make_clean -C "$s"
-    done
-}
 function utils_build()
 {
     for s in host linux; do
@@ -89,13 +76,14 @@ function utils_build()
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetch|clean|build|test>] [-h] [-w DIR]"
+    echo "Usage: $0 -b ID [-a <all|fetch|clean|extract|build|test>] [-h] [-w DIR]"
     echo "    -b ID: build using git tag=ID"
     echo "       If ID=HEAD, a development release is built instead"
     echo "    -a ACTION"
-    echo "       all: (default) fetch and build"
-    echo "       fetch: download sources"
+    echo "       all: (default) fetch, clean, extract, and build"
+    echo "       fetch: download/update sources (forces clean)"
     echo "       clean: clean compiled sources"
+    echo "       extract: copy sources to working directory"
     echo "       build: compile pre-downloaded sources"
     echo "       test: run unit tests"
     echo "    -h: show this message and exit"
@@ -110,18 +98,24 @@ HAS_ACTION=0
 IS_ALL=0
 IS_FETCH=0
 IS_CLEAN=0
+IS_EXTRACT=0
 IS_BUILD=0
 IS_TEST=0
 BUILD=""
 WORKING_DIR=""
-while getopts "h?a:b:w:" o; do
+while getopts "h?a:b:fw:" o; do
     case "$o" in
         a)
             HAS_ACTION=1
             if [ "${OPTARG}" == "fetch" ]; then
                 IS_FETCH=1
+                # clean to ensure that updates are built
+                # TODO: only clean repos that are actually changed?
+                IS_CLEAN=1
             elif [ "${OPTARG}" == "clean" ]; then
                 IS_CLEAN=1
+            elif [ "${OPTARG}" == "extract" ]; then
+                IS_EXTRACT=1
             elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
             elif [ "${OPTARG}" == "test" ]; then
@@ -154,16 +148,17 @@ if [ -z "$BUILD" ]; then
 fi
 WORKING_DIR=${WORKING_DIR:-"$BUILD"}
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
-    # do everything except clean and test
+    # do everything except test
     IS_FETCH=1
+    IS_CLEAN=1
+    IS_EXTRACT=1
     IS_BUILD=1
 fi
 
-# Fail-fast
-set -e
-
 . ./build-common.sh
 build_set_environment "$BUILD"
+build_work_dirs "$WORKING_DIR"
+cd "$WORKING_DIR"
 
 PREBUILD_FNS=(check_bm_toolchain
               check_poky_toolchain)
@@ -189,11 +184,6 @@ BUILD_CHECKOUTS=("$GIT_CHECKOUT_BM"
                  "$GIT_CHECKOUT_QEMU"
                  "$GIT_CHECKOUT_QEMU_DT"
                  "$GIT_CHECKOUT_HPSC_UTILS")
-BUILD_CLEAN_FNS=(make_clean
-                 make_clean
-                 qemu_clean
-                 make_clean
-                 utils_clean)
 BUILD_FNS=(make_parallel
            uboot_r52_build
            qemu_build
@@ -205,36 +195,46 @@ BUILD_TEST_FNS=(:
                 :
                 :)
 
-TOPDIR=${PWD}
-build_work_dirs "$WORKING_DIR"
-cd "$WORKING_DIR"
-
 if [ $IS_FETCH -ne 0 ]; then
-    echo "Fetching sources..."
+    echo "Performing action: fetch..."
     for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
-        src="${PWD}/src/${BUILD_DIRS[$i]}.git"
-        work="work/${BUILD_DIRS[$i]}"
-        git_clone_fetch_bare "${BUILD_REPOS[$i]}" "$src"
-        git_clone_fetch_checkout "$src" "$work" "${BUILD_CHECKOUTS[$i]}"
+        name="${BUILD_DIRS[$i]}"
+        src="src/${BUILD_DIRS[$i]}"
+        echo "$name: fetch"
+        git_clone_fetch_checkout "${BUILD_REPOS[$i]}" "$src" \
+                                 "${BUILD_CHECKOUTS[$i]}"
+        echo "$name: post-fetch"
         (
-            echo "${BUILD_DIRS[$i]}: post-fetch..."
-            cd "$work"
+            cd "$src"
             "${BUILD_POST_FETCH[$i]}"
         )
     done
 fi
 
 if [ $IS_CLEAN -ne 0 ]; then
-    echo "Running clean..."
+    echo "Performing action: clean..."
     for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
+        name="${BUILD_DIRS[$i]}"
+        echo "$name: clean"
+        rm -rf "work/${BUILD_DIRS[$i]}"
+    done
+fi
+
+if [ $IS_EXTRACT -ne 0 ]; then
+    echo "Performing action: extract..."
+    for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
+        name="${BUILD_DIRS[$i]}"
+        src="src/${BUILD_DIRS[$i]}"
         work="work/${BUILD_DIRS[$i]}"
-        # ignore if directory isn't present
+        if [ ! -d "$src" ]; then
+            echo "$name: Error: must 'fetch' before 'extract'"
+            exit 1
+        fi
+        echo "$name: extract"
         if [ -d "$work" ]; then
-            (
-                echo "${BUILD_DIRS[$i]}: clean"
-                cd "$work"
-                "${BUILD_CLEAN_FNS[$i]}"
-            )
+            echo "$name: extract: work directory already exists, skipping..."
+        else
+            cp -r "src/${BUILD_DIRS[$i]}" "$work"
         fi
     done
 fi
@@ -244,16 +244,16 @@ if [ $IS_BUILD -ne 0 ]; then
     for pfn in "${PREBUILD_FNS[@]}"; do
         "$pfn"
     done
-    echo "Running builds..."
+    echo "Performing action: build..."
     for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
         name="${BUILD_DIRS[$i]}"
         work="work/${BUILD_DIRS[$i]}"
         if [ ! -d "$work" ]; then
-            echo "$name: Error: must fetch sources before build"
+            echo "$name: Error: must 'extract' before 'build'"
             exit 1
         fi
+        echo "$name: build"
         (
-            echo "$name: build"
             cd "$work"
             "${BUILD_FNS[$i]}" && RC=0 || RC=$?
             if [ $RC -eq 0 ]; then
@@ -267,20 +267,18 @@ if [ $IS_BUILD -ne 0 ]; then
 fi
 
 if [ $IS_TEST -ne 0 ]; then
-    echo "Running test..."
+    echo "Performing action: test..."
     for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
         name="${BUILD_DIRS[$i]}"
         work="work/${BUILD_DIRS[$i]}"
         if [ ! -d "$work" ]; then
-            echo "$name: Error: must fetch sources before test"
+            echo "$name: Error: must 'extract' before 'test'"
             exit 1
         fi
+        echo "$name: test"
         (
-            echo "$name: test"
             cd "$work"
             "${BUILD_TEST_FNS[$i]}"
         )
     done
 fi
-
-cd "$TOPDIR"

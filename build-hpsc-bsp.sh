@@ -3,6 +3,9 @@
 # Parent build script
 #
 
+# Fail-fast
+set -e
+
 TC_BM_DIR=env/gcc-arm-none-eabi-7-2018-q2-update
 TC_POKY_DIR=env/poky
 
@@ -11,7 +14,7 @@ BM_MD5=299ebd3f1c2c90930d28ab82e5d8d6c0
 BM_TC_TBZ2=src/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
 
 # Paths generated as part of build
-POKY_DEPLOY_DIR=work/poky/build/tmp/deploy
+POKY_DEPLOY_DIR=work/poky_build/tmp/deploy
 POKY_IMAGE_DIR=${POKY_DEPLOY_DIR}/images/hpsc-chiplet
 POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.sh
 BAREMETAL_DIR=work/hpsc-baremetal
@@ -84,7 +87,7 @@ function stage_artifacts()
     echo "Staging: $dest"
     for s in "$@"; do
         echo "  $(basename "$s")"
-        cp -r "$s" "${dest}/"
+        cp "$s" "${dest}/"
     done
 }
 
@@ -139,15 +142,16 @@ function transform_run_qemu()
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetch|build|stage|package>] [-h] [-p PREFIX] [-w DIR]"
+    echo "Usage: $0 -b ID [-a <all|fetch|build|stage|package|package-sources>] [-h] [-p PREFIX] [-w DIR]"
     echo "    -b ID: build using git tag=ID"
     echo "       If ID=HEAD, a development release is built instead"
     echo "    -a ACTION"
-    echo "       all: (default) fetch, build, stage, and package"
+    echo "       all: (default) fetch, build, stage, package, and package-sources"
     echo "       fetch: download toolchains and sources"
     echo "       build: compile pre-downloaded sources"
     echo "       stage: stage artifacts into a directory before packaging"
-    echo "       package: create binary and source BSP archives from staged artifacts"
+    echo "       package: create binary BSP archive from staged artifacts"
+    echo "       package-sources: create source BSP archive"
     echo "    -h: show this message and exit"
     echo "    -p PREFIX: set the release stage/package prefix (default=ID from -b)"
     echo "    -w DIR: set the working directory (default=ID from -b)"
@@ -161,6 +165,7 @@ IS_FETCH=0
 IS_BUILD=0
 IS_STAGE=0
 IS_PACKAGE=0
+IS_PACKAGE_SOURCES=0
 BUILD=""
 WORKING_DIR=""
 while getopts "h?a:b:p:w:" o; do
@@ -175,6 +180,8 @@ while getopts "h?a:b:p:w:" o; do
                 IS_STAGE=1
             elif [ "${OPTARG}" == "package" ]; then
                 IS_PACKAGE=1
+            elif [ "${OPTARG}" == "package-sources" ]; then
+                IS_PACKAGE_SOURCES=1
             elif [ "${OPTARG}" == "all" ]; then
                 IS_ALL=1
             else
@@ -212,10 +219,8 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_BUILD=1
     IS_STAGE=1
     IS_PACKAGE=1
+    IS_PACKAGE_SOURCES=1
 fi
-
-# Fail-fast
-set -e
 
 . ./build-common.sh
 build_set_environment "$BUILD"
@@ -249,7 +254,7 @@ if [ $IS_BUILD -ne 0 ]; then
                    "${WORKING_DIR}/${TC_POKY_DIR}"
     export PATH=$PATH:${PWD}/${WORKING_DIR}/${TC_BM_DIR}/bin
     export POKY_SDK="${PWD}/${WORKING_DIR}/${TC_POKY_DIR}"
-    ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a build
+    ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a extract -a build
     # build Eclipse
     ./build-hpsc-eclipse.sh -w "$WORKING_DIR" -a build
 fi
@@ -280,13 +285,14 @@ fi
 
 if [ $IS_PACKAGE -ne 0 ]; then
     RELEASE_BIN_TGZ=${PREFIX}_bin.tar.gz
-    RELEASE_SRC_TGZ=${PREFIX}_src.tar.gz
-
     echo "Packaging: $RELEASE_BIN_TGZ"
     tar czf "$RELEASE_BIN_TGZ" -C "stage" "$PREFIX"
     echo "md5: $RELEASE_BIN_TGZ"
     md5sum "$RELEASE_BIN_TGZ" > "${RELEASE_BIN_TGZ}.md5"
+fi
 
+if [ $IS_PACKAGE_SOURCES -ne 0 ]; then
+    RELEASE_SRC_TGZ=${PREFIX}_src.tar.gz
     # This packaging is dirty and disgusting and makes me sick, but oh well
     echo "Packaging: $RELEASE_SRC_TGZ"
     # get the build scripts

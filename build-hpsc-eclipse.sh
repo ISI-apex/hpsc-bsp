@@ -1,9 +1,12 @@
 #!/bin/bash
 
+# Fail-fast
+set -e
+
 ECLIPSE_URL="https://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/2018-09/R/eclipse-cpp-2018-09-linux-gtk-x86_64.tar.gz&r=1"
 ECLIPSE_MD5=6087e4def4382fd334de658f9bde190b
 ECLIPSE_TGZ=src/eclipse.tar.gz
-ECLIPSE_DIR=work/eclipse
+ECLIPSE_DIR=src/eclipse
 ECLIPSE_HPSC=work/hpsc-eclipse.tar.gz
 
 # Eclipse update sites
@@ -76,12 +79,7 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_BUILD=1
 fi
 
-# Fail-fast
-set -e
-
 . ./build-common.sh
-
-TOPDIR=${PWD}
 build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
 
@@ -95,7 +93,7 @@ if [ $IS_FETCH -ne 0 ]; then
     # Extract eclipse
     if [ ! -d "$ECLIPSE_DIR" ]; then
         echo "Extracting eclipse..."
-        tar xzf "$ECLIPSE_TGZ" -C work
+        tar xzf "$ECLIPSE_TGZ" -C src
     fi
 
     # Configure plugins for eclipse
@@ -118,17 +116,15 @@ fi
 if [ $IS_BUILD -ne 0 ]; then
     # Verify prerequisites
     if [ ! -d "$ECLIPSE_DIR" ]; then
-        echo "Error: must fetch sources before build"
+        echo "Error: must 'fetch' before 'build'"
         exit 1
     fi
 
     # Create distribution archive
     echo "Creating HPSC eclipse distribution: $ECLIPSE_HPSC"
     (
-        cd "$(dirname "$ECLIPSE_DIR")"
-        tar czf "${TOPDIR}/${WORKING_DIR}/${ECLIPSE_HPSC}" \
-                "$(basename "$ECLIPSE_DIR")"
+        WDIR=${PWD}
+        cd "$ECLIPSE_DIR"
+        tar czf "${WDIR}/${ECLIPSE_HPSC}" "$(basename "$ECLIPSE_DIR")"
     )
 fi
-
-cd "$TOPDIR"
