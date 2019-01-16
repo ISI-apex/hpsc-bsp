@@ -10,7 +10,7 @@
 
 # Output files from the Yocto build
 WORKING_DIR=${PWD}/HEAD/work
-YOCTO_DEPLOY_DIR=${WORKING_DIR}/poky/build/tmp/deploy/images/hpsc-chiplet
+YOCTO_DEPLOY_DIR=${WORKING_DIR}/poky_build/tmp/deploy/images/hpsc-chiplet
 HPPS_FW=${YOCTO_DEPLOY_DIR}/arm-trusted-firmware.bin
 HPPS_BL=${YOCTO_DEPLOY_DIR}/u-boot.bin
 HPPS_DT=${YOCTO_DEPLOY_DIR}/hpsc.dtb
