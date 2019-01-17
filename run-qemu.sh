@@ -96,6 +96,12 @@ function create_nvsram_image()
     set +e
 }
 
+create_kern_image() {
+    set -e
+    mkimage -C gzip -A arm64 -d "${HPPS_KERN_BIN}" -a ${HPPS_KERN_LOAD_ADDR} "${HPPS_KERN}"
+    set +e
+}
+
 function usage()
 {
     echo "Usage: $0 [-c < run | gdb | consoles | nand_create >] [-f < dram | nand >] [-b < dram | nvram >] [ -h ] " 1>&2
@@ -204,7 +210,7 @@ HPPS_ROOTFS_OPTION="dram"
 while getopts "h?b:c:f:" o; do
     case "${o}" in
         c)
-            if [[ "${OPTARG}" =~ ^run|gdb|consoles|nand_create|sram_create$ ]]
+            if [[ "${OPTARG}" =~ ^run|gdb|consoles|nand_create|sram_create|kern_create$ ]]
             then
                 CMDS+=("${OPTARG}")
             else
@@ -269,7 +275,7 @@ do
            GDB_CMD_FILE=$(mktemp)
            cat >/"$GDB_CMD_FILE" <<EOF
 define hook-run
-shell $0 -c consoles -c sram_create
+shell $0 -c consoles -c sram_create -c kern_create
 end
 EOF
             GDB_ARGS=(gdb -x "$GDB_CMD_FILE" --args)
@@ -286,6 +292,9 @@ EOF
             ;;
        sram_create)
             create_nvsram_image
+            ;;
+       kern_create)
+            create_kern_image
             ;;
        nand_create)
             for session in "${SCREEN_SESSIONS[@]}"
@@ -313,8 +322,6 @@ fi
 # Note: order of -device args may matter, must load ATF last, because loader also sets PC
 # Note: If you want to see instructions and exceptions at a large performance cost, then add
 # "in_asm,int" to the list of categories in -d.
-
-mkimage -C gzip -A arm64 -d "${HPPS_KERN_BIN}" -a ${HPPS_KERN_LOAD_ADDR} "${HPPS_KERN}"
 
 BASE_COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
     -machine "arm-generic-fdt"
@@ -350,6 +357,8 @@ TRCH_SRAM_DRIVE=(-drive "file=$TRCH_SRAM_FILE,if=pflash,format=raw,index=0")
 
 
 COMMAND=("${BASE_COMMAND[@]}")
+
+create_kern_image
 
 if [ "${CMD}" == "nand_create" ]
 then
