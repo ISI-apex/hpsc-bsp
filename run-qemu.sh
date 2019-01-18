@@ -285,8 +285,8 @@ do
             # NOTE: have to go through an actual file because -ex doesn't work since no way
             ## to give a multiline command (incl. multiple -ex), and bash-created file -x
             # <(echo -e ...) doesn't work either (issue only with gdb).
-           GDB_CMD_FILE=$(mktemp)
-           cat >/"$GDB_CMD_FILE" <<EOF
+            GDB_CMD_FILE=$(mktemp)
+            cat >/"$GDB_CMD_FILE" <<EOF
 define hook-run
 shell $0 $RESET_ARG -c consoles -c sram_create -c kern_create
 end
