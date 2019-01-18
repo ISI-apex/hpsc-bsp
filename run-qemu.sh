@@ -114,6 +114,7 @@ function usage()
     echo "               -b nvram: boot images in offchip non-volatile ram" 1>&2
     echo "               -f dram: HPPS rootfile system in ram, volatile (default)" 1>&2
     echo "               -f nand: HPPS rootfile system in nand image, non-volatile" 1>&2
+    echo "               -s wait for GDB or QMP connection instead of resetting the machine" 1>&2
     echo "               -h : show this message" 1>&2
     exit 1
 }
@@ -205,9 +206,10 @@ function attach_consoles()
 CMDS=()
 BOOT_IMAGE_OPTION="dram"
 HPPS_ROOTFS_OPTION="dram"
+RESET=1
 
 # parse options
-while getopts "h?b:c:f:" o; do
+while getopts "h?s?b:c:f:" o; do
     case "${o}" in
         c)
             if [[ "${OPTARG}" =~ ^run|gdb|consoles|nand_create|sram_create|kern_create$ ]]
@@ -235,6 +237,9 @@ while getopts "h?b:c:f:" o; do
                 echo "Error: no such HPPS rootfile system option - ${OPTARG}"
                 usage
             fi
+            ;;
+        s)
+            RESET=0
             ;;
         h)
             usage
@@ -269,13 +274,21 @@ do
        gdb)
             # setup/attach_consoles are called when gdb runs this script with "consoles"
             # cmd from the hook to the "run" command defined below:
+
+            if [ "$RESET" -eq 1 ]
+            then
+                RESET_ARG=""
+            else
+                RESET_ARG="-s"
+            fi
+
             # NOTE: have to go through an actual file because -ex doesn't work since no way
             ## to give a multiline command (incl. multiple -ex), and bash-created file -x
             # <(echo -e ...) doesn't work either (issue only with gdb).
            GDB_CMD_FILE=$(mktemp)
            cat >/"$GDB_CMD_FILE" <<EOF
 define hook-run
-shell $0 -c consoles -c sram_create -c kern_create
+shell $0 $RESET_ARG -c consoles -c sram_create -c kern_create
 end
 EOF
             GDB_ARGS=(gdb -x "$GDB_CMD_FILE" --args)
