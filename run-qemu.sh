@@ -114,7 +114,7 @@ function usage()
     echo "               -b nvram: boot images in offchip non-volatile ram" 1>&2
     echo "               -f dram: HPPS rootfile system in ram, volatile (default)" 1>&2
     echo "               -f nand: HPPS rootfile system in nand image, non-volatile" 1>&2
-    echo "               -s wait for GDB or QMP connection instead of resetting the machine" 1>&2
+    echo "               -S wait for GDB or QMP connection instead of resetting the machine" 1>&2
     echo "               -h : show this message" 1>&2
     exit 1
 }
@@ -209,7 +209,7 @@ HPPS_ROOTFS_OPTION="dram"
 RESET=1
 
 # parse options
-while getopts "h?s?b:c:f:" o; do
+while getopts "h?S?b:c:f:" o; do
     case "${o}" in
         c)
             if [[ "${OPTARG}" =~ ^run|gdb|consoles|nand_create|sram_create|kern_create$ ]]
@@ -238,7 +238,7 @@ while getopts "h?s?b:c:f:" o; do
                 usage
             fi
             ;;
-        s)
+        S)
             RESET=0
             ;;
         h)
@@ -279,7 +279,7 @@ do
             then
                 RESET_ARG=""
             else
-                RESET_ARG="-s"
+                RESET_ARG="-S"
             fi
 
             # NOTE: have to go through an actual file because -ex doesn't work since no way
