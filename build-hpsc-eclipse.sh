@@ -107,6 +107,16 @@ if [ $IS_FETCH -ne 0 ]; then
                            -nosplash \
                            -repository "$ECLIPSE_REPOSITORY_LIST" \
                            -installIUs "$ECLIPSE_PLUGIN_IU_LIST"
+
+    # Create and populate the plugin customization file, then point the eclipse.ini file to it
+    echo "ilg.gnumcueclipse.managedbuild.cross.arm/toolchain.path.962691777=/opt/gcc-arm-none-eabi-7-2018-q2-update/bin" \
+	>> "${ECLIPSE_DIR}/plugin_customization.ini"
+    echo "org.yocto.sdk.ide.1467355974/Sysroot=/opt/poky/2.4.3/sysroots" \
+	>> "${ECLIPSE_DIR}/plugin_customization.ini"
+    echo "org.yocto.sdk.ide.1467355974/toolChainRoot=/opt/poky/2.4.3" \
+	>> "${ECLIPSE_DIR}/plugin_customization.ini"
+    sed -i '7i\-pluginCustomization' "${ECLIPSE_DIR}/eclipse.ini"
+    sed -i "8i\\${PWD}/\\${ECLIPSE_DIR}/plugin_customization.ini" "${ECLIPSE_DIR}/eclipse.ini"
 fi
 
 if [ $IS_CLEAN -ne 0 ]; then
