@@ -356,8 +356,8 @@ TRCH_APP_LOAD=(-device "loader,file=${TRCH_APP},cpu-num=0")
 BOOT_IMGS_LOAD=(
 -device "loader,addr=${RTPS_BL_ADDR},file=${RTPS_BL},force-raw,cpu-num=1"
 -device "loader,addr=${RTPS_APP_ADDR},file=${RTPS_APP},force-raw,cpu-num=1"
--device "loader,addr=${HPPS_BL_ADDR},file=${HPPS_BL},force-raw,cpu-num=4"
 -device "loader,addr=${HPPS_FW_ADDR},file=${HPPS_FW},force-raw,cpu-num=4"
+-device "loader,addr=${HPPS_BL_ADDR},file=${HPPS_BL},force-raw,cpu-num=4"
 -device "loader,addr=${HPPS_DT_ADDR},file=${HPPS_DT},force-raw,cpu-num=4"
 -device "loader,addr=${HPPS_KERN_ADDR},file=${HPPS_KERN},force-raw,cpu-num=4"
 )
