@@ -9,12 +9,11 @@ set -e
 # Check that baremetal toolchain is on PATH
 function check_bm_toolchain()
 {
-    which arm-none-eabi-gcc > /dev/null 2>&1 ||
-    (
+    if ! which arm-none-eabi-gcc > /dev/null 2>&1; then
         echo "Error: Bare metal cross compiler 'arm-none-eabi-gcc' is not on PATH"
         echo "  e.g., export PATH=\$PATH:/opt/gcc-arm-none-eabi-7-2018-q2-update/bin"
         exit 1
-    )
+    fi
 }
 
 # Verify poky toolchain
