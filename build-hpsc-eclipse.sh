@@ -9,6 +9,9 @@ ECLIPSE_TGZ=src/eclipse.tar.gz
 ECLIPSE_DIR=src/eclipse
 ECLIPSE_HPSC=work/hpsc-eclipse.tar.gz
 
+DEFAULT_POKY_ROOT=/opt/poky/2.6
+DEFAULT_BM_BINDIR=/opt/gcc-arm-none-eabi-7-2018-q2-update/bin
+
 # Eclipse update sites
 ECLIPSE_REPOSITORIES=("http://download.eclipse.org/releases/photon"
                       "http://download.eclipse.org/tm/updates/4.0/"
@@ -109,11 +112,11 @@ if [ $IS_FETCH -ne 0 ]; then
                            -installIUs "$ECLIPSE_PLUGIN_IU_LIST"
 
     # Create and populate the plugin customization file, then point the eclipse.ini file to it
-    echo "ilg.gnumcueclipse.managedbuild.cross.arm/toolchain.path.962691777=/opt/gcc-arm-none-eabi-7-2018-q2-update/bin" \
+    echo "ilg.gnumcueclipse.managedbuild.cross.arm/toolchain.path.962691777=${DEFAULT_BM_BINDIR}" \
 	>> "${ECLIPSE_DIR}/plugin_customization.ini"
-    echo "org.yocto.sdk.ide.1467355974/Sysroot=/opt/poky/2.4.3/sysroots" \
+    echo "org.yocto.sdk.ide.1467355974/Sysroot=${DEFAULT_POKY_ROOT}/sysroots" \
 	>> "${ECLIPSE_DIR}/plugin_customization.ini"
-    echo "org.yocto.sdk.ide.1467355974/toolChainRoot=/opt/poky/2.4.3" \
+    echo "org.yocto.sdk.ide.1467355974/toolChainRoot=${DEFAULT_POKY_ROOT}" \
 	>> "${ECLIPSE_DIR}/plugin_customization.ini"
     sed -i '7i\-pluginCustomization' "${ECLIPSE_DIR}/eclipse.ini"
     sed -i "8i\\${PWD}/\\${ECLIPSE_DIR}/plugin_customization.ini" "${ECLIPSE_DIR}/eclipse.ini"
