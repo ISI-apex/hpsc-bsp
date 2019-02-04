@@ -126,7 +126,7 @@ if [ $IS_BUILD -ne 0 ]; then
     echo "Configuring eclipse plugins..."
     # Create and populate the plugin customization file, then point the eclipse.ini file to it
     echo "ilg.gnumcueclipse.managedbuild.cross.arm/toolchain.path.962691777=${DEFAULT_BM_BINDIR}" \
-        >> "${ECLIPSE_DIR}/plugin_customization.ini"
+        > "${ECLIPSE_DIR}/plugin_customization.ini"
     echo "org.yocto.sdk.ide.1467355974/Sysroot=${DEFAULT_POKY_ROOT}/sysroots" \
         >> "${ECLIPSE_DIR}/plugin_customization.ini"
     echo "org.yocto.sdk.ide.1467355974/toolChainRoot=${DEFAULT_POKY_ROOT}" \
