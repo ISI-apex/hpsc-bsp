@@ -24,7 +24,7 @@ BSP Build
 
 The top-level `build-hpsc-bsp.sh` script wraps the other build scripts, so please read their documentation below before proceeding.
 
-By default, it will run through fetch, build, stage, and package steps.
+By default, it will run through fetch, build, stage, package, and package-sources steps.
 The following steps may be run independently using the `-a` flag so long as previous steps are complete.
 
 * `fetch` - download/build toolchains and fetch build sources
@@ -75,7 +75,7 @@ First, the ARM bare metal toolchain bin directory must be on `PATH`, e.g. in `/o
 
 	export PATH=$PATH:/opt/gcc-arm-none-eabi-7-2018-q2-update/bin
 
-The bare metal toolchain is used to build:
+The bare metal toolchain is used to build (within `${WORKING_DIR}/work/`):
 
 1. `hpsc-baremetal/trch/bld/trch.elf` - TRCH firmware
 1. `hpsc-baremetal/rtps/bld/rtps.elf` - RTPS R52 firmware
