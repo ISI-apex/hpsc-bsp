@@ -19,8 +19,8 @@ PORT=10022
 # 1. Create empty nand image
 # qemu-nand-creator <page size=2k> <OOB size=64> <num of pages per block = 128k/2k> <num_block=256M/128k = 2k> <ecc size = 12> <empty nand = 1>
 echo "Create empty nand image"
-${HPSC_HOST_UTILS_DIR}/qemu-nand-creator 2048 64 64 2048 12 1
-mv qemu_nand.bin $HPPS_NAND_IMAGE
+"${HPSC_HOST_UTILS_DIR}/qemu-nand-creator" 2048 64 64 2048 12 1
+mv qemu_nand.bin "$HPPS_NAND_IMAGE"
 
 ./run-qemu.sh -c nand_create &
 QEMU_PID=$!
@@ -31,28 +31,26 @@ BASE_WD=${PWD}
 mkdir -p $TMP_CPIO_DIR
 rm -rf $TMP_CPIO_DIR/*
 cd $TMP_CPIO_DIR
-cpio -idm < $ROOTFS_CPIO
-tar -cf $ROOTFS_TAR_FILE *
-cd ${BASE_WD}
+cpio -idm < "$ROOTFS_CPIO"
+tar -cf "$ROOTFS_TAR_FILE" ./*
+cd "${BASE_WD}"
 
 # 4. Wait for VM's boot
 echo "Wait for VM's boot"
 maxattempt=20
 waitseconds=20
-counter=1
 
 # wait
 sleep 200
 
-while [ $counter -lt $maxattempt ]; do
-  echo "attempt :" $counter
+for i in $(seq 1 $maxattempt); do
+  echo "attempt : $i"
   ssh -p $PORT -o "StrictHostKeyChecking no" -o "UserKnownHostsFile /dev/null" root@127.0.0.1 ls
   case $? in
     (0) break ;;
     (*) echo "Waiting ${waitseconds} seconds." ;;
   esac
   sleep $waitseconds
-  counter=$(( $counter + 1 ))
 done
 
 # 5. Mount nand
@@ -64,7 +62,7 @@ EOF
 
 # 6. Copy rootfs to nand 
 echo "Copy rootfs to nand"
-scp -P $PORT -o "StrictHostKeyChecking no" -o "UserKnownHostsFile /dev/null" $ROOTFS_TAR_FILE root@127.0.0.1:/tmp
+scp -P $PORT -o "StrictHostKeyChecking no" -o "UserKnownHostsFile /dev/null" "$ROOTFS_TAR_FILE" root@127.0.0.1:/tmp
 ssh -p $PORT -o "StrictHostKeyChecking no" -o "UserKnownHostsFile /dev/null" root@127.0.0.1 << EOF
 	cd mnt;
 	tar -xvf /tmp/$ROOTFS_TAR_FILE_NAME;
@@ -75,8 +73,7 @@ ssh -p $PORT -o "StrictHostKeyChecking no" -o "UserKnownHostsFile /dev/null" roo
 EOF
 
 sleep 10
-echo "kill qemu process " $QEMU_PID
-kill $QEMU_PID
+echo "kill qemu process " "$QEMU_PID"
+kill "$QEMU_PID"
 echo "Done"
 exit
-
