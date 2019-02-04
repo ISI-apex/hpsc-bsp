@@ -100,7 +100,7 @@ if [ $IS_FETCH -ne 0 ]; then
     fi
 
     # Configure plugins for eclipse
-    echo "Configuring eclipse..."
+    echo "Fetching eclipse plugins..."
     # Get repos and IUs as comma-delimited lists
     ECLIPSE_REPOSITORY_LIST=$(printf ",%s" "${ECLIPSE_REPOSITORIES[@]}")
     ECLIPSE_REPOSITORY_LIST=${ECLIPSE_REPOSITORY_LIST:1}
@@ -110,16 +110,6 @@ if [ $IS_FETCH -ne 0 ]; then
                            -nosplash \
                            -repository "$ECLIPSE_REPOSITORY_LIST" \
                            -installIUs "$ECLIPSE_PLUGIN_IU_LIST"
-
-    # Create and populate the plugin customization file, then point the eclipse.ini file to it
-    echo "ilg.gnumcueclipse.managedbuild.cross.arm/toolchain.path.962691777=${DEFAULT_BM_BINDIR}" \
-	>> "${ECLIPSE_DIR}/plugin_customization.ini"
-    echo "org.yocto.sdk.ide.1467355974/Sysroot=${DEFAULT_POKY_ROOT}/sysroots" \
-	>> "${ECLIPSE_DIR}/plugin_customization.ini"
-    echo "org.yocto.sdk.ide.1467355974/toolChainRoot=${DEFAULT_POKY_ROOT}" \
-	>> "${ECLIPSE_DIR}/plugin_customization.ini"
-    sed -i '7i\-pluginCustomization' "${ECLIPSE_DIR}/eclipse.ini"
-    sed -i "8i\\${PWD}/\\${ECLIPSE_DIR}/plugin_customization.ini" "${ECLIPSE_DIR}/eclipse.ini"
 fi
 
 if [ $IS_CLEAN -ne 0 ]; then
@@ -132,6 +122,17 @@ if [ $IS_BUILD -ne 0 ]; then
         echo "Error: must 'fetch' before 'build'"
         exit 1
     fi
+
+    echo "Configuring eclipse plugins..."
+    # Create and populate the plugin customization file, then point the eclipse.ini file to it
+    echo "ilg.gnumcueclipse.managedbuild.cross.arm/toolchain.path.962691777=${DEFAULT_BM_BINDIR}" \
+        >> "${ECLIPSE_DIR}/plugin_customization.ini"
+    echo "org.yocto.sdk.ide.1467355974/Sysroot=${DEFAULT_POKY_ROOT}/sysroots" \
+        >> "${ECLIPSE_DIR}/plugin_customization.ini"
+    echo "org.yocto.sdk.ide.1467355974/toolChainRoot=${DEFAULT_POKY_ROOT}" \
+        >> "${ECLIPSE_DIR}/plugin_customization.ini"
+    sed -i '7i\-pluginCustomization' "${ECLIPSE_DIR}/eclipse.ini"
+    sed -i "8i\\${PWD}/\\${ECLIPSE_DIR}/plugin_customization.ini" "${ECLIPSE_DIR}/eclipse.ini"
 
     # Create distribution archive
     echo "Creating HPSC eclipse distribution: $ECLIPSE_HPSC"
