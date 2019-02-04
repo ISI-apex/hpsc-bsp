@@ -131,8 +131,13 @@ if [ $IS_BUILD -ne 0 ]; then
         >> "${ECLIPSE_DIR}/plugin_customization.ini"
     echo "org.yocto.sdk.ide.1467355974/toolChainRoot=${DEFAULT_POKY_ROOT}" \
         >> "${ECLIPSE_DIR}/plugin_customization.ini"
-    sed -i '7i\-pluginCustomization' "${ECLIPSE_DIR}/eclipse.ini"
-    sed -i "8i\\${PWD}/\\${ECLIPSE_DIR}/plugin_customization.ini" "${ECLIPSE_DIR}/eclipse.ini"
+    # if statement prevents inserting duplicate entries in subsequent builds
+    if [ "$(grep -c "\-pluginCustomization" "${ECLIPSE_DIR}/eclipse.ini")" -eq 0 ]; then
+        # TODO: relative path to plugin_customization.ini not respected if
+        # eclipse is launched from a working dir other than eclipse's root
+        sed -i "7i\-pluginCustomization\nplugin_customization.ini" \
+            "${ECLIPSE_DIR}/eclipse.ini"
+    fi
 
     # Create distribution archive
     echo "Creating HPSC eclipse distribution: $ECLIPSE_HPSC"
