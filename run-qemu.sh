@@ -123,7 +123,7 @@ function usage()
 SCREEN_SESSIONS=(hpsc-trch hpsc-rtps-r52 hpsc-hpps)
 SERIAL_PORTS=(serial0 serial1 serial2)
 SERIAL_PORT_ARGS=()
-for port in "${SERIAL_PORTS[@]}"
+for _ in "${SERIAL_PORTS[@]}"
 do
     SERIAL_PORT_ARGS+=(-serial pty)
 done
