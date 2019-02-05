@@ -134,7 +134,7 @@ function setup_screen()
 {
     local SESSION=$1
 
-    if [ $(screen -list "$SESSION" | grep -c "$SESSION") -gt 1 ]
+    if [ "$(screen -list "$SESSION" | grep -c "$SESSION")" -gt 1 ]
     then
         # In case the user somehow ended up with more than one screen process,
         # kill them all and create a fresh one.
@@ -167,7 +167,7 @@ function attach_consoles()
             #echo "Waiting for Qemu to open QMP port..."
             sleep 1
             ATTEMPTS+=" 1 "
-            if [ $(echo "$ATTEMPTS" | wc -w) -eq 10 ]
+            if [ "$(echo "$ATTEMPTS" | wc -w)" -eq 10 ]
             then
                 echo "ERROR: failed to get PTY paths from Qemu via QMP port: giving up."
                 echo "Here is what happened when we tried to get the PTY paths:"
