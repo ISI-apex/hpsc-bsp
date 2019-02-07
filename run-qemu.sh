@@ -75,9 +75,13 @@ RTPS_APP_ADDR=0x68000000      # address of baremetal app ELF file
 
 # TRCH
 # TRCH_APP_LOAD_ADDR          # where ELF sections are loaded, set in the ELF header
+
 HPSC_HOST_UTILS_DIR=${WORKING_DIR}/hpsc-utils/host
 SRAM_IMAGE_UTILS=${HPSC_HOST_UTILS_DIR}/sram-image-utils
-SRAM_SIZE=0x4000000           # 64MB
+
+# Size of off-chip memory connected to SMC SRAM ports,
+# this size is used if/when this script creates the images.
+LSIO_SRAM_SIZE=0x04000000           #  64MB
 
 # create non-volatile offchip sram image
 function create_nvsram_image()
@@ -85,7 +89,7 @@ function create_nvsram_image()
     set -e
     echo create_sram_image...
     # Create SRAM image to store boot images
-    "${SRAM_IMAGE_UTILS}" create "${TRCH_SRAM_FILE}" ${SRAM_SIZE}
+    "${SRAM_IMAGE_UTILS}" create "${TRCH_SRAM_FILE}" ${LSIO_SRAM_SIZE}
     "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${RTPS_BL}"      "rtps-bl" ${RTPS_BL_ADDR}
     "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${RTPS_APP}"     "rtps-os" ${RTPS_APP_ADDR}
     "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_BL}"      "hpps-bl" ${HPPS_BL_ADDR}
