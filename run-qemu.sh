@@ -198,7 +198,13 @@ function attach_consoles()
     done
 
     echo "Commanding Qemu to reset the machine..."
-    ./qmp.py localhost $QMP_PORT cont
+    if [ "$RESET" -eq 1 ]
+    then
+        echo "Sending 'continue' command to Qemu to reset the machine..."
+        ./qmp.py localhost $QMP_PORT cont
+    else
+        echo "Waiting for 'continue' (aka. reset) command via GDB or QMP connection..."
+    fi
 }
 
 
