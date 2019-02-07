@@ -84,7 +84,7 @@ SRAM_IMAGE_UTILS=${HPSC_HOST_UTILS_DIR}/sram-image-utils
 LSIO_SRAM_SIZE=0x04000000           #  64MB
 
 # create non-volatile offchip sram image
-function create_nvsram_image()
+function create_lsio_smc_sram_port_image()
 {
     set -e
     echo create_sram_image...
@@ -314,7 +314,7 @@ EOF
             attach_consoles &
             ;;
        sram_create)
-            create_nvsram_image
+            create_lsio_smc_sram_port_image
             ;;
        kern_create)
             create_kern_image
@@ -397,7 +397,7 @@ then
     TRCH_BOOT_MODE="${TRCH_BOOT_MODE_DRAM}"
 elif [ "${BOOT_IMAGE_OPTION}" == "nvram" ]  # Boot images are stored in an NVRAM and loaded onto DRAM by TRCH
 then
-    create_nvsram_image
+    create_lsio_smc_sram_port_image
     OPT_COMMAND=("${TRCH_SRAM_DRIVE[@]}")
     TRCH_BOOT_MODE="${TRCH_BOOT_MODE_SRAM}"
 fi
