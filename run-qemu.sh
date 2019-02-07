@@ -82,6 +82,7 @@ SRAM_IMAGE_UTILS=${HPSC_HOST_UTILS_DIR}/sram-image-utils
 # Size of off-chip memory connected to SMC SRAM ports,
 # this size is used if/when this script creates the images.
 LSIO_SRAM_SIZE=0x04000000           #  64MB
+HPPS_SRAM_SIZE=0x01000000           #  16MB
 
 # create non-volatile offchip sram image
 function create_lsio_smc_sram_port_image()
@@ -97,6 +98,14 @@ function create_lsio_smc_sram_port_image()
     "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_DT}"      "hpps-dt" ${HPPS_DT_ADDR}
     "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_KERN}"    "hpps-os" ${HPPS_KERN_ADDR}
     "${SRAM_IMAGE_UTILS}" show "${TRCH_SRAM_FILE}" 
+    set +e
+}
+
+function create_hpps_smc_sram_port_image()
+{
+    set -e
+    "${SRAM_IMAGE_UTILS}" create "${HPPS_SRAM_FILE}" ${HPPS_SRAM_SIZE}
+    "${SRAM_IMAGE_UTILS}" show "${HPPS_SRAM_FILE}"
     set +e
 }
 
