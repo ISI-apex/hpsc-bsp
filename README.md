@@ -34,9 +34,9 @@ Note: Yocto may still attempt to fetch sources when doing a development build.
 * `package` - package the staged directory structure into the final BSP archive
 * `package-sources` - package the sources into an archive for offline builds
 
-To perform a release build for `hpsc-2.0`:
+To perform a release build for `hpsc-3.0`:
 
-	./build-hpsc-bsp.sh -b hpsc-2.0
+	./build-hpsc-bsp.sh -b hpsc-3.0
 
 To run a development build, specify `-b HEAD` instead.
 Other build scripts follow this same pattern.
@@ -53,7 +53,7 @@ Before starting the Yocto build, ensure that your system has python3 installed, 
 
 For example to perform a development build, then create the SDK:
 
-	./build-hpsc-yocto.sh -b HEAD
+	./build-hpsc-yocto.sh -b HEAD -a fetch -a build
 	./build-hpsc-yocto.sh -b HEAD -a populate_sdk
 
 The generated files needed to run QEMU are located in: `${WORKING_DIR}/work/poky_build/tmp/deploy/images/hpsc-chiplet`.
@@ -96,6 +96,9 @@ Set `POKY_SDK` to the install location, e.g. (using the default location):
 The Poky SDK is used to build:
 
 1. `hpsc-utils/linux/mboxtester` - mailbox test utility
+1. `hpsc-utils/linux/rtit-tester` - RTI timer test utility
+1. `hpsc-utils/linux/shm-standalone-tester` - shared memory standalone test utility
+1. `hpsc-utils/linux/shm-tester` - shared memory test utility
 1. `hpsc-utils/linux/wdtester` - watchdog test utility
 
 To run a development build:
