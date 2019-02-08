@@ -78,11 +78,24 @@ RTPS_APP_ADDR=0x68000000      # address of baremetal app ELF file
 
 HPSC_HOST_UTILS_DIR=${WORKING_DIR}/hpsc-utils/host
 SRAM_IMAGE_UTILS=${HPSC_HOST_UTILS_DIR}/sram-image-utils
+NAND_CREATOR=${HPSC_HOST_UTILS_DIR}/qemu-nand-creator
 
 # Size of off-chip memory connected to SMC SRAM ports,
 # this size is used if/when this script creates the images.
 LSIO_SRAM_SIZE=0x04000000           #  64MB
 HPPS_SRAM_SIZE=0x01000000           #  16MB
+HPPS_NAND_SIZE=0x10000000           # 256MB
+HPPS_NAND_PAGE_SIZE=2048 # bytes
+HPPS_NAND_OOB_SIZE=64 # bytes
+HPPS_NAND_ECC_SIZE=12 # bytes
+HPPS_NAND_PAGES_PER_BLOCK=64 # bytes
+
+function nand_blocks() {
+    local size=$1
+    local page_size=$2
+    local pages_per_block=$3
+    echo $(( $size / ($pages_per_block * $page_size) ))
+}
 
 # create non-volatile offchip sram image
 function create_lsio_smc_sram_port_image()
@@ -106,6 +119,15 @@ function create_hpps_smc_sram_port_image()
     set -e
     "${SRAM_IMAGE_UTILS}" create "${HPPS_SRAM_FILE}" ${HPPS_SRAM_SIZE}
     "${SRAM_IMAGE_UTILS}" show "${HPPS_SRAM_FILE}"
+    set +e
+}
+
+create_hpps_smc_nand_port_image()
+{
+    set -e
+    local blocks=$(nand_blocks $HPPS_NAND_SIZE $HPPS_NAND_PAGE_SIZE $HPPS_NAND_PAGES_PER_BLOCK)
+    "${NAND_CREATOR}" $HPPS_NAND_PAGE_SIZE $HPPS_NAND_OOB_SIZE $HPPS_NAND_PAGES_PER_BLOCK \
+        $blocks $HPPS_NAND_ECC_SIZE 1 ${HPPS_NAND_IMAGE}
     set +e
 }
 
