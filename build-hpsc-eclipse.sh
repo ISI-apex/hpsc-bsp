@@ -125,18 +125,14 @@ if [ $IS_BUILD -ne 0 ]; then
 
     echo "Configuring eclipse plugins..."
     # Create and populate the plugin customization file, then point the eclipse.ini file to it
-    echo "ilg.gnumcueclipse.managedbuild.cross.arm/toolchain.path.962691777=${DEFAULT_BM_BINDIR}" \
-        > "${ECLIPSE_DIR}/plugin_customization.ini"
-    echo "org.yocto.sdk.ide.1467355974/Sysroot=${DEFAULT_POKY_ROOT}/sysroots" \
-        >> "${ECLIPSE_DIR}/plugin_customization.ini"
-    echo "org.yocto.sdk.ide.1467355974/toolChainRoot=${DEFAULT_POKY_ROOT}" \
-        >> "${ECLIPSE_DIR}/plugin_customization.ini"
-    echo "org.yocto.sdk.ide.1467355974/SDKMode=true" \
-        >> "${ECLIPSE_DIR}/plugin_customization.ini"
-    echo "org.yocto.sdk.ide.1467355974/TargetMode=false" \
-        >> "${ECLIPSE_DIR}/plugin_customization.ini"
-    echo "org.yocto.sdk.ide.1467355974/toolchainTriplet=aarch64-poky-linux" \
-        >> "${ECLIPSE_DIR}/plugin_customization.ini"
+    cat > "${ECLIPSE_DIR}/plugin_customization.ini" << EOL
+ilg.gnumcueclipse.managedbuild.cross.arm/toolchain.path.962691777=${DEFAULT_BM_BINDIR}
+org.yocto.sdk.ide.1467355974/Sysroot=${DEFAULT_POKY_ROOT}/sysroots
+org.yocto.sdk.ide.1467355974/toolChainRoot=${DEFAULT_POKY_ROOT}
+org.yocto.sdk.ide.1467355974/SDKMode=true
+org.yocto.sdk.ide.1467355974/TargetMode=false
+org.yocto.sdk.ide.1467355974/toolchainTriplet=aarch64-poky-linux
+EOL
     # if statement prevents inserting duplicate entries in subsequent builds
     if [ "$(grep -c "\-pluginCustomization" "${ECLIPSE_DIR}/eclipse.ini")" -eq 0 ]; then
         # TODO: relative path to plugin_customization.ini not respected if
