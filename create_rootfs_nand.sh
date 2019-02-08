@@ -3,7 +3,7 @@
 # The following variable needs to be updated:
 # Nand and rootfs files
 
-source $(dirname "$0")/qemu-env.sh
+source "$(dirname "$0")/qemu-env.sh"
 
 # port forwarding for a VM
 PORT=10022
@@ -15,9 +15,9 @@ QEMU_PID=$!
 # 3. Prepare rootfs
 echo "Prepare rootfs"
 BASE_WD=${PWD}
-mkdir -p $TMP_CPIO_DIR
-rm -rf $TMP_CPIO_DIR/*
-cd $TMP_CPIO_DIR
+mkdir -p "$TMP_CPIO_DIR"
+rm -rf "$TMP_CPIO_DIR"/*
+cd "$TMP_CPIO_DIR"
 cpio -idm < "$ROOTFS_CPIO"
 tar -cf "$ROOTFS_TAR_FILE" ./*
 cd "${BASE_WD}"

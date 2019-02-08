@@ -1,3 +1,4 @@
+#!/bin/bash
 # Paths to host tools and target binaries for run-qemu.sh.
 # Relative paths are relative to directory from where run-qemu.sh is invoked.
 

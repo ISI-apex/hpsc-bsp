@@ -16,7 +16,7 @@
 #      - configparse : for config INI->BIN compiler (cfgc)
 #      - json : for QMP and for cfgc
 
-source $(dirname "$0")/qemu-env.sh
+source "$(dirname "$0")/qemu-env.sh"
 
 SYSCFG_ADDR=0x000ff000 # in TRCH SRAM
 
@@ -50,11 +50,11 @@ function nand_blocks() {
     local size=$1
     local page_size=$2
     local pages_per_block=$3
-    echo $(( $size / ($pages_per_block * $page_size) ))
+    echo $(( size / (pages_per_block * page_size) ))
 }
 
 run() {
-    echo $@
+    echo "$@"
     "$@"
 }
 
@@ -85,7 +85,7 @@ create_hpps_smc_nand_port_image()
     echo Creating an empty image for off-chip mem at HPPS SMC NAND port...
     local blocks=$(nand_blocks $HPPS_NAND_SIZE $HPPS_NAND_PAGE_SIZE $HPPS_NAND_PAGES_PER_BLOCK)
     run "${NAND_CREATOR}" $HPPS_NAND_PAGE_SIZE $HPPS_NAND_OOB_SIZE $HPPS_NAND_PAGES_PER_BLOCK \
-                $blocks $HPPS_NAND_ECC_SIZE 1 ${HPPS_NAND_IMAGE}
+                "$blocks" $HPPS_NAND_ECC_SIZE 1 "${HPPS_NAND_IMAGE}"
 }
 
 create_kern_image() {
@@ -96,7 +96,7 @@ create_kern_image() {
 create_syscfg_image()
 {
     echo Compiling system config from INI to binary format...
-    run ./cfgc -s ${SYSCFG_SCHEMA} ${SYSCFG} ${SYSCFG_BIN}
+    run ./cfgc -s "${SYSCFG_SCHEMA}" "${SYSCFG}" "${SYSCFG_BIN}"
 }
 
 syscfg_get()
@@ -105,9 +105,9 @@ syscfg_get()
 }
 
 # file path, creation function
-create_if_abscent()
+create_if_absent()
 {
-    if [ ! -f $1 ]
+    if [ ! -f "$1" ]
     then
         $2
     else
@@ -121,8 +121,8 @@ create_images()
     create_syscfg_image
     create_kern_image
     create_lsio_smc_sram_port_image
-    create_if_abscent ${HPPS_SRAM_FILE} create_hpps_smc_sram_port_image
-    create_if_abscent ${HPPS_NAND_IMAGE} create_hpps_smc_nand_port_image
+    create_if_absent "${HPPS_SRAM_FILE}" create_hpps_smc_sram_port_image
+    create_if_absent "${HPPS_NAND_IMAGE}" create_hpps_smc_nand_port_image
     set +e
 }
 
@@ -252,7 +252,7 @@ while getopts "h?S?" o; do
     esac
 done
 shift $((OPTIND-1))
-CMD=$@
+CMD=$*
 
 if [ -z "${CMD}" ]
 then
