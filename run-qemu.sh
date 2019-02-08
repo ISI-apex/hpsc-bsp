@@ -53,41 +53,50 @@ function nand_blocks() {
     echo $(( $size / ($pages_per_block * $page_size) ))
 }
 
+run() {
+    echo $@
+    "$@"
+}
+
 # create non-volatile offchip sram image
 function create_lsio_smc_sram_port_image()
 {
-    # Create SRAM image to store boot images
-    "${SRAM_IMAGE_UTILS}" create "${TRCH_SRAM_FILE}" ${LSIO_SRAM_SIZE}
-    "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${SYSCFG_BIN}"   "syscfg"  ${SYSCFG_ADDR}
-    "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${RTPS_BL}"      "rtps-bl" ${RTPS_BL_ADDR}
-    "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${RTPS_APP}"     "rtps-os" ${RTPS_APP_ADDR}
-    "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_BL}"      "hpps-bl" ${HPPS_BL_ADDR}
-    "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_FW}"      "hpps-fw" ${HPPS_FW_ADDR}
-    "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_DT}"      "hpps-dt" ${HPPS_DT_ADDR}
-    "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_KERN}"    "hpps-os" ${HPPS_KERN_ADDR}
-    "${SRAM_IMAGE_UTILS}" show "${TRCH_SRAM_FILE}" 
+    echo Creating TRCH SMC SRAM image and adding boot images...
+    run "${SRAM_IMAGE_UTILS}" create "${TRCH_SRAM_FILE}" ${LSIO_SRAM_SIZE}
+    run "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${SYSCFG_BIN}"   "syscfg"  ${SYSCFG_ADDR}
+    run "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${RTPS_BL}"      "rtps-bl" ${RTPS_BL_ADDR}
+    run "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${RTPS_APP}"     "rtps-os" ${RTPS_APP_ADDR}
+    run "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_BL}"      "hpps-bl" ${HPPS_BL_ADDR}
+    run "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_FW}"      "hpps-fw" ${HPPS_FW_ADDR}
+    run "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_DT}"      "hpps-dt" ${HPPS_DT_ADDR}
+    run "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_KERN}"    "hpps-os" ${HPPS_KERN_ADDR}
+    run "${SRAM_IMAGE_UTILS}" show "${TRCH_SRAM_FILE}"
 }
 
 function create_hpps_smc_sram_port_image()
 {
-    "${SRAM_IMAGE_UTILS}" create "${HPPS_SRAM_FILE}" ${HPPS_SRAM_SIZE}
-    "${SRAM_IMAGE_UTILS}" show "${HPPS_SRAM_FILE}"
+    echo Creating an empty image for off-chip mem at HPPS SMC SRAM port...
+    run "${SRAM_IMAGE_UTILS}" create "${HPPS_SRAM_FILE}" ${HPPS_SRAM_SIZE}
+    run "${SRAM_IMAGE_UTILS}" show "${HPPS_SRAM_FILE}"
 }
 
 create_hpps_smc_nand_port_image()
 {
+    echo Creating an empty image for off-chip mem at HPPS SMC NAND port...
     local blocks=$(nand_blocks $HPPS_NAND_SIZE $HPPS_NAND_PAGE_SIZE $HPPS_NAND_PAGES_PER_BLOCK)
-    "${NAND_CREATOR}" $HPPS_NAND_PAGE_SIZE $HPPS_NAND_OOB_SIZE $HPPS_NAND_PAGES_PER_BLOCK \
-        $blocks $HPPS_NAND_ECC_SIZE 1 ${HPPS_NAND_IMAGE}
+    run "${NAND_CREATOR}" $HPPS_NAND_PAGE_SIZE $HPPS_NAND_OOB_SIZE $HPPS_NAND_PAGES_PER_BLOCK \
+                $blocks $HPPS_NAND_ECC_SIZE 1 ${HPPS_NAND_IMAGE}
 }
 
 create_kern_image() {
-    mkimage -C gzip -A arm64 -d "${HPPS_KERN_BIN}" -a ${HPPS_KERN_LOAD_ADDR} "${HPPS_KERN}"
+    echo Packing the kernel binary into a U-boot image...
+    run mkimage -C gzip -A arm64 -d "${HPPS_KERN_BIN}" -a ${HPPS_KERN_LOAD_ADDR} "${HPPS_KERN}"
 }
 
 create_syscfg_image()
 {
-    ./cfgc -s ${SYSCFG_SCHEMA} ${SYSCFG} ${SYSCFG_BIN}
+    echo Compiling system config from INI to binary format...
+    run ./cfgc -s ${SYSCFG_SCHEMA} ${SYSCFG} ${SYSCFG_BIN}
 }
 
 syscfg_get()
@@ -101,6 +110,8 @@ create_if_abscent()
     if [ ! -f $1 ]
     then
         $2
+    else
+        echo "Using existing image: $1"
     fi
 }
 
