@@ -8,13 +8,8 @@ source $(dirname "$0")/qemu-env.sh
 # port forwarding for a VM
 PORT=10022
 
-# 1. Create empty nand image
-# qemu-nand-creator <page size=2k> <OOB size=64> <num of pages per block = 128k/2k> <num_block=256M/128k = 2k> <ecc size = 12> <empty nand = 1>
-echo "Create empty nand image"
-"${HPSC_HOST_UTILS_DIR}/qemu-nand-creator" 2048 64 64 2048 12 1
-mv qemu_nand.bin "$HPPS_NAND_IMAGE"
-
-./run-qemu.sh -c nand_create &
+# 1. Create empty nand image, attach it to the emulator, and boot Linux
+./run-qemu.sh &
 QEMU_PID=$!
 
 # 3. Prepare rootfs
