@@ -1,4 +1,5 @@
 HEAD
 *.bin
+uImage
 .*.swp
 .*.swo
