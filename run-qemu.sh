@@ -7,6 +7,14 @@
 #
 # 2.  Run the "build-hpsc-baremetal.sh" script (with the proper toolchain
 #     path) to create the baremetal firmware files "trch.elf" and "rtps.elf".
+#
+# Dependencies:
+#   * uboot-tools : for creating U-boot images
+#   * screen : for display of forwarded serial UART ports
+#   * Python 2: with the following modules
+#      - telnetlib : for communication with Qemu via QMP interface
+#      - configparse : for config INI->BIN compiler (cfgc)
+#      - json : for QMP and for cfgc
 
 source $(dirname "$0")/qemu-env.sh
 
