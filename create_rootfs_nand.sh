@@ -3,16 +3,8 @@
 # The following variable needs to be updated:
 # Nand and rootfs files
 
-YOCTO_DEPLOY_DIR=${PWD}/poky/build/tmp/deploy/images/hpsc-chiplet
-HPSC_HOST_UTILS_DIR=${PWD}/hpsc-utils/host
-ROOTFS_CPIO=${YOCTO_DEPLOY_DIR}/core-image-minimal-hpsc-chiplet.cpio
-ROOTFS_TAR_FILE_NAME=rootfs.tar
-ROOTFS_TAR_FILE=${YOCTO_DEPLOY_DIR}/${ROOTFS_TAR_FILE_NAME}
-TMP_CPIO_DIR=/tmp/ROOTFS
+source $(dirname "$0")/qemu-env.sh
 
-# these variables must be the same that in run-qemu.sh file
-# nand image name to be destroyed and created freshly
-HPPS_NAND_IMAGE=${YOCTO_DEPLOY_DIR}/rootfs_nand.bin
 # port forwarding for a VM
 PORT=10022
 

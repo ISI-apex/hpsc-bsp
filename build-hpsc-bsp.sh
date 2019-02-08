@@ -91,7 +91,7 @@ function stage_artifacts()
     done
 }
 
-function transform_run_qemu()
+function transform_qemu_env()
 {
     script=$1
     # TODO: Would be nice if we could just get relative paths from above
@@ -133,7 +133,7 @@ function transform_run_qemu()
     done
     for del in "${RUN_QEMU_DELETE[@]}"; do
         if grep "$del" "$script"; then
-            echo "run-qemu script changed, 'transform_run_qemu' needs updating!"
+            echo "script '$script' changed, 'transform_qemu_env' needs updating!"
             echo "  found: '$del'"
             exit 1
         fi
@@ -270,8 +270,8 @@ if [ $IS_STAGE -ne 0 ]; then
     BSP_DIR=${STAGE_DIR}/BSP
     stage_artifacts "$BSP_DIR" "${BSP_ARTIFACTS_TOP[@]/#/${TOPDIR}/}" \
                                "${BSP_ARTIFACTS_QEMU[@]}"
-    # run-qemu needs to be updated with new paths
-    transform_run_qemu "${BSP_DIR}/run-qemu.sh"
+    # Qemu environment needs to be updated with new paths
+    transform_qemu_env "${BSP_DIR}/qemu-env.sh"
     stage_artifacts "${BSP_DIR}/hpps" "${BSP_ARTIFACTS_HPPS[@]}"
     stage_artifacts "${BSP_DIR}/rtps-r52" "${BSP_ARTIFACTS_RTPS_R52[@]}"
     stage_artifacts "${BSP_DIR}/trch" "${BSP_ARTIFACTS_TRCH[@]}"
