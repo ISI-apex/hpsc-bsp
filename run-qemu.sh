@@ -56,8 +56,6 @@ function nand_blocks() {
 # create non-volatile offchip sram image
 function create_lsio_smc_sram_port_image()
 {
-    set -e
-    echo create_sram_image...
     # Create SRAM image to store boot images
     "${SRAM_IMAGE_UTILS}" create "${TRCH_SRAM_FILE}" ${LSIO_SRAM_SIZE}
     "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${SYSCFG_BIN}"   "syscfg"  ${SYSCFG_ADDR}
@@ -68,44 +66,33 @@ function create_lsio_smc_sram_port_image()
     "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_DT}"      "hpps-dt" ${HPPS_DT_ADDR}
     "${SRAM_IMAGE_UTILS}" add "${TRCH_SRAM_FILE}" "${HPPS_KERN}"    "hpps-os" ${HPPS_KERN_ADDR}
     "${SRAM_IMAGE_UTILS}" show "${TRCH_SRAM_FILE}" 
-    set +e
 }
 
 function create_hpps_smc_sram_port_image()
 {
-    set -e
     "${SRAM_IMAGE_UTILS}" create "${HPPS_SRAM_FILE}" ${HPPS_SRAM_SIZE}
     "${SRAM_IMAGE_UTILS}" show "${HPPS_SRAM_FILE}"
-    set +e
 }
 
 create_hpps_smc_nand_port_image()
 {
-    set -e
     local blocks=$(nand_blocks $HPPS_NAND_SIZE $HPPS_NAND_PAGE_SIZE $HPPS_NAND_PAGES_PER_BLOCK)
     "${NAND_CREATOR}" $HPPS_NAND_PAGE_SIZE $HPPS_NAND_OOB_SIZE $HPPS_NAND_PAGES_PER_BLOCK \
         $blocks $HPPS_NAND_ECC_SIZE 1 ${HPPS_NAND_IMAGE}
-    set +e
 }
 
 create_kern_image() {
-    set -e
     mkimage -C gzip -A arm64 -d "${HPPS_KERN_BIN}" -a ${HPPS_KERN_LOAD_ADDR} "${HPPS_KERN}"
-    set +e
 }
 
 create_syscfg_image()
 {
-    set -e
     ./cfgc -s ${SYSCFG_SCHEMA} ${SYSCFG} ${SYSCFG_BIN}
-    set +e
 }
 
 syscfg_get()
 {
-    set -e
     python3 -c "import configparser as cp; c = cp.ConfigParser(); c.read('$SYSCFG'); print(c['$1']['$2'])"
-    set +e
 }
 
 # file path, creation function
@@ -119,11 +106,13 @@ create_if_abscent()
 
 create_images()
 {
+    set -e
     create_syscfg_image
     create_kern_image
     create_lsio_smc_sram_port_image
     create_if_abscent ${HPPS_SRAM_FILE} create_hpps_smc_sram_port_image
     create_if_abscent ${HPPS_NAND_IMAGE} create_hpps_smc_nand_port_image
+    set +e
 }
 
 function usage()
