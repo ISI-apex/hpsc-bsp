@@ -16,7 +16,8 @@
 #      - configparse : for config INI->BIN compiler (cfgc)
 #      - json : for QMP and for cfgc
 
-source "$(dirname "$0")/qemu-env.sh"
+: ${QEMU_ENV:=$(dirname "$0")/qemu-env.sh}
+source "$QEMU_ENV"
 
 SYSCFG_ADDR=0x000ff000 # in TRCH SRAM
 

@@ -3,7 +3,8 @@
 # The following variable needs to be updated:
 # Nand and rootfs files
 
-source "$(dirname "$0")/qemu-env.sh"
+: ${QEMU_ENV:=$(dirname "$0")/qemu-env.sh}
+source "$QEMU_ENV"
 
 # port forwarding for a VM
 PORT=10022
