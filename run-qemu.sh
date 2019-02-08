@@ -154,9 +154,10 @@ create_images()
 
 function usage()
 {
-    echo "Usage: $0 [-c < run | gdb >] [ -h ] " 1>&2
-    echo "               -c run: command - start emulation (default)" 1>&2
-    echo "               -c gdb: command - start emulation with gdb" 1>&2
+    echo "Usage: $0 [-c < run | gdb >] [ -h ] [ cmd ]" 1>&2
+    echo "               cmd: command" 1>&2
+    echo "                    run - start emulation (default)" 1>&2
+    echo "                    gdb - launch the emulator in GDB" 1>&2
     echo "               -S wait for GDB or QMP connection instead of resetting the machine" 1>&2
     echo "               -h : show this message" 1>&2
     exit 1
@@ -259,22 +260,11 @@ setup_console()
     attach_consoles &
 }
 
-# default values
-CMDS=()
 RESET=1
 
 # parse options
-while getopts "h?S?c:" o; do
+while getopts "h?S?" o; do
     case "${o}" in
-        c)
-            if [[ "${OPTARG}" =~ ^run|gdb|gdb_run$ ]]
-            then
-                CMDS+=("${OPTARG}")
-            else
-                echo "Error: no such command - ${OPTARG}"
-                usage
-            fi
-            ;;
         S)
             RESET=0
             ;;
@@ -288,52 +278,49 @@ while getopts "h?S?c:" o; do
     esac
 done
 shift $((OPTIND-1))
+CMD=$@
 
-if [ ${#CMDS[@]} -eq 0 ]
+if [ -z "${CMD}" ]
 then
-    CMDS+=("run")
+    CMD="run"
 fi
 
 RUN=0
-echo "CMDS: ${CMDS[*]}"
-for CMD in "${CMDS[@]}"
-do
-    echo CMD: $CMD
-    case "$CMD" in
-       run)
-            create_images
-            setup_console
-            RUN=1
-            ;;
-       gdb)
-            # setup/attach_consoles are called when gdb runs this script with "consoles"
-            # cmd from the hook to the "run" command defined below:
+echo "CMD: ${CMD}"
+case "${CMD}" in
+   run)
+        create_images
+        setup_console
+        RUN=1
+        ;;
+   gdb)
+        # setup/attach_consoles are called when gdb runs this script with "consoles"
+        # cmd from the hook to the "run" command defined below:
 
-            if [ "$RESET" -eq 1 ]
-            then
-                RESET_ARG=""
-            else
-                RESET_ARG="-S"
-            fi
+        if [ "$RESET" -eq 1 ]
+        then
+            RESET_ARG=""
+        else
+            RESET_ARG="-S"
+        fi
 
-            # NOTE: have to go through an actual file because -ex doesn't work since no way
-            ## to give a multiline command (incl. multiple -ex), and bash-created file -x
-            # <(echo -e ...) doesn't work either (issue only with gdb).
-            GDB_CMD_FILE=$(mktemp)
-            cat >/"$GDB_CMD_FILE" <<EOF
+        # NOTE: have to go through an actual file because -ex doesn't work since no way
+        ## to give a multiline command (incl. multiple -ex), and bash-created file -x
+        # <(echo -e ...) doesn't work either (issue only with gdb).
+        GDB_CMD_FILE=$(mktemp)
+        cat >/"$GDB_CMD_FILE" <<EOF
 define hook-run
 shell $0 $RESET_ARG gdb_run
 end
 EOF
-            GDB_ARGS=(gdb -x "$GDB_CMD_FILE" --args)
-            RUN=1
-            ;;
-        gdb_run)
-            create_images
-            setup_console
-            ;;
-    esac
-done
+        GDB_ARGS=(gdb -x "$GDB_CMD_FILE" --args)
+        RUN=1
+        ;;
+    gdb_run)
+        create_images
+        setup_console
+        ;;
+esac
 
 if [ "$RUN" -eq 0 ]
 then
@@ -386,19 +373,16 @@ fi
 # into TRCH SRAM by Qemu's ELF loader on machine startup
 COMMAND+=(-device "loader,file=${TRCH_APP},cpu-num=0")
 
-if [ "${CMD}" == "run" ]
-then
-    echo "Final Command (one arg per line):"
-    for arg in ${COMMAND[*]}
-    do
-        echo $arg
-    done
-    echo
+echo "Final Command (one arg per line):"
+for arg in ${COMMAND[*]}
+do
+    echo $arg
+done
+echo
 
-    echo "Final Command:"
-    echo "${COMMAND[*]}"
-    echo
-fi
+echo "Final Command:"
+echo "${COMMAND[*]}"
+echo
 
 function finish {
     if [ -n "$GDB_CMD_FILE" ]
