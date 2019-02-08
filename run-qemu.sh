@@ -137,14 +137,18 @@ create_kern_image() {
     set +e
 }
 
+create_images()
+{
+    create_kern_image
+    create_lsio_smc_sram_port_image
+}
+
 function usage()
 {
-    echo "Usage: $0 [-c < run | gdb | consoles | nand_create >] [-f < dram | nand >] [-b < dram | nvram >] [ -h ] " 1>&2
+    echo "Usage: $0 [-c < run | gdb | nand_create >] [-f < dram | nand >] [-b < dram | nvram >] [ -h ] " 1>&2
     echo "               -c run: command - start emulation (default)" 1>&2
     echo "               -c gdb: command - start emulation with gdb" 1>&2
-    echo "               -c consoles: command - setup consoles of the subsystems at the host" 1>&2
     echo "               -c nand_create: command - create nand image with rootfs in it" 1>&2
-    echo "               -c sram_create: command - create sram image" 1>&2
     echo "               -b dram: boot images in dram (default)" 1>&2
     echo "               -b nvram: boot images in offchip non-volatile ram" 1>&2
     echo "               -f dram: HPPS rootfile system in ram, volatile (default)" 1>&2
@@ -261,7 +265,7 @@ RESET=1
 while getopts "h?S?b:c:f:" o; do
     case "${o}" in
         c)
-            if [[ "${OPTARG}" =~ ^run|gdb|consoles|nand_create|sram_create|kern_create$ ]]
+            if [[ "${OPTARG}" =~ ^run|gdb|gdb_run|nand_create$ ]]
             then
                 CMDS+=("${OPTARG}")
             else
@@ -313,6 +317,7 @@ do
     echo CMD: $CMD
     case "$CMD" in
        run)
+            create_images
             setup_console
             RUN=1
             ;;
@@ -333,21 +338,18 @@ do
             GDB_CMD_FILE=$(mktemp)
             cat >/"$GDB_CMD_FILE" <<EOF
 define hook-run
-shell $0 $RESET_ARG -c consoles -c sram_create -c kern_create
+shell $0 $RESET_ARG gdb_run
 end
 EOF
             GDB_ARGS=(gdb -x "$GDB_CMD_FILE" --args)
             RUN=1
             ;;
-        consoles)
-            setup_console
-       sram_create)
-            create_lsio_smc_sram_port_image
-            ;;
-       kern_create)
-            create_kern_image
-            ;;
        nand_create)
+            create_images
+            setup_console
+            ;;
+        gdb_run)
+            create_images
             setup_console
             RUN=1
             ;;
@@ -359,7 +361,6 @@ then
     exit
 fi
 
-#
 # Compose qemu commands according to the command options.
 # Build the command as an array of strings. Quote anything with a path variable
 # or that uses commas as part of a string instance. Building as a string and
@@ -404,8 +405,6 @@ TRCH_SRAM_DRIVE=(-drive "file=$TRCH_SRAM_FILE,if=pflash,format=raw,index=0")
 
 
 COMMAND=("${BASE_COMMAND[@]}")
-
-create_kern_image
 
 if [ "${CMD}" == "nand_create" ]
 then
