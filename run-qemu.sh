@@ -242,6 +242,14 @@ function attach_consoles()
     fi
 }
 
+setup_console()
+{
+    for session in "${SCREEN_SESSIONS[@]}"
+    do
+        setup_screen $session
+    done
+    attach_consoles &
+}
 
 # default values
 CMDS=()
@@ -305,11 +313,7 @@ do
     echo CMD: $CMD
     case "$CMD" in
        run)
-            for session in "${SCREEN_SESSIONS[@]}"
-            do
-                setup_screen $session
-            done
-            attach_consoles &
+            setup_console
             RUN=1
             ;;
        gdb)
@@ -336,14 +340,7 @@ EOF
             RUN=1
             ;;
         consoles)
-            echo "run setup_screen"
-            for session in "${SCREEN_SESSIONS[@]}"
-            do
-                setup_screen $session
-            done
-            echo "run attach_consoles"
-            attach_consoles &
-            ;;
+            setup_console
        sram_create)
             create_lsio_smc_sram_port_image
             ;;
@@ -351,11 +348,7 @@ EOF
             create_kern_image
             ;;
        nand_create)
-            for session in "${SCREEN_SESSIONS[@]}"
-            do
-                setup_screen $session
-            done
-            attach_consoles &
+            setup_console
             RUN=1
             ;;
     esac
