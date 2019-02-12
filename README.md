@@ -4,7 +4,8 @@ HPSC Chiplet Board Support Package
 This repository includes:
 
 1. `build-hpsc-bsp.sh` - top-level build script
-1. `build-common.sh` - common utilities, including configuration for development and release builds.
+1. `build-common.sh` - common utilities for build scripts.
+1. `build-config.sh` - configuration for most build sources and revisions.
 1. `build-hpsc-yocto.sh` - uses the Yocto framework to build the bulk of the Chiplet artifacts, particularly those for Linux on the HPPS.
 1. `build-hpsc-other.sh` - builds additional artifacts.
 Uses the ARM bare metal toolchain to build the TRCH and R52 firmware and u-boot for the R52s.
@@ -19,6 +20,16 @@ Most scripts support the `-h` flag to print usage help.
 Build scripts download from the git repositories located at:
 https://github.com/orgs/ISI-apex/teams/hpsc/repositories
 
+Updating the BSP
+----------------
+
+To update the sources that the BSP build scripts use, you must modify the build configurations.
+Sources built directly by the local build scripts are configured in `build-config.sh`.
+
+However, some sources (ATF, linux, and u-boot for the HPPS) are managed by Yocto recipes.
+These recipes are found in the [meta-hpsc](https://github.com/ISI-apex/meta-hpsc) project and must be configured there.
+The `meta-hpsc` project revision is then configured locally in `build-config.sh` and fetched by the `build-hpsc-yocto.sh` script.
+
 BSP Build
 ---------
 
@@ -29,21 +40,15 @@ The following steps may be run independently using the `-a` flag so long as prev
 
 * `fetch` - download/build toolchains and fetch build sources
 * `build` - build all pre-downloaded sources.
-Note: Yocto may still attempt to fetch sources when doing a development build.
 * `stage` - stage sources and binaries into the directory structure to be packaged
 * `package` - package the staged directory structure into the final BSP archive
 * `package-sources` - package the sources into an archive for offline builds
 
-To perform a release build for `hpsc-3.0`:
+To perform a build:
 
-	./build-hpsc-bsp.sh -b hpsc-3.0
+	./build-hpsc-bsp.sh
 
-To run a development build, specify `-b HEAD` instead.
-Other build scripts follow this same pattern.
-
-	./build-hpsc-bsp.sh -b HEAD
-
-All files are downloaded and built in a working directory, which defaults to the value from `-b`.
+All files are downloaded and built in a working directory, which defaults to `BUILD`.
 You may optionally specify a different working directory using `-w`.
 
 Yocto Build
@@ -51,10 +56,10 @@ Yocto Build
 
 Before starting the Yocto build, ensure that your system has python3 installed, which is needed to run bitbake.
 
-For example to perform a development build, then create the SDK:
+For example to perform a build, then create the SDK:
 
-	./build-hpsc-yocto.sh -b HEAD -a fetch -a build
-	./build-hpsc-yocto.sh -b HEAD -a populate_sdk
+	./build-hpsc-yocto.sh -a fetch -a build
+	./build-hpsc-yocto.sh -a populate_sdk
 
 The generated files needed to run QEMU are located in: `${WORKING_DIR}/work/poky_build/tmp/deploy/images/hpsc-chiplet`.
 Specifically:
@@ -101,9 +106,9 @@ The Poky SDK is used to build:
 1. `hpsc-utils/linux/shm-tester` - shared memory test utility
 1. `hpsc-utils/linux/wdtester` - watchdog test utility
 
-To run a development build:
+To run a build:
 
-	./build-hpsc-other.sh -b HEAD
+	./build-hpsc-other.sh
 
 Booting QEMU
 ------------
@@ -117,5 +122,4 @@ To download eclipse, install additional plugins, and package up again:
 
 	./build-hpsc-eclipse.sh
 
-There is no concept of a development or release build for Eclipse, as there's no additional source control involved, so you must specify `-w` explicitly for a value other than `HEAD`.
 The final artifact is `hpsc-eclipse.tar.gz`.
