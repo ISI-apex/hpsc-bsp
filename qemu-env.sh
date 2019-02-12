@@ -2,7 +2,7 @@
 # Paths to host tools and target binaries for run-qemu.sh.
 # Relative paths are relative to directory from where run-qemu.sh is invoked.
 
-WORKING_DIR=${PWD}/HEAD/work
+WORKING_DIR=${PWD}/BUILD/work
 YOCTO_DEPLOY_DIR=${WORKING_DIR}/poky_build/tmp/deploy/images/hpsc-chiplet
 
 HPSC_HOST_UTILS_DIR=${WORKING_DIR}/hpsc-utils/host
