@@ -304,5 +304,3 @@ if [ $IS_PACKAGE_SOURCES -ne 0 ]; then
     echo "md5: $RELEASE_SRC_TGZ"
     md5sum "$RELEASE_SRC_TGZ" > "${RELEASE_SRC_TGZ}.md5"
 fi
-
-cd "$TOPDIR"
