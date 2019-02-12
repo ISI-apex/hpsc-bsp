@@ -24,6 +24,7 @@ ECLIPSE_INSTALLER=work/hpsc-eclipse.tar.gz
 
 # Generated artifacts for BSP directory
 BSP_ARTIFACTS_TOP=("cfgc"
+                   "create_rootfs_nand.sh"
                    "qemu-env.sh"
                    "qmp.py"
                    "run-qemu.sh"
@@ -97,7 +98,8 @@ function stage_artifacts()
 
 function transform_qemu_env()
 {
-    script=$1
+    local script=$1
+    local userscripts=("$@")
     # TODO: Would be nice if we could just get relative paths from above
     local RUN_QEMU_REPLACE=(
         HPPS_FW=hpps/arm-trusted-firmware.bin
@@ -126,18 +128,17 @@ function transform_qemu_env()
         val=$(echo "$repl" | cut -d= -f2)
         sed -i 's,'"$prop=.*"','"$prop=\"$val\""',' "$script"
     done
-    # this is a clumsy attempt to catch changes that break our transformation
     local RUN_QEMU_DELETE=(WORKING_DIR
                            YOCTO_DEPLOY_DIR
                            BAREMETAL_DIR
-                           RTPS_BL_DIR
-                           PWD)
+                           RTPS_BL_DIR)
     for del in "${RUN_QEMU_DELETE[@]}"; do
         sed -i "/${del}=/d" "$script"
     done
+    # this is a clumsy attempt to catch changes that break our transformation
     for del in "${RUN_QEMU_DELETE[@]}"; do
-        if grep "$del" "$script"; then
-            echo "script '$script' changed, 'transform_qemu_env' needs updating!"
+        if grep "$del" "${userscripts[@]}"; then
+            echo "scripts using '$script' changed, 'transform_qemu_env' needs updating!"
             echo "  found: '$del'"
             exit 1
         fi
@@ -264,7 +265,9 @@ if [ $IS_STAGE -ne 0 ]; then
     stage_artifacts "$BSP_DIR" "${BSP_ARTIFACTS_TOP[@]/#/${TOPDIR}/}" \
                                "${BSP_ARTIFACTS_QEMU[@]}"
     # Qemu environment needs to be updated with new paths
-    transform_qemu_env "${BSP_DIR}/qemu-env.sh"
+    transform_qemu_env "${BSP_DIR}/qemu-env.sh" \
+                       "${BSP_DIR}/run-qemu.sh" \
+                       "${BSP_DIR}/create_rootfs_nand.sh"
     stage_artifacts "${BSP_DIR}/hpps" "${BSP_ARTIFACTS_HPPS[@]}"
     stage_artifacts "${BSP_DIR}/rtps-r52" "${BSP_ARTIFACTS_RTPS_R52[@]}"
     stage_artifacts "${BSP_DIR}/trch" "${BSP_ARTIFACTS_TRCH[@]}"
