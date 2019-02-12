@@ -15,18 +15,16 @@ function conf_replace_or_append()
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetch|build|populate_sdk|test|taskexp>] [-h] [-w DIR]"
-    echo "    -b ID: build using git tag=ID"
-    echo "       If ID=HEAD, a development release is built instead"
+    echo "Usage: $0 [-a <all|fetch|build|populate_sdk|test|taskexp>] [-w DIR] [-h]"
     echo "    -a ACTION"
-    echo "       all: (default) fetch, build, and populate_sdk (not test nor taskexp)"
+    echo "       all: (default) fetch, build, and populate_sdk (not test or taskexp)"
     echo "       fetch: download sources"
     echo "       build: compile poky image"
     echo "       populate_sdk: build poky SDK installer, including sysroot (rootfs)"
     echo "       test: run the Yocto automated runtime tests (requires build)"
     echo "       taskexp: run the task dependency explorer (requires build)"
+    echo "    -w DIR: set the working directory (default=\"BUILD\")"
     echo "    -h: show this message and exit"
-    echo "    -w DIR: set the working directory (default=ID from -b)"
     exit 1
 }
 
@@ -38,10 +36,9 @@ IS_BUILD=0
 IS_POPULATE_SDK=0
 IS_TEST=0
 IS_TASKEXP=0
-BUILD=""
-WORKING_DIR=""
+WORKING_DIR="BUILD"
 # parse options
-while getopts "h?a:b:w:" o; do
+while getopts "h?a:w:" o; do
     case "$o" in
         a)
             HAS_ACTION=1
@@ -62,14 +59,11 @@ while getopts "h?a:b:w:" o; do
                 usage
             fi
             ;;
-        b)
-            BUILD="${OPTARG}"
+        w)
+            WORKING_DIR="${OPTARG}"
             ;;
         h)
             usage
-            ;;
-        w)
-            WORKING_DIR="${OPTARG}"
             ;;
         *)
             echo "Unknown option"
@@ -78,10 +72,6 @@ while getopts "h?a:b:w:" o; do
     esac
 done
 shift $((OPTIND-1))
-if [ -z "$BUILD" ]; then
-    usage
-fi
-WORKING_DIR=${WORKING_DIR:-"$BUILD"}
 POKY_DL_DIR=${PWD}/${WORKING_DIR}/src/poky_dl
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
     # do everything except test and taskexp
@@ -91,21 +81,20 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
 fi
 
 . ./build-common.sh
-build_set_environment "$BUILD"
+. ./build-config.sh
 build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
 
 # clone our repositories and checkout correct revisions
 if [ $IS_FETCH -ne 0 ]; then
     # add the meta-openembedded layer (for the mpich package)
-    git_clone_fetch_checkout "https://github.com/openembedded/meta-openembedded.git" \
-                             "src/meta-openembedded" "$GIT_CHECKOUT_META_OE"
+    git_clone_fetch_checkout "$GIT_URL_META_OE" "src/meta-openembedded" \
+                             "$GIT_CHECKOUT_META_OE"
     # add the meta-hpsc layer
-    git_clone_fetch_checkout "https://github.com/ISI-apex/meta-hpsc" \
-                             "src/meta-hpsc" "$GIT_CHECKOUT_META_HPSC"
+    git_clone_fetch_checkout "$GIT_URL_META_HPSC" "src/meta-hpsc" \
+                             "$GIT_CHECKOUT_META_HPSC"
     # download the yocto poky git repository
-    git_clone_fetch_checkout "https://git.yoctoproject.org/git/poky" \
-                             "src/poky" "$GIT_CHECKOUT_POKY"
+    git_clone_fetch_checkout "$GIT_URL_POKY" "src/poky" "$GIT_CHECKOUT_POKY"
 fi
 
 # poky's sanity checker tries to reach example.com unless we force it offline
@@ -141,11 +130,9 @@ if [ $IS_FETCH -ne 0 ]; then
 fi
 
 # force offline now to catch anything that still tries to fetch
-# this (hopefully) ensures that offline builds will work
-if [ "$BUILD" != "HEAD" ]; then
-    echo "Setting BB_NO_NETWORK=1 after fetch for release build"
-    export BB_NO_NETWORK=1
-fi
+# this also helps ensure that offline builds will work
+echo "Setting BB_NO_NETWORK=1 after fetch"
+export BB_NO_NETWORK=1
 
 if [ $IS_BUILD -ne 0 ]; then
     bitbake core-image-hpsc

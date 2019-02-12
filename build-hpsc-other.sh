@@ -75,9 +75,7 @@ function utils_build()
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetch|clean|extract|build|test>] [-h] [-w DIR]"
-    echo "    -b ID: build using git tag=ID"
-    echo "       If ID=HEAD, a development release is built instead"
+    echo "Usage: $0 [-a <all|fetch|clean|extract|build|test>] [-w DIR] [-h]"
     echo "    -a ACTION"
     echo "       all: (default) fetch, clean, extract, and build"
     echo "       fetch: download/update sources (forces clean)"
@@ -85,8 +83,8 @@ function usage()
     echo "       extract: copy sources to working directory"
     echo "       build: compile pre-downloaded sources"
     echo "       test: run unit tests"
-    echo "    -h: show this message and exit"
     echo "    -w DIR: set the working directory (default=ID from -b)"
+    echo "    -h: show this message and exit"
     echo ""
     echo "The POKY_SDK environment variable must also be set to the SDK path."
     exit 1
@@ -100,9 +98,8 @@ IS_CLEAN=0
 IS_EXTRACT=0
 IS_BUILD=0
 IS_TEST=0
-BUILD=""
-WORKING_DIR=""
-while getopts "h?a:b:fw:" o; do
+WORKING_DIR="BUILD"
+while getopts "h?a:fw:" o; do
     case "$o" in
         a)
             HAS_ACTION=1
@@ -126,14 +123,11 @@ while getopts "h?a:b:fw:" o; do
                 usage
             fi
             ;;
-        b)
-            BUILD="${OPTARG}"
+        w)
+            WORKING_DIR="${OPTARG}"
             ;;
         h)
             usage
-            ;;
-        w)
-            WORKING_DIR="${OPTARG}"
             ;;
         *)
             echo "Unknown option"
@@ -142,10 +136,6 @@ while getopts "h?a:b:fw:" o; do
     esac
 done
 shift $((OPTIND-1))
-if [ -z "$BUILD" ]; then
-    usage
-fi
-WORKING_DIR=${WORKING_DIR:-"$BUILD"}
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     # do everything except test
     IS_FETCH=1
@@ -155,7 +145,7 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
 fi
 
 . ./build-common.sh
-build_set_environment "$BUILD"
+. ./build-config.sh
 build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
 
@@ -163,11 +153,6 @@ PREBUILD_FNS=(check_bm_toolchain
               check_poky_toolchain)
 
 # Indexes of these arrays must align to each other
-BUILD_REPOS=("https://github.com/ISI-apex/hpsc-baremetal.git"
-             "https://github.com/ISI-apex/u-boot.git"
-             "https://github.com/ISI-apex/qemu.git"
-             "https://github.com/ISI-apex/qemu-devicetrees.git"
-             "https://github.com/ISI-apex/hpsc-utils.git")
 BUILD_DIRS=("hpsc-baremetal"
             "u-boot-r52"
             "qemu"
@@ -178,6 +163,11 @@ BUILD_POST_FETCH=(:
                   qemu_post_fetch
                   :
                   :)
+BUILD_REPOS=("$GIT_URL_BM"
+             "$GIT_URL_UBOOT"
+             "$GIT_URL_QEMU"
+             "$GIT_URL_QEMU_DT"
+             "$GIT_URL_HPSC_UTILS")
 BUILD_CHECKOUTS=("$GIT_CHECKOUT_BM"
                  "$GIT_CHECKOUT_UBOOT_R52"
                  "$GIT_CHECKOUT_QEMU"

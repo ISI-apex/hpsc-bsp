@@ -33,14 +33,14 @@ ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group/1.4.1.201804240009
 
 function usage()
 {
-    echo "Usage: $0 [-a <all|fetch|clean|build>] [-h] [-w DIR]"
+    echo "Usage: $0 [-a <all|fetch|clean|build>] [-w DIR] [-h]"
     echo "    -a ACTION"
     echo "       all: (default) fetch and build"
     echo "       fetch: download sources"
     echo "       clean: clean eclipse working directory"
     echo "       build: build eclipse package"
+    echo "    -w DIR: set the working directory (default=\"BUILD\")"
     echo "    -h: show this message and exit"
-    echo "    -w DIR: set the working directory (default=HEAD)"
     exit 1
 }
 
@@ -50,7 +50,7 @@ IS_ALL=0
 IS_FETCH=0
 IS_CLEAN=0
 IS_BUILD=0
-WORKING_DIR="HEAD"
+WORKING_DIR="BUILD"
 while getopts "h?a:w:" o; do
     case "$o" in
         a)
@@ -68,11 +68,11 @@ while getopts "h?a:w:" o; do
                 usage
             fi
             ;;
-        h)
-            usage
-            ;;
         w)
             WORKING_DIR="${OPTARG}"
+            ;;
+        h)
+            usage
             ;;
         *)
             echo "Unknown option"

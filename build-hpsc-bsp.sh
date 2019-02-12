@@ -146,9 +146,7 @@ function transform_qemu_env()
 
 function usage()
 {
-    echo "Usage: $0 -b ID [-a <all|fetch|build|stage|package|package-sources>] [-h] [-p PREFIX] [-w DIR]"
-    echo "    -b ID: build using git tag=ID"
-    echo "       If ID=HEAD, a development release is built instead"
+    echo "Usage: $0 [-a <all|fetch|build|stage|package|package-sources>] [-p PREFIX] [-w DIR] [-h]"
     echo "    -a ACTION"
     echo "       all: (default) fetch, build, stage, package, and package-sources"
     echo "       fetch: download toolchains and sources"
@@ -156,9 +154,9 @@ function usage()
     echo "       stage: stage artifacts into a directory before packaging"
     echo "       package: create binary BSP archive from staged artifacts"
     echo "       package-sources: create source BSP archive"
+    echo "    -p PREFIX: set the release stage/package prefix (default=\"SNAPSHOT\")"
+    echo "    -w DIR: set the working directory (default=\"BUILD\")"
     echo "    -h: show this message and exit"
-    echo "    -p PREFIX: set the release stage/package prefix (default=ID from -b)"
-    echo "    -w DIR: set the working directory (default=ID from -b)"
     exit 1
 }
 
@@ -170,9 +168,9 @@ IS_BUILD=0
 IS_STAGE=0
 IS_PACKAGE=0
 IS_PACKAGE_SOURCES=0
-BUILD=""
-WORKING_DIR=""
-while getopts "h?a:b:p:w:" o; do
+PREFIX="SNAPSHOT"
+WORKING_DIR="BUILD"
+while getopts "h?a:p:w:" o; do
     case "$o" in
         a)
             HAS_ACTION=1
@@ -193,17 +191,14 @@ while getopts "h?a:b:p:w:" o; do
                 usage
             fi
             ;;
-        b)
-            BUILD="${OPTARG}"
-            ;;
-        h)
-            usage
-            ;;
         p)
             PREFIX="${OPTARG}"
             ;;
         w)
             WORKING_DIR="${OPTARG}"
+            ;;
+        h)
+            usage
             ;;
         *)
             echo "Unknown option"
@@ -212,11 +207,6 @@ while getopts "h?a:b:p:w:" o; do
     esac
 done
 shift $((OPTIND-1))
-if [ -z "$BUILD" ]; then
-    usage
-fi
-WORKING_DIR=${WORKING_DIR:-"$BUILD"}
-PREFIX=${PREFIX:-"$BUILD"}
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     # do everything
     IS_FETCH=1
@@ -227,7 +217,6 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
 fi
 
 . ./build-common.sh
-build_set_environment "$BUILD"
 
 TOPDIR=${PWD}
 build_work_dirs "$WORKING_DIR"
@@ -242,23 +231,23 @@ if [ $IS_FETCH -ne 0 ]; then
     fi
     # fetch sources
     echo "Fetching sources..."
-    ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a fetch
-    ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a fetch
+    ./build-hpsc-yocto.sh -w "$WORKING_DIR" -a fetch
+    ./build-hpsc-other.sh -w "$WORKING_DIR" -a fetch
     ./build-hpsc-eclipse.sh -w "$WORKING_DIR" -a fetch
 fi
 
 if [ $IS_BUILD -ne 0 ]; then
     echo "Building..."
     # build Yocto
-    ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a build
-    ./build-hpsc-yocto.sh -b "$BUILD" -w "$WORKING_DIR" -a populate_sdk
+    ./build-hpsc-yocto.sh -w "$WORKING_DIR" -a build
+    ./build-hpsc-yocto.sh -w "$WORKING_DIR" -a populate_sdk
     # build other packages
     sdk_bm_setup "${WORKING_DIR}/${BM_TC_TBZ2}" "${WORKING_DIR}/${TC_BM_DIR}"
     sdk_poky_setup "${WORKING_DIR}/${POKY_TC_INSTALLER}" \
                    "${WORKING_DIR}/${TC_POKY_DIR}"
     export PATH=$PATH:${PWD}/${WORKING_DIR}/${TC_BM_DIR}/bin
     export POKY_SDK="${PWD}/${WORKING_DIR}/${TC_POKY_DIR}"
-    ./build-hpsc-other.sh -b "$BUILD" -w "$WORKING_DIR" -a extract -a build
+    ./build-hpsc-other.sh -w "$WORKING_DIR" -a extract -a build
     # build Eclipse
     ./build-hpsc-eclipse.sh -w "$WORKING_DIR" -a build
 fi
