@@ -34,7 +34,7 @@ function make_parallel()
 function uboot_r52_build()
 {
     make hpsc_rtps_r52_defconfig
-    make_parallel CROSS_COMPILE=arm-none-eabi- CONFIG_LD_GCC=y
+    make_parallel CROSS_COMPILE=arm-none-eabi-
 }
 
 function qemu_post_fetch()
