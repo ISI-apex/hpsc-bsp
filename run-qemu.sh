@@ -31,8 +31,8 @@ HPPS_RAMDISK_ADDR=0x90000000
 
 # RTPS
 RTPS_BL_ADDR=0x60000000       # load address for R52 u-boot
-RTPS_APP_ADDR=0x68000000      # address of baremetal app ELF file
-# RTPS_APP_LOAD_ADDR          # where BL loads the ELF sections, set in the ELF header
+RTPS_APP_ADDR=0x68000000      # address of baremetal app binary file
+# RTPS_APP_LOAD_ADDR          # where BL loads image: set u-boot image (from ELF header)
 
 # TRCH
 # TRCH_APP_LOAD_ADDR          # where ELF sections are loaded, set in the ELF header

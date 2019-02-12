@@ -20,7 +20,7 @@ HPPS_RAMDISK=${YOCTO_DEPLOY_DIR}/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot
 # Output files from the hpsc-baremetal build
 BAREMETAL_DIR=${WORKING_DIR}/hpsc-baremetal
 TRCH_APP=${BAREMETAL_DIR}/trch/bld/trch.elf
-RTPS_APP=${BAREMETAL_DIR}/rtps/bld/rtps.elf
+RTPS_APP=${BAREMETAL_DIR}/rtps/bld/rtps.uimg
 
 # Output files from the hpsc-R52-uboot build
 RTPS_BL_DIR=${WORKING_DIR}/u-boot-r52
