@@ -23,8 +23,12 @@ R52_UBOOT_DIR=work/u-boot-r52
 ECLIPSE_INSTALLER=work/hpsc-eclipse.tar.gz
 
 # Generated artifacts for BSP directory
-BSP_ARTIFACTS_TOP=("qmp.py"
-                   "run-qemu.sh")
+BSP_ARTIFACTS_TOP=("cfgc"
+                   "qemu-env.sh"
+                   "qmp.py"
+                   "run-qemu.sh"
+                   "syscfg.ini"
+                   "syscfg-schema.json")
 BSP_ARTIFACTS_QEMU=("work/qemu/BUILD/aarch64-softmmu/qemu-system-aarch64"
                     "work/qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb")
 BSP_ARTIFACTS_HPPS=("${POKY_IMAGE_DIR}/arm-trusted-firmware.bin"
