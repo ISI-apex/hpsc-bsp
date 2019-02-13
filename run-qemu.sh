@@ -129,7 +129,7 @@ create_images()
 
 function usage()
 {
-    echo "Usage: $0 [-c < run | gdb >] [ -h ] [ cmd ]" 1>&2
+    echo "Usage: $0 [-Sh] [ cmd ]" 1>&2
     echo "               cmd: command" 1>&2
     echo "                    run - start emulation (default)" 1>&2
     echo "                    gdb - launch the emulator in GDB" 1>&2
