@@ -195,7 +195,7 @@ function attach_consoles()
             then
                 echo "ERROR: failed to get PTY paths from Qemu via QMP port: giving up."
                 echo "Here is what happened when we tried to get the PTY paths:"
-                ./qmp.py -q localhost $QMP_PORT query-chardev ${SERIAL_PORTS[*]}
+                run ./qmp.py -q localhost $QMP_PORT query-chardev ${SERIAL_PORTS[*]}
                 exit # give up to not accumulate waiting processes
             fi
         else
