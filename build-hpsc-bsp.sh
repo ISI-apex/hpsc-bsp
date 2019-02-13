@@ -104,7 +104,6 @@ function transform_qemu_env()
         HPPS_BL=hpps/u-boot.bin
         HPPS_DT=hpps/hpsc.dtb
         HPPS_KERN_BIN=hpps/Image.gz
-        HPPS_KERN=hpps/uImage
         HPPS_RAMDISK=hpps/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot
 
         TRCH_APP=trch/trch.elf
@@ -117,7 +116,6 @@ function transform_qemu_env()
 
         HPPS_NAND_IMAGE=hpps/rootfs_nand.bin
         HPPS_SRAM_FILE=hpps/hpps_sram.bin
-        TRCH_SRAM_FILE=trch/trch_sram.bin
 
         HPSC_HOST_UTILS_DIR=host-utils
     )

@@ -19,6 +19,7 @@
 : ${QEMU_ENV:=$(dirname "$0")/qemu-env.sh}
 source "$QEMU_ENV"
 
+PORT_BASE=$((1024 + $(id -u) + 1000)) # arbitrary, but unique and not system
 LOG_FILE=qemu.log
 
 SYSCFG_ADDR=0x000ff000 # in TRCH SRAM
@@ -126,15 +127,20 @@ create_images()
     create_lsio_smc_sram_port_image
     create_if_absent "${HPPS_SRAM_FILE}" create_hpps_smc_sram_port_image
     create_if_absent "${HPPS_NAND_IMAGE}" create_hpps_smc_nand_port_image
+
+    # Privatize shared images for the current Qemu instance
+    run cp ${HPPS_NAND_IMAGE} ${HPPS_NAND_IMAGE_INST}
+    run cp ${HPPS_SRAM_FILE} ${HPPS_SRAM_FILE_INST}
     set +e
 }
 
 function usage()
 {
-    echo "Usage: $0 [-Sh] [-n netcfg] [ cmd ]" 1>&2
+    echo "Usage: $0 [-Sh] [-n netcfg] [-i id] [ cmd ]" 1>&2
     echo "               cmd: command" 1>&2
     echo "                    run - start emulation (default)" 1>&2
     echo "                    gdb - launch the emulator in GDB" 1>&2
+    echo "               -i id: numeric ID to identify the Qemu instance" 1>&2
     echo "               -n netcfg : choose networking configuration" 1>&2
     echo "                   user: forward a port on the host to the target NIC" 1>&2
     echo "                   tap: create a host tunnel interface to the target NIC (requires root)" 1>&2
@@ -142,17 +148,6 @@ function usage()
     echo "               -h : show this message" 1>&2
     exit 1
 }
-
-# Labels are created by Qemu with the convention "serialN"
-SCREEN_SESSIONS=(hpsc-trch hpsc-rtps-r52 hpsc-hpps)
-SERIAL_PORTS=(serial0 serial1 serial2)
-SERIAL_PORT_ARGS=()
-for _ in "${SERIAL_PORTS[@]}"
-do
-    SERIAL_PORT_ARGS+=(-serial pty)
-done
-
-QMP_PORT=4433
 
 function setup_screen()
 {
@@ -242,12 +237,16 @@ setup_console()
 
 RESET=1
 NET=user
+ID=0
 
 # parse options
-while getopts "h?S?n:" o; do
+while getopts "h?S?n:i:" o; do
     case "${o}" in
         S)
             RESET=0
+            ;;
+        i)
+            ID="$OPTARG"
             ;;
         n)
             NET="$OPTARG"
@@ -268,6 +267,31 @@ if [ -z "${CMD}" ]
 then
     CMD="run"
 fi
+
+# Privatize generated files, ports, screen sessions for this Qemu instance
+
+SYSCFG_BIN=syscfg.bin.${ID}
+HPPS_KERN=uImage.${ID}
+TRCH_SRAM_FILE=trch_sram.bin.${ID}
+
+HPPS_NAND_IMAGE_INST=${HPPS_NAND_IMAGE}.${ID}
+HPPS_SRAM_FILE_INST=${HPPS_SRAM_FILE}.${ID}
+
+MAC_ADDR=00:0a:35:00:02:$ID
+
+MAX_INSTANCES=8
+QMP_PORT=$((PORT_BASE + 0 * $MAX_INSTANCES + $ID))
+GDB_PORT=$((PORT_BASE + 1 * $MAX_INSTANCES + $ID))
+SSH_PORT=$((PORT_BASE + 2 * $MAX_INSTANCES + $ID))
+
+# Labels are created by Qemu with the convention "serialN"
+SCREEN_SESSIONS=(hpsc-$ID-trch hpsc-$ID-rtps-r52 hpsc-$ID-hpps)
+SERIAL_PORTS=(serial0 serial1 serial2)
+SERIAL_PORT_ARGS=()
+for _ in "${SERIAL_PORTS[@]}"
+do
+    SERIAL_PORT_ARGS+=(-serial pty)
+done
 
 RUN=0
 echo "CMD: ${CMD}"
@@ -326,7 +350,8 @@ COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
     -nographic
     -monitor stdio
     -qmp "telnet::$QMP_PORT,server,nowait"
-    -S -s
+    -gdb "tcp::$GDB_PORT"
+    -S
     -D "${LOG_FILE}" -d "fdt,guest_errors,unimp,cpu_reset"
     -hw-dtb "${QEMU_DT_FILE}"
     "${SERIAL_PORT_ARGS[@]}"
@@ -334,14 +359,13 @@ COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
     -drive "file=$HPPS_SRAM_FILE,if=pflash,format=raw,index=2"
     -drive "file=$TRCH_SRAM_FILE,if=pflash,format=raw,index=0")
 
+NET_NIC=(-net nic,vlan=0,macaddr=$MAC_ADDR)
 case "${NET}" in
 tap)
-    COMMAND+=(-net nic,vlan=1
-	      -net tap,vlan=1,script=qemu-ifup.sh,downscript=no)
+    COMMAND+=("${NET_NIC[@]}" -net tap,vlan=0,script=qemu-ifup.sh,downscript=no)
     ;;
 user)
-    COMMAND+=(-net nic,vlan=0
-	      -net user,vlan=0,hostfwd=tcp:127.0.0.1:10022-10.0.2.15:22)
+    COMMAND+=("${NET_NIC[@]}" -net user,vlan=0,hostfwd=tcp:127.0.0.1:$SSH_PORT-10.0.2.15:22)
     ;;
 none)
     ;;
