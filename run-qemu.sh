@@ -129,11 +129,14 @@ create_images()
 
 function usage()
 {
-    echo "Usage: $0 [-Sh] [ cmd ]" 1>&2
+    echo "Usage: $0 [-Sh] [-n netcfg] [ cmd ]" 1>&2
     echo "               cmd: command" 1>&2
     echo "                    run - start emulation (default)" 1>&2
     echo "                    gdb - launch the emulator in GDB" 1>&2
-    echo "               -S wait for GDB or QMP connection instead of resetting the machine" 1>&2
+    echo "               -n netcfg : choose networking configuration" 1>&2
+    echo "                   user: forward a port on the host to the target NIC" 1>&2
+    echo "                   tap: create a host tunnel interface to the target NIC (requires root)" 1>&2
+    echo "               -S : wait for GDB or QMP connection instead of resetting the machine" 1>&2
     echo "               -h : show this message" 1>&2
     exit 1
 }
@@ -236,12 +239,16 @@ setup_console()
 }
 
 RESET=1
+NET=user
 
 # parse options
-while getopts "h?S?" o; do
+while getopts "h?S?n:" o; do
     case "${o}" in
         S)
             RESET=0
+            ;;
+        n)
+            NET="$OPTARG"
             ;;
         h)
             usage
@@ -320,10 +327,26 @@ COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
     -S -s -D "/tmp/qemu.log" -d "fdt,guest_errors,unimp,cpu_reset"
     -hw-dtb "${QEMU_DT_FILE}"
     "${SERIAL_PORT_ARGS[@]}"
-    -net "nic,vlan=0" -net "user,vlan=0,hostfwd=tcp:127.0.0.1:2345-10.0.2.15:2345,hostfwd=tcp:127.0.0.1:10022-10.0.2.15:22"
     -drive "file=$HPPS_NAND_IMAGE,if=pflash,format=raw,index=3"
     -drive "file=$HPPS_SRAM_FILE,if=pflash,format=raw,index=2"
     -drive "file=$TRCH_SRAM_FILE,if=pflash,format=raw,index=0")
+
+case "${NET}" in
+tap)
+    COMMAND+=(-net nic,vlan=1
+	      -net tap,vlan=1,script=qemu-ifup.sh,downscript=no)
+    ;;
+user)
+    COMMAND+=(-net nic,vlan=0
+	      -net user,vlan=0,hostfwd=tcp:127.0.0.1:2345-10.0.2.15:2345,hostfwd=tcp:127.0.0.1:10022-10.0.2.15:22)
+    ;;
+none)
+    ;;
+*)
+    echo "ERROR: invalid networking config choice: $NET" 1>&2
+    exit 1
+    ;;
+esac
 
 if [ "$(syscfg_get boot bin_loc)" = "DRAM" ]
 then
