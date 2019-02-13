@@ -19,6 +19,8 @@
 : ${QEMU_ENV:=$(dirname "$0")/qemu-env.sh}
 source "$QEMU_ENV"
 
+LOG_FILE=qemu.log
+
 SYSCFG_ADDR=0x000ff000 # in TRCH SRAM
 
 HPPS_FW_ADDR=0x80000000
@@ -324,7 +326,8 @@ COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
     -nographic
     -monitor stdio
     -qmp "telnet::$QMP_PORT,server,nowait"
-    -S -s -D "/tmp/qemu.log" -d "fdt,guest_errors,unimp,cpu_reset"
+    -S -s
+    -D "${LOG_FILE}" -d "fdt,guest_errors,unimp,cpu_reset"
     -hw-dtb "${QEMU_DT_FILE}"
     "${SERIAL_PORT_ARGS[@]}"
     -drive "file=$HPPS_NAND_IMAGE,if=pflash,format=raw,index=3"

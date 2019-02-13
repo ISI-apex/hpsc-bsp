@@ -3,3 +3,4 @@ BUILD
 uImage
 .*.swp
 .*.swo
+*.log
