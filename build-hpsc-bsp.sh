@@ -41,7 +41,7 @@ BSP_ARTIFACTS_AARCH64_UTIL=("${UTILS_DIR}/linux/mboxtester"
                             "${UTILS_DIR}/linux/wdtester")
 BSP_ARTIFACTS_HOST_UTIL=("${UTILS_DIR}/host/qemu-nand-creator"
                          "${UTILS_DIR}/host/sram-image-utils")
-BSP_ARTIFACTS_RTPS_R52=("${BAREMETAL_DIR}/rtps/bld/rtps.elf"
+BSP_ARTIFACTS_RTPS_R52=("${BAREMETAL_DIR}/rtps/bld/rtps.uimg"
                         "${R52_UBOOT_DIR}/u-boot.bin")
 BSP_ARTIFACTS_TRCH=("${BAREMETAL_DIR}/trch/bld/trch.elf")
 
@@ -108,7 +108,7 @@ function transform_qemu_env()
         HPPS_RAMDISK=hpps/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot
 
         TRCH_APP=trch/trch.elf
-        RTPS_APP=rtps-r52/rtps.elf
+        RTPS_APP=rtps-r52/rtps.uimg
 
         RTPS_BL=rtps-r52/u-boot.bin
 
