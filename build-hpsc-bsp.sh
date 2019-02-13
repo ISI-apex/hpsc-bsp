@@ -38,6 +38,9 @@ BSP_ARTIFACTS_HPPS=("${POKY_IMAGE_DIR}/arm-trusted-firmware.bin"
                     "${POKY_IMAGE_DIR}/Image.gz"
                     "${POKY_IMAGE_DIR}/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot")
 BSP_ARTIFACTS_AARCH64_UTIL=("${UTILS_DIR}/linux/mboxtester"
+                            "${UTILS_DIR}/linux/rtit-tester"
+                            "${UTILS_DIR}/linux/shm-standalone-tester"
+                            "${UTILS_DIR}/linux/shm-tester"
                             "${UTILS_DIR}/linux/wdtester")
 BSP_ARTIFACTS_HOST_UTIL=("${UTILS_DIR}/host/qemu-nand-creator"
                          "${UTILS_DIR}/host/sram-image-utils")
