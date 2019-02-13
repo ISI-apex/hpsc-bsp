@@ -341,7 +341,7 @@ tap)
     ;;
 user)
     COMMAND+=(-net nic,vlan=0
-	      -net user,vlan=0,hostfwd=tcp:127.0.0.1:2345-10.0.2.15:2345,hostfwd=tcp:127.0.0.1:10022-10.0.2.15:22)
+	      -net user,vlan=0,hostfwd=tcp:127.0.0.1:10022-10.0.2.15:22)
     ;;
 none)
     ;;
