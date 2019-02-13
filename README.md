@@ -3,9 +3,9 @@ HPSC Chiplet Board Support Package
 
 This repository includes:
 
-1. `build-hpsc-bsp.sh` - top-level build script
+1. `build-hpsc-bsp.sh` - top-level build script.
 1. `build-common.sh` - common utilities for build scripts.
-1. `build-config.sh` - configuration for most build sources and revisions.
+1. `build-config.sh` - configuration for most build sources and revisions (see "Updating the BSP" below).
 1. `build-hpsc-yocto.sh` - uses the Yocto framework to build the bulk of the Chiplet artifacts, particularly those for Linux on the HPPS.
 1. `build-hpsc-other.sh` - builds additional artifacts.
 Uses the ARM bare metal toolchain to build the TRCH and R52 firmware and u-boot for the R52s.
@@ -50,6 +50,7 @@ To perform a build:
 
 All files are downloaded and built in a working directory, which defaults to `BUILD`.
 You may optionally specify a different working directory using `-w`.
+Use the `-p` flag to set the stage/release name, otherwise the default name is "SNAPSHOT".
 
 Yocto Build
 -----------
@@ -83,7 +84,7 @@ First, the ARM bare metal toolchain bin directory must be on `PATH`, e.g. in `/o
 The bare metal toolchain is used to build (within `${WORKING_DIR}/work/`):
 
 1. `hpsc-baremetal/trch/bld/trch.elf` - TRCH firmware
-1. `hpsc-baremetal/rtps/bld/rtps.elf` - RTPS R52 firmware
+1. `hpsc-baremetal/rtps/bld/rtps.uimg` - RTPS R52 firmware
 1. `u-boot-r52/u-boot.bin` - u-boot for the RTPS R52s
 
 The host compiler is used to build:
