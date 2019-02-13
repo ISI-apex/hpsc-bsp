@@ -29,7 +29,11 @@ ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group/1.4.1.201804240009
                     org.eclipse.linuxtools.perf.feature.feature.group/7.1.0.201812121718
                     org.eclipse.linuxtools.perf.remote.feature.feature.group/7.1.0.201812121718
                     org.eclipse.linuxtools.perf.feature.source.feature.group/7.1.0.201812121718
-                    org.eclipse.linuxtools.perf.remote.feature.source.feature.group/7.1.0.201812121718)
+                    org.eclipse.linuxtools.perf.remote.feature.source.feature.group/7.1.0.201812121718
+		    org.eclipse.linuxtools.profiling.feature.group/7.1.0.201812121718
+		    org.eclipse.linuxtools.profiling.remote.feature.group/7.1.0.201812121718
+		    org.eclipse.linuxtools.profiling.source.feature.group/7.1.0.201812121718
+		    org.eclipse.linuxtools.profiling.remote.source.feature.group/7.1.0.201812121718)
 
 function usage()
 {
