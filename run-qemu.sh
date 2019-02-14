@@ -21,6 +21,7 @@ source "$QEMU_ENV"
 
 PORT_BASE=$((1024 + $(id -u) + 1000)) # arbitrary, but unique and not system
 LOG_FILE=qemu.log
+BRIDGE=br0
 
 SYSCFG_ADDR=0x000ff000 # in TRCH SRAM
 
@@ -345,7 +346,7 @@ fi
 # Note: If you want to see instructions and exceptions at a large performance cost, then add
 # "in_asm,int" to the list of categories in -d.
 
-COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
+COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/aarch64-softmmu/qemu-system-aarch64"
     -machine "arm-generic-fdt"
     -nographic
     -monitor stdio
@@ -362,7 +363,11 @@ COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/qemu-system-aarch64"
 NET_NIC=(-net nic,vlan=0,macaddr=$MAC_ADDR)
 case "${NET}" in
 tap)
-    COMMAND+=("${NET_NIC[@]}" -net tap,vlan=0,script=qemu-ifup.sh,downscript=no)
+    # See HPSC Qemu User Guide for setup. In short, do this once, as root:
+    #     ip link add $BRIDGE type bridge
+    #     echo "allow $BRIDGE" >> $QEMU_PREFIX/etc/qemu/bridge.conf
+    #     install -o root -g root -m 4775 $QEMU_DIR/qemu-bridge-helper $QEMU_PREFIX/bin/
+    COMMAND+=("${NET_NIC[@]}" -net tap,vlan=0,br=$BRIDGE,helper=$QEMU_PREFIX/bin/qemu-bridge-helper)
     ;;
 user)
     COMMAND+=("${NET_NIC[@]}" -net user,vlan=0,hostfwd=tcp:127.0.0.1:$SSH_PORT-10.0.2.15:22)

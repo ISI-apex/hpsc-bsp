@@ -26,7 +26,8 @@ RTPS_BL_DIR=${WORKING_DIR}/u-boot-r52
 RTPS_BL=${RTPS_BL_DIR}/u-boot.bin
 
 # Output files from the qemu/qemu-devicetree builds
-QEMU_DIR=${WORKING_DIR}/qemu/BUILD/aarch64-softmmu
+QEMU_DIR=${WORKING_DIR}/qemu/BUILD
+QEMU_PREFIX=/usr/local
 QEMU_DT_FILE=${WORKING_DIR}/qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb
 
 # Off-chip memory images. Created blank by run-qemu.sh if abscent.
