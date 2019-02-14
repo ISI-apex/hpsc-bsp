@@ -128,10 +128,6 @@ create_images()
     create_lsio_smc_sram_port_image
     create_if_absent "${HPPS_SRAM_FILE}" create_hpps_smc_sram_port_image
     create_if_absent "${HPPS_NAND_IMAGE}" create_hpps_smc_nand_port_image
-
-    # Privatize shared images for the current Qemu instance
-    run cp ${HPPS_NAND_IMAGE} ${HPPS_NAND_IMAGE_INST}
-    run cp ${HPPS_SRAM_FILE} ${HPPS_SRAM_FILE_INST}
     set +e
 }
 
@@ -279,9 +275,8 @@ fi
 SYSCFG_BIN=syscfg.bin.${ID}
 HPPS_KERN=uImage.${ID}
 TRCH_SRAM_FILE=trch_sram.bin.${ID}
-
-HPPS_NAND_IMAGE_INST=${HPPS_NAND_IMAGE}.${ID}
-HPPS_SRAM_FILE_INST=${HPPS_SRAM_FILE}.${ID}
+HPPS_NAND_IMAGE=rootfs_nand.bin.${ID}
+HPPS_SRAM_FILE=hpps_sram.bin.${ID}
 
 MAC_ADDR=00:0a:35:00:02:$ID
 

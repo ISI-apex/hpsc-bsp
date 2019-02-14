@@ -30,10 +30,6 @@ QEMU_DIR=${WORKING_DIR}/qemu/BUILD
 QEMU_PREFIX=/usr/local
 QEMU_DT_FILE=${WORKING_DIR}/qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb
 
-# Off-chip memory images. Created blank by run-qemu.sh if abscent.
-HPPS_NAND_IMAGE=rootfs_nand.bin
-HPPS_SRAM_FILE=hpps_sram.bin
-
 # System configuration interpreted by TRCH
 SYSCFG=syscfg.ini
 SYSCFG_SCHEMA=syscfg-schema.json
