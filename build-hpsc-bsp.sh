@@ -24,7 +24,6 @@ ECLIPSE_INSTALLER=work/hpsc-eclipse.tar.gz
 
 # Generated artifacts for BSP directory
 BSP_ARTIFACTS_TOP=("cfgc"
-                   "create_rootfs_nand.sh"
                    "qemu-env.sh"
                    "qmp.py"
                    "run-qemu.sh"
@@ -265,8 +264,8 @@ if [ $IS_STAGE -ne 0 ]; then
                                "${BSP_ARTIFACTS_QEMU[@]}"
     # Qemu environment needs to be updated with new paths
     transform_qemu_env "${BSP_DIR}/qemu-env.sh" \
-                       "${BSP_DIR}/run-qemu.sh" \
-                       "${BSP_DIR}/create_rootfs_nand.sh"
+                       "${BSP_DIR}/run-qemu.sh"
+
     stage_artifacts "${BSP_DIR}/hpps" "${BSP_ARTIFACTS_HPPS[@]}"
     stage_artifacts "${BSP_DIR}/rtps-r52" "${BSP_ARTIFACTS_RTPS_R52[@]}"
     stage_artifacts "${BSP_DIR}/trch" "${BSP_ARTIFACTS_TRCH[@]}"
