@@ -137,7 +137,7 @@ create_images()
 
 function usage()
 {
-    echo "Usage: $0 [-Sh] [-n netcfg] [-i id] [ cmd ]" 1>&2
+    echo "Usage: $0 [-hSq] [-n netcfg] [-i id] [ cmd ]" 1>&2
     echo "               cmd: command" 1>&2
     echo "                    run - start emulation (default)" 1>&2
     echo "                    gdb - launch the emulator in GDB" 1>&2
@@ -146,6 +146,7 @@ function usage()
     echo "                   user: forward a port on the host to the target NIC" 1>&2
     echo "                   tap: create a host tunnel interface to the target NIC (requires root)" 1>&2
     echo "               -S : wait for GDB or QMP connection instead of resetting the machine" 1>&2
+    echo "               -q : do not enable the Qemu monitor prompt" 1>&2
     echo "               -h : show this message" 1>&2
     exit 1
 }
@@ -239,9 +240,10 @@ setup_console()
 RESET=1
 NET=user
 ID=0
+MONITOR=1
 
 # parse options
-while getopts "h?S?n:i:" o; do
+while getopts "h?S?q?n:i:" o; do
     case "${o}" in
         S)
             RESET=0
@@ -251,6 +253,9 @@ while getopts "h?S?n:i:" o; do
             ;;
         n)
             NET="$OPTARG"
+            ;;
+        q)
+            MONITOR=0
             ;;
         h)
             usage
@@ -349,7 +354,6 @@ fi
 COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/aarch64-softmmu/qemu-system-aarch64"
     -machine "arm-generic-fdt"
     -nographic
-    -monitor stdio
     -qmp "telnet::$QMP_PORT,server,nowait"
     -gdb "tcp::$GDB_PORT"
     -S
@@ -379,6 +383,11 @@ none)
     exit 1
     ;;
 esac
+
+if [ "$MONITOR" -eq 1 ]
+then
+    COMMAND+=(-monitor stdio)
+fi
 
 if [ "$(syscfg_get boot bin_loc)" = "DRAM" ]
 then
