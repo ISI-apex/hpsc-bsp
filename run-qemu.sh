@@ -106,7 +106,7 @@ create_syscfg_image()
 
 syscfg_get()
 {
-    python3 -c "import configparser as cp; c = cp.ConfigParser(); c.read('$SYSCFG'); print(c['$1']['$2'])"
+    python -c "import configparser as cp; c = cp.ConfigParser(); c.read('$SYSCFG'); print(c['$1']['$2'])"
 }
 
 # file path, creation function
