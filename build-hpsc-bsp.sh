@@ -116,9 +116,6 @@ function transform_qemu_env()
         QEMU_DIR=.
         QEMU_DT_FILE=hpsc-arch.dtb
 
-        HPPS_NAND_IMAGE=hpps/rootfs_nand.bin
-        HPPS_SRAM_FILE=hpps/hpps_sram.bin
-
         HPSC_HOST_UTILS_DIR=host-utils
     )
     for repl in "${RUN_QEMU_REPLACE[@]}"; do
