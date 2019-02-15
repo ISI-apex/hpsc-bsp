@@ -18,7 +18,7 @@ export GIT_URL_META_OE="https://github.com/openembedded/meta-openembedded.git"
 export GIT_CHECKOUT_META_OE="6094ae18c8a35e5cc9998ac39869390d7f3bb1e2"
 
 export GIT_URL_META_HPSC="https://github.com/ISI-apex/meta-hpsc"
-export GIT_CHECKOUT_META_HPSC="446075f2ef7f8c8548cab89beccd61791a1c82a2"
+export GIT_CHECKOUT_META_HPSC="28bd9ec55d11e7c410d0114e90ecc0d878cf856b"
 
 #
 # Repositories not built by poky
@@ -28,7 +28,7 @@ export GIT_URL_BM="https://github.com/ISI-apex/hpsc-baremetal.git"
 export GIT_CHECKOUT_BM="111a30b662bd807972696bf5a5bc99637cc8a26b"
 
 export GIT_URL_UBOOT="https://github.com/ISI-apex/u-boot.git"
-export GIT_CHECKOUT_UBOOT_R52="997fe6277cc5e0ff0c428b9e1e16af34d715db59"
+export GIT_CHECKOUT_UBOOT_R52="72d0ce6eee1012b5a3c59028b8af66e69c45f83e"
 
 export GIT_URL_HPSC_UTILS="https://github.com/ISI-apex/hpsc-utils.git"
 export GIT_CHECKOUT_HPSC_UTILS="6312ada9b1a11e8115e633e42f62179d4abf9dba"
