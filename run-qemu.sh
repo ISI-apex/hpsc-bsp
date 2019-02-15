@@ -418,6 +418,11 @@ echo "Final Command:"
 echo "${COMMAND[*]}"
 echo
 
+echo "QMP_PORT = ${QMP_PORT}"
+echo "GDB_PORT = ${GDB_PORT}"
+echo "SSH_PORT = ${SSH_PORT}"
+echo
+
 function finish {
     if [ -n "$GDB_CMD_FILE" ]
     then
