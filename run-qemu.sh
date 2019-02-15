@@ -346,7 +346,7 @@ fi
 # Note: If you want to see instructions and exceptions at a large performance cost, then add
 # "in_asm,int" to the list of categories in -d.
 
-COMMAND=("${GDB_ARGS[@]}" "${QEMU_DIR}/aarch64-softmmu/qemu-system-aarch64"
+COMMAND=("${GDB_ARGS[@]}" "${QEMU_BIN_DIR}/qemu-system-aarch64"
     -machine "arm-generic-fdt"
     -nographic
     -qmp "telnet::$QMP_PORT,server,nowait"

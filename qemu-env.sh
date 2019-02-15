@@ -27,6 +27,7 @@ RTPS_BL=${RTPS_BL_DIR}/u-boot.bin
 
 # Output files from the qemu/qemu-devicetree builds
 QEMU_DIR=${WORKING_DIR}/qemu/BUILD
+QEMU_BIN_DIR=${QEMU_DIR}/aarch64-softmmu
 QEMU_PREFIX=/usr/local
 QEMU_DT_FILE=${WORKING_DIR}/qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb
 
