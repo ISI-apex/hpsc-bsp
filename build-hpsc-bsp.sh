@@ -115,6 +115,7 @@ function transform_qemu_env()
         RTPS_BL=rtps-r52/u-boot.bin
 
         QEMU_DIR=.
+        QEMU_BIN_DIR=.
         QEMU_DT_FILE=hpsc-arch.dtb
 
         HPSC_HOST_UTILS_DIR=host-utils
