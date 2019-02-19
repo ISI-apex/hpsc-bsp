@@ -154,7 +154,7 @@ EOL
     echo "Creating HPSC eclipse distribution: $ECLIPSE_HPSC"
     (
         WDIR=${PWD}
-        cd "$ECLIPSE_DIR"
+        cd "$(dirname "$ECLIPSE_DIR")"
         tar czf "${WDIR}/${ECLIPSE_HPSC}" "$(basename "$ECLIPSE_DIR")"
     )
 fi
