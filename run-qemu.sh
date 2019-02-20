@@ -22,6 +22,7 @@ source "$QEMU_ENV"
 PORT_BASE=$((1024 + $(id -u) + 1000)) # arbitrary, but unique and not system
 LOG_FILE=qemu.log
 BRIDGE=br0
+HOST_BIND_IP=127.0.0.1
 
 SYSCFG_ADDR=0x000ff000 # in TRCH SRAM
 
@@ -279,11 +280,18 @@ HPPS_NAND_IMAGE=rootfs_nand.bin.${ID}
 HPPS_SRAM_FILE=hpps_sram.bin.${ID}
 
 MAC_ADDR=00:0a:35:00:02:$ID
+# This target IP is for 'user' networking mode, where the address is private,
+# all instances can use the same address.
+TARGET_IP=10.0.2.15
+
+SSH_TARGET_PORT=22
+DEBUG_TARGET_PORT=2345
 
 MAX_INSTANCES=8
 QMP_PORT=$((PORT_BASE + 0 * $MAX_INSTANCES + $ID))
 GDB_PORT=$((PORT_BASE + 1 * $MAX_INSTANCES + $ID))
 SSH_PORT=$((PORT_BASE + 2 * $MAX_INSTANCES + $ID))
+DEBUG_PORT=$((PORT_BASE + 3 * $MAX_INSTANCES + $ID))
 
 # Labels are created by Qemu with the convention "serialN"
 SCREEN_SESSIONS=(hpsc-$ID-trch hpsc-$ID-rtps-r52 hpsc-$ID-hpps)
@@ -369,7 +377,9 @@ tap)
     COMMAND+=("${NET_NIC[@]}" -net tap,vlan=0,br=$BRIDGE,helper=$QEMU_PREFIX/bin/qemu-bridge-helper)
     ;;
 user)
-    COMMAND+=("${NET_NIC[@]}" -net user,vlan=0,hostfwd=tcp:127.0.0.1:$SSH_PORT-10.0.2.15:22)
+    PORT_FWD_ARGS="hostfwd=tcp:$HOST_BIND_IP:$SSH_PORT-$TARGET_IP:$SSH_TARGET_PORT"
+    PORT_FWD_ARGS+=",hostfwd=tcp:$HOST_BIND_IP:$DEBUG_PORT-$TARGET_IP:$DEBUG_TARGET_PORT"
+    COMMAND+=("${NET_NIC[@]}" -net user,vlan=0,$PORT_FWD_ARGS)
     ;;
 none)
     ;;
@@ -420,7 +430,8 @@ echo
 
 echo "QMP_PORT = ${QMP_PORT}"
 echo "GDB_PORT = ${GDB_PORT}"
-echo "SSH_PORT = ${SSH_PORT}"
+echo "SSH_PORT = ${HOST_BIND_IP}:${SSH_PORT} -> ${TARGET_IP}:${SSH_PORT}"
+echo "DEBUG_PORT = ${HOST_BIND_IP}:${DEBUG_PORT} -> ${TARGET_IP}:${DEBUG_PORT}"
 echo
 
 function finish {
