@@ -453,7 +453,7 @@ echo
 echo "QMP_PORT = ${QMP_PORT}"
 echo "GDB_PORT = ${GDB_PORT}"
 echo "SSH_PORT = ${HOST_BIND_IP}:${SSH_PORT} -> ${TARGET_IP}:${SSH_PORT}"
-echo "DEBUG_PORT = ${HOST_BIND_IP}:${DEBUG_PORT} -> ${TARGET_IP}:${DEBUG_PORT}"
+echo "DEBUG_PORT = ${HOST_BIND_IP}:${DEBUG_PORT} -> ${TARGET_IP}:${DEBUG_TARGET_PORT}"
 echo
 
 function finish {
