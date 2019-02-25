@@ -357,7 +357,8 @@ COMMAND=("${GDB_ARGS[@]}" "${QEMU_BIN_DIR}/qemu-system-aarch64"
     "${SERIAL_PORT_ARGS[@]}"
     -drive "file=$HPPS_NAND_IMAGE,if=pflash,format=raw,index=3"
     -drive "file=$HPPS_SRAM_FILE,if=pflash,format=raw,index=2"
-    -drive "file=$TRCH_SRAM_FILE,if=pflash,format=raw,index=0")
+    -drive "file=$TRCH_SRAM_FILE,if=pflash,format=raw,index=0"
+    "${QEMU_ARGS[@]}")
 
 NET_NIC=(-net nic,vlan=0,macaddr=$MAC_ADDR)
 case "${NET}" in
