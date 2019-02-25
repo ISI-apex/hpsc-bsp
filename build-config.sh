@@ -18,7 +18,7 @@ export GIT_URL_META_OE="https://github.com/openembedded/meta-openembedded.git"
 export GIT_CHECKOUT_META_OE="6094ae18c8a35e5cc9998ac39869390d7f3bb1e2"
 
 export GIT_URL_META_HPSC="https://github.com/ISI-apex/meta-hpsc"
-export GIT_CHECKOUT_META_HPSC="28bd9ec55d11e7c410d0114e90ecc0d878cf856b"
+export GIT_CHECKOUT_META_HPSC="e6a813764eb6341a546eb14e22ad19f49f10f39e"
 
 #
 # Repositories not built by poky
