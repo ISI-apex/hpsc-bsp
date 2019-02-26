@@ -34,7 +34,7 @@ source_if_exists "$HPSC_ROOT/$QEMU_ENV"
 source_if_exists "$QEMU_ENV"
 
 PORT_BASE=$((1024 + $(id -u) + 1000)) # arbitrary, but unique and not system
-LOG_FILE=qemu.log
+LOG_FILE=/tmp/qemu-$(whoami).log
 BRIDGE=br0
 
 SYSCFG_ADDR=0x000ff000 # in TRCH SRAM
