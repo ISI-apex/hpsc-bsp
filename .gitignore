@@ -1,7 +1,3 @@
 BUILD
-*.bin
-*.bin.*
-uImage.*
 .*.swp
 .*.swo
-*.log
