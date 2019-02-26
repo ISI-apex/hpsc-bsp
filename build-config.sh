@@ -17,7 +17,7 @@ export GIT_CHECKOUT_POKY="thud-20.0.0" # tag
 export GIT_URL_META_OE="https://github.com/openembedded/meta-openembedded.git"
 export GIT_CHECKOUT_META_OE="6094ae18c8a35e5cc9998ac39869390d7f3bb1e2"
 
-export GIT_URL_META_HPSC="https://github.com/ISI-apex/meta-hpsc"
+export GIT_URL_META_HPSC="https://github.com/ISI-apex/meta-hpsc.git"
 export GIT_CHECKOUT_META_HPSC="cf6c7b6426fb4816d284adc6834607eb4334ce26"
 
 #
