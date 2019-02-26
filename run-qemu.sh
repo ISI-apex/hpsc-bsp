@@ -20,6 +20,7 @@ function source_if_exists()
 {
     if [ -f "$1" ]
     then
+        echo Loading env from: $1
         source "$1"
     fi
 }
