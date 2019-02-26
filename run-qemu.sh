@@ -403,7 +403,7 @@ fi
 BOOT__BIN_LOC=$(syscfg_get boot bin_loc)
 if [ $? -ne 0 ]; then echo "ERROR: syscfg_get failed" && exit 1; fi
 
-if [ "BOOT__BIN_LOC" = "DRAM" ]
+if [ "$BOOT__BIN_LOC" = "DRAM" ]
 then
     # The following two are used only for developer-friendly boot mode in which
     # Qemu loads the images directly into DRAM upon startup of the machine (not
