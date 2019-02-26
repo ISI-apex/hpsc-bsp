@@ -399,7 +399,10 @@ then
     COMMAND+=(-monitor stdio)
 fi
 
-if [ "$(syscfg_get boot bin_loc)" = "DRAM" ]
+BOOT__BIN_LOC=$(syscfg_get boot bin_loc)
+if [ $? -ne 0 ]; then echo "ERROR: syscfg_get failed" && exit 1; fi
+
+if [ "BOOT__BIN_LOC" = "DRAM" ]
 then
     # The following two are used only for developer-friendly boot mode in which
     # Qemu loads the images directly into DRAM upon startup of the machine (not
@@ -413,7 +416,10 @@ then
         -device "loader,addr=${HPPS_KERN_ADDR},file=${HPPS_KERN},force-raw,cpu-num=4")
 fi
 
-if [ "$(syscfg_get HPPS rootfs_loc)" = "HPPS_DRAM" ]
+HPPS__ROOTFS_LOC=$(syscfg_get HPPS rootfs_loc)
+if [ $? -ne 0 ]; then echo "ERROR: syscfg_get failed" && exit 1; fi
+
+if [ "$HPPS__ROOTFS_LOC" = "HPPS_DRAM" ]
 then
     COMMAND+=(-device "loader,addr=${HPPS_RAMDISK_ADDR},file=${HPPS_RAMDISK},force-raw,cpu-num=4")
 fi
