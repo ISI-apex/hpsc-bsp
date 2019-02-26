@@ -16,8 +16,22 @@
 #      - configparse : for config INI->BIN compiler (cfgc)
 #      - json : for QMP and for cfgc
 
-: ${QEMU_ENV:=$(dirname "$0")/qemu-env.sh}
-source "$QEMU_ENV"
+function source_if_exists()
+{
+    if [ -f "$1" ]
+    then
+        source "$1"
+    fi
+}
+
+# Environment settings (paths to build artifacts and tools) may be overriden by
+# placing the file at multiple locations (vars in later files override vars in
+# earlier files):
+QEMU_ENV=qemu-env.sh
+
+source_if_exists "$(dirname "$0")/$QEMU_ENV"
+source_if_exists "$HPSC_ROOT/$QEMU_ENV"
+source_if_exists "$QEMU_ENV"
 
 PORT_BASE=$((1024 + $(id -u) + 1000)) # arbitrary, but unique and not system
 LOG_FILE=qemu.log
