@@ -32,7 +32,7 @@ QEMU_ENV=qemu-env.sh
 
 source_if_exists "$(dirname "$0")/$QEMU_ENV"
 source_if_exists "$HPSC_ROOT/$QEMU_ENV"
-source_if_exists "$QEMU_ENV"
+source_if_exists "$PWD/$QEMU_ENV"
 
 PORT_BASE=$((1024 + $(id -u) + 1000)) # arbitrary, but unique and not system
 LOG_FILE=/tmp/qemu-$(whoami).log
