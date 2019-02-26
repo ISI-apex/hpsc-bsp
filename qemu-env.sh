@@ -1,8 +1,8 @@
 #!/bin/bash
 # Paths to host tools and target binaries for run-qemu.sh.
-# Relative paths are relative to directory from where run-qemu.sh is invoked.
 
 WORKING_DIR=${PWD}/BUILD/work
+BSP_DIR=${PWD}
 YOCTO_DEPLOY_DIR=${WORKING_DIR}/poky_build/tmp/deploy/images/hpsc-chiplet
 
 HPSC_HOST_UTILS_DIR=${WORKING_DIR}/hpsc-utils/host
@@ -32,5 +32,5 @@ QEMU_PREFIX=/usr/local
 QEMU_DT_FILE=${WORKING_DIR}/qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb
 
 # System configuration interpreted by TRCH
-SYSCFG=syscfg.ini
-SYSCFG_SCHEMA=syscfg-schema.json
+SYSCFG=${BSP_DIR}/syscfg.ini
+SYSCFG_SCHEMA=${BSP_DIR}/syscfg-schema.json
