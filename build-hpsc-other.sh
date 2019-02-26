@@ -154,9 +154,9 @@ PREBUILD_FNS=(check_bm_toolchain
 
 # Indexes of these arrays must align to each other
 BUILD_DIRS=("hpsc-baremetal"
-            "arm-trusted-firmware-a53"
-            "u-boot-r52"
-            "u-boot-a53"
+            "arm-trusted-firmware-rtps-a53"
+            "u-boot-rtps-r52"
+            "u-boot-rtps-a53"
             "qemu"
             "qemu-devicetrees"
             "hpsc-utils")
@@ -175,16 +175,16 @@ BUILD_REPOS=("$GIT_URL_BM"
              "$GIT_URL_QEMU_DT"
              "$GIT_URL_HPSC_UTILS")
 BUILD_CHECKOUTS=("$GIT_CHECKOUT_BM"
-                 "$GIT_CHECKOUT_ATF_A53"
-                 "$GIT_CHECKOUT_UBOOT_R52"
-                 "$GIT_CHECKOUT_UBOOT_A53"
+                 "$GIT_CHECKOUT_ATF_RTPS_A53"
+                 "$GIT_CHECKOUT_UBOOT_RTPS_R52"
+                 "$GIT_CHECKOUT_UBOOT_RTPS_A53"
                  "$GIT_CHECKOUT_QEMU"
                  "$GIT_CHECKOUT_QEMU_DT"
                  "$GIT_CHECKOUT_HPSC_UTILS")
 BUILD_FNS=(make_parallel
-           : # not currently building atf-a53
+           : # not currently building arm-trusted-firmware-rtps-a53
            uboot_r52_build
-           : # not currently building u-boot-a53
+           : # not currently building u-boot-rtps-a53
            qemu_build
            make_parallel
            utils_build)

@@ -19,7 +19,7 @@ POKY_IMAGE_DIR=${POKY_DEPLOY_DIR}/images/hpsc-chiplet
 POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.sh
 BAREMETAL_DIR=work/hpsc-baremetal
 UTILS_DIR=work/hpsc-utils
-R52_UBOOT_DIR=work/u-boot-r52
+RTPS_R52_UBOOT_DIR=work/u-boot-rtps-r52
 ECLIPSE_INSTALLER=work/hpsc-eclipse.tar.gz
 
 # Generated artifacts for BSP directory
@@ -45,7 +45,7 @@ BSP_ARTIFACTS_AARCH64_UTIL=("${UTILS_DIR}/linux/mboxtester"
 BSP_ARTIFACTS_HOST_UTIL=("${UTILS_DIR}/host/qemu-nand-creator"
                          "${UTILS_DIR}/host/sram-image-utils")
 BSP_ARTIFACTS_RTPS_R52=("${BAREMETAL_DIR}/rtps/bld/rtps.uimg"
-                        "${R52_UBOOT_DIR}/u-boot.bin")
+                        "${RTPS_R52_UBOOT_DIR}/u-boot.bin")
 BSP_ARTIFACTS_TRCH=("${BAREMETAL_DIR}/trch/bld/trch.elf")
 
 # Toolchain installers for toolchains directory

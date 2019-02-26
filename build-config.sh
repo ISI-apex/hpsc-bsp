@@ -29,12 +29,12 @@ export GIT_CHECKOUT_BM="111a30b662bd807972696bf5a5bc99637cc8a26b"
 
 # ATF also built by yocto (set revision in meta-hpsc)
 export GIT_URL_ATF="https://github.com/ISI-apex/arm-trusted-firmware.git"
-export GIT_CHECKOUT_ATF_A53="5c1a87f3b606ac2bc60b3c9d243c6c15ba55a967"
+export GIT_CHECKOUT_ATF_RTPS_A53="5c1a87f3b606ac2bc60b3c9d243c6c15ba55a967"
 
 # u-boot also built by yocto (set revision in meta-hpsc)
 export GIT_URL_UBOOT="https://github.com/ISI-apex/u-boot.git"
-export GIT_CHECKOUT_UBOOT_R52="72d0ce6eee1012b5a3c59028b8af66e69c45f83e"
-export GIT_CHECKOUT_UBOOT_A53="72d0ce6eee1012b5a3c59028b8af66e69c45f83e"
+export GIT_CHECKOUT_UBOOT_RTPS_R52="72d0ce6eee1012b5a3c59028b8af66e69c45f83e"
+export GIT_CHECKOUT_UBOOT_RTPS_A53="72d0ce6eee1012b5a3c59028b8af66e69c45f83e"
 
 export GIT_URL_HPSC_UTILS="https://github.com/ISI-apex/hpsc-utils.git"
 export GIT_CHECKOUT_HPSC_UTILS="6312ada9b1a11e8115e633e42f62179d4abf9dba"

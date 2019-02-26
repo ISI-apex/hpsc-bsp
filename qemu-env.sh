@@ -22,7 +22,7 @@ TRCH_APP=${BAREMETAL_DIR}/trch/bld/trch.elf
 RTPS_APP=${BAREMETAL_DIR}/rtps/bld/rtps.uimg
 
 # Output files from the hpsc-R52-uboot build
-RTPS_BL_DIR=${WORKING_DIR}/u-boot-r52
+RTPS_BL_DIR=${WORKING_DIR}/u-boot-rtps-r52
 RTPS_BL=${RTPS_BL_DIR}/u-boot.bin
 
 # Output files from the qemu/qemu-devicetree builds
