@@ -3,16 +3,6 @@
 # Fail-fast
 set -e
 
-function conf_replace_or_append()
-{
-    local key=$1
-    local value=$2
-    local file="conf/local.conf"
-    # Using '@' instead of '/' in sed so paths can be values
-    grep -q "^$key =" "$file" && sed -i "s@^$key.*@$key = $value@" "$file" ||\
-        echo "$key = $value" >> "$file"
-}
-
 function usage()
 {
     echo "Usage: $0 [-a <all|fetch|build|populate_sdk|test|taskexp>] [-w DIR] [-h]"
