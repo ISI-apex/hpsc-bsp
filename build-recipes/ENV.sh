@@ -28,7 +28,7 @@ function do_post_fetch()
 # perform actual build (beginning here, internet may be unavailable)
 function do_build()
 {
-    make_parallel
+    :
 }
 
 # run any unit tests
