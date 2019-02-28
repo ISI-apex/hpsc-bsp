@@ -6,13 +6,22 @@
 # Fail-fast
 set -e
 
+# The recipes managed by this script
+RECIPES=("hpsc-baremetal"
+         "arm-trusted-firmware-rtps-a53"
+         "u-boot-rtps-r52"
+         "u-boot-rtps-a53"
+         "qemu"
+         "qemu-devicetrees"
+         "hpsc-utils")
+
 # Check that baremetal toolchain is on PATH
 function check_bm_toolchain()
 {
     if ! which arm-none-eabi-gcc > /dev/null 2>&1; then
         echo "Error: Bare metal cross compiler 'arm-none-eabi-gcc' is not on PATH"
         echo "  e.g., export PATH=\$PATH:/opt/gcc-arm-none-eabi-7-2018-q2-update/bin"
-        exit 1
+        return 1
     fi
 }
 
@@ -22,68 +31,24 @@ function check_poky_toolchain()
     if [ -z "$POKY_SDK" ] || [ ! -d "$POKY_SDK" ]; then
         echo "Error: POKY_SDK not found: $POKY_SDK"
         echo "  e.g., export POKY_SDK=/opt/poky/2.6"
-        exit 1
+        return 1
     fi
 }
 
-function make_parallel()
-{
-    make -j "$(nproc)" "$@"
-}
-
-function uboot_r52_build()
-{
-    make hpsc_rtps_r52_defconfig
-    make_parallel CROSS_COMPILE=arm-none-eabi-
-}
-
-function qemu_post_fetch()
-{
-    # Fetches submodules, which requires internet
-    # We only know which submodules are used b/c we've run configure before...
-    ./scripts/git-submodule.sh update ui/keycodemapdb dtc capstone
-}
-function qemu_build()
-{
-    mkdir -p BUILD
-    (
-        cd BUILD
-        ../configure --target-list="aarch64-softmmu" --enable-fdt \
-                     --disable-kvm --disable-xen
-        make_parallel
-    )
-}
-function qemu_test()
-{
-    make_parallel -C BUILD check-unit
-}
-
-function utils_build()
-{
-    for s in host linux; do
-        (
-            echo "hpsc-utils: $s: build"
-            if [ "$s" == "linux" ]; then
-                echo "hpsc-utils: source poky environment"
-                . "${POKY_SDK}/environment-setup-aarch64-poky-linux"
-                unset LDFLAGS
-            fi
-            make_parallel -C "$s"
-        )
-    done
-}
+PREBUILD_FNS=(check_bm_toolchain
+              check_poky_toolchain)
 
 function usage()
 {
     echo "Usage: $0 [-a <all|fetch|clean|extract|build|test>] [-w DIR] [-h]"
     echo "    -a ACTION"
-    echo "       all: (default) fetch, clean, extract, and build"
+    echo "       all: (default) fetch, clean, extract, build, and test"
     echo "       fetch: download/update sources (forces clean)"
     echo "       clean: clean compiled sources"
     echo "       extract: copy sources to working directory"
     echo "       build: compile pre-downloaded sources"
     echo "       test: run unit tests"
-    echo "    -w DIR: set the working directory (default=ID from -b)"
+    echo "    -w DIR: set the working directory (default=\"BUILD\")"
     echo "    -h: show this message and exit"
     echo ""
     echo "The POKY_SDK environment variable must also be set to the SDK path."
@@ -99,7 +64,7 @@ IS_EXTRACT=0
 IS_BUILD=0
 IS_TEST=0
 WORKING_DIR="BUILD"
-while getopts "h?a:fw:" o; do
+while getopts "h?a:w:" o; do
     case "$o" in
         a)
             HAS_ACTION=1
@@ -137,107 +102,33 @@ while getopts "h?a:fw:" o; do
 done
 shift $((OPTIND-1))
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
-    # do everything except test
     IS_FETCH=1
     IS_CLEAN=1
     IS_EXTRACT=1
     IS_BUILD=1
+    IS_TEST=1
 fi
 
-. ./build-common.sh
-. ./build-config.sh
-build_work_dirs "$WORKING_DIR"
-cd "$WORKING_DIR"
-
-PREBUILD_FNS=(check_bm_toolchain
-              check_poky_toolchain)
-
-# Indexes of these arrays must align to each other
-BUILD_DIRS=("hpsc-baremetal"
-            "arm-trusted-firmware-rtps-a53"
-            "u-boot-rtps-r52"
-            "u-boot-rtps-a53"
-            "qemu"
-            "qemu-devicetrees"
-            "hpsc-utils")
-BUILD_POST_FETCH=(:
-                  :
-                  :
-                  :
-                  qemu_post_fetch
-                  :
-                  :)
-BUILD_REPOS=("$GIT_URL_BM"
-             "$GIT_URL_ATF"
-             "$GIT_URL_UBOOT"
-             "$GIT_URL_UBOOT"
-             "$GIT_URL_QEMU"
-             "$GIT_URL_QEMU_DT"
-             "$GIT_URL_HPSC_UTILS")
-BUILD_CHECKOUTS=("$GIT_CHECKOUT_BM"
-                 "$GIT_CHECKOUT_ATF_RTPS_A53"
-                 "$GIT_CHECKOUT_UBOOT_RTPS_R52"
-                 "$GIT_CHECKOUT_UBOOT_RTPS_A53"
-                 "$GIT_CHECKOUT_QEMU"
-                 "$GIT_CHECKOUT_QEMU_DT"
-                 "$GIT_CHECKOUT_HPSC_UTILS")
-BUILD_FNS=(make_parallel
-           : # not currently building arm-trusted-firmware-rtps-a53
-           uboot_r52_build
-           : # not currently building u-boot-rtps-a53
-           qemu_build
-           make_parallel
-           utils_build)
-BUILD_TEST_FNS=(:
-                :
-                :
-                :
-                qemu_test
-                :
-                :)
+function for_each_recipe()
+{
+    for rec in "${RECIPES[@]}"; do
+        ./build-recipe.sh -r "$rec" -w "$WORKING_DIR" -a "$1"
+    done
+}
 
 if [ $IS_FETCH -ne 0 ]; then
     echo "Performing action: fetch..."
-    for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
-        name="${BUILD_DIRS[$i]}"
-        src="src/${BUILD_DIRS[$i]}"
-        echo "$name: fetch"
-        git_clone_fetch_checkout "${BUILD_REPOS[$i]}" "$src" \
-                                 "${BUILD_CHECKOUTS[$i]}"
-        echo "$name: post-fetch"
-        (
-            cd "$src"
-            "${BUILD_POST_FETCH[$i]}"
-        )
-    done
+    for_each_recipe fetch
 fi
 
 if [ $IS_CLEAN -ne 0 ]; then
     echo "Performing action: clean..."
-    for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
-        name="${BUILD_DIRS[$i]}"
-        echo "$name: clean"
-        rm -rf "work/${BUILD_DIRS[$i]}"
-    done
+    for_each_recipe clean
 fi
 
 if [ $IS_EXTRACT -ne 0 ]; then
     echo "Performing action: extract..."
-    for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
-        name="${BUILD_DIRS[$i]}"
-        src="src/${BUILD_DIRS[$i]}"
-        work="work/${BUILD_DIRS[$i]}"
-        if [ ! -d "$src" ]; then
-            echo "$name: Error: must 'fetch' before 'extract'"
-            exit 1
-        fi
-        echo "$name: extract"
-        if [ -d "$work" ]; then
-            echo "$name: extract: work directory already exists, skipping..."
-        else
-            cp -r "src/${BUILD_DIRS[$i]}" "$work"
-        fi
-    done
+    for_each_recipe extract
 fi
 
 if [ $IS_BUILD -ne 0 ]; then
@@ -246,40 +137,10 @@ if [ $IS_BUILD -ne 0 ]; then
         "$pfn"
     done
     echo "Performing action: build..."
-    for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
-        name="${BUILD_DIRS[$i]}"
-        work="work/${BUILD_DIRS[$i]}"
-        if [ ! -d "$work" ]; then
-            echo "$name: Error: must 'extract' before 'build'"
-            exit 1
-        fi
-        echo "$name: build"
-        (
-            cd "$work"
-            "${BUILD_FNS[$i]}" && RC=0 || RC=$?
-            if [ $RC -eq 0 ]; then
-                echo "$name: build successful"
-            else
-                echo "$name: Error: build failed with exit code: $RC"
-                exit $RC
-            fi
-        )
-    done
+    for_each_recipe build
 fi
 
 if [ $IS_TEST -ne 0 ]; then
     echo "Performing action: test..."
-    for ((i = 0; i < ${#BUILD_DIRS[@]}; i++)); do
-        name="${BUILD_DIRS[$i]}"
-        work="work/${BUILD_DIRS[$i]}"
-        if [ ! -d "$work" ]; then
-            echo "$name: Error: must 'extract' before 'test'"
-            exit 1
-        fi
-        echo "$name: test"
-        (
-            cd "$work"
-            "${BUILD_TEST_FNS[$i]}"
-        )
-    done
+    for_each_recipe test
 fi
