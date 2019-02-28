@@ -44,24 +44,18 @@ if [ -z "$WORKING_DIR" ]; then
 fi
 
 . ./build-common.sh
-. ./build-config.sh
 build_work_dirs "$WORKING_DIR"
-cd "$WORKING_DIR"
 
 IS_FETCH=${IS_FETCH:-1}
 POKY_DL_DIR=${PWD}/src/poky_dl
 
-# clone our repositories and checkout correct revisions
+# clone poky and the layers we configure
 if [ "$IS_FETCH" -ne 0 ]; then
-    # download the yocto poky git repository
-    git_clone_fetch_checkout "$GIT_URL_POKY" "src/poky" "$GIT_CHECKOUT_POKY"
-    # add the meta-openembedded layer (for the mpich package)
-    git_clone_fetch_checkout "$GIT_URL_META_OE" "src/meta-openembedded" \
-                             "$GIT_CHECKOUT_META_OE"
-    # add the meta-hpsc layer
-    git_clone_fetch_checkout "$GIT_URL_META_HPSC" "src/meta-hpsc" \
-                             "$GIT_CHECKOUT_META_HPSC"
+    ./build-recipe.sh -w "$WORKING_DIR" -a fetch \
+                      -r poky -r meta-openembedded -r meta-hpsc
 fi
+
+cd "$WORKING_DIR"
 
 # poky's sanity checker tries to reach example.com unless we force it offline
 export BB_NO_NETWORK=1
