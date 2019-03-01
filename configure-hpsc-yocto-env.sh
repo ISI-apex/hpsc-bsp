@@ -74,20 +74,21 @@ unset BB_NO_NETWORK
 # configure local.conf
 function conf_replace_or_append()
 {
-    local key=$1
-    local value=$2
+    local line=$1
     local file="conf/local.conf"
+    local key=$(echo "$line" | awk '{print $1}')
+    # support assignment types: ?=, +=, or =
     # Using '@' instead of '/' in sed so paths can be values
-    grep -q "^$key =" "$file" && sed -i "s@^$key.*@$key = $value@" "$file" ||\
-        echo "$key = $value" >> "$file"
+    grep -q "^$key ?*+*=" "$file" && sed -i "s@^${key} .*@${line}@" "$file" || \
+        echo "$line" >> "$file"
 }
-conf_replace_or_append "MACHINE" "\"hpsc-chiplet\""
-conf_replace_or_append "DL_DIR" "\"${POKY_DL_DIR}\""
-conf_replace_or_append "FORTRAN_forcevariable" "\",fortran\""
+conf_replace_or_append "MACHINE ?= \"hpsc-chiplet\""
+conf_replace_or_append "DL_DIR ?= \"${POKY_DL_DIR}\""
+conf_replace_or_append "FORTRAN_forcevariable = \",fortran\""
 # the following commands are needed for enabling runtime tests
-conf_replace_or_append "INHERIT_append" "\" testimage\""
-conf_replace_or_append "TEST_TARGET" "\"simpleremote\""
-conf_replace_or_append "TEST_SERVER_IP" "\"$(hostname -I | cut -d ' ' -f 1)\""
-conf_replace_or_append "TEST_TARGET_IP" "\"127.0.0.1:10022\""
-conf_replace_or_append "IMAGE_FSTYPES_append" "\" cpio.gz\""
-conf_replace_or_append "TEST_SUITES" "\"perl ping scp ssh date openmp pthreads\""
+conf_replace_or_append "INHERIT_append += \" testimage\""
+conf_replace_or_append "TEST_TARGET = \"simpleremote\""
+conf_replace_or_append "TEST_SERVER_IP = \"$(hostname -I | cut -d ' ' -f 1)\""
+conf_replace_or_append "TEST_TARGET_IP = \"127.0.0.1:10022\""
+conf_replace_or_append "IMAGE_FSTYPES_append += \" cpio.gz\""
+conf_replace_or_append "TEST_SUITES += \"perl ping scp ssh date openmp pthreads\""
