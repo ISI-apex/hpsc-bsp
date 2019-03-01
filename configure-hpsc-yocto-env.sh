@@ -9,8 +9,9 @@
 # the caller's environment will be set by poky's 'oe-init-build-env' script.
 #
 
-# Fail-fast
-set -e
+# This script is sourced, it must not set -e
+# set -e
+# TODO: clean up to minimize pollution of user's environment
 
 function usage()
 {
@@ -52,7 +53,7 @@ POKY_DL_DIR=${PWD}/src/poky_dl
 # clone poky and the layers we configure
 if [ "$IS_FETCH" -ne 0 ]; then
     ./build-recipe.sh -w "$WORKING_DIR" -a fetch \
-                      -r poky -r meta-openembedded -r meta-hpsc
+                      -r poky -r meta-openembedded -r meta-hpsc || exit $?
 fi
 
 cd "$WORKING_DIR"
@@ -64,10 +65,10 @@ BITBAKE_LAYERS=("${PWD}/src/meta-openembedded/meta-oe"
                 "${PWD}/src/meta-openembedded/meta-python"
                 "${PWD}/src/meta-hpsc/meta-hpsc-bsp")
 # create build directory and cd to it
-. ./src/poky/oe-init-build-env work/poky_build
+. ./src/poky/oe-init-build-env work/poky_build || exit $?
 # configure layers
 for layer in "${BITBAKE_LAYERS[@]}"; do
-    bitbake-layers add-layer "$layer"
+    bitbake-layers add-layer "$layer" || exit $?
 done
 unset BB_NO_NETWORK
 
