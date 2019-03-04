@@ -8,6 +8,60 @@
 #
 set -e
 
+function find_srcuri()
+{
+    local recfile=$1
+    local srcuri=$(grep SRC_URI "$recfile" | cut -d'=' -f2- | tr -d '"' | xargs)
+    if [ -z "$srcuri" ]; then
+        echo "Failed to determine SRC_URI value from recipe"
+        return 1
+    fi
+    echo "$srcuri"
+}
+
+function find_srcbranch()
+{
+    local recfile=$1
+    local srcuri=$2
+    # check if 'SRCBRANCH' is specified in recipe
+    local srcbranch=$(grep SRCBRANCH "$recfile" | cut -d'=' -f2 | tr -d '"' | xargs)
+    if [ -z "$srcbranch" ]; then
+        # try to parse branch from 'SRC_URI'
+        IFS=';' read -ra TMPARR <<< "$(echo "$srcuri" | cut -d';' -f2-)"
+        for prop in "${TMPARR[@]}"; do
+            if [ "$(echo "$prop" | grep -c "branch=")" -eq 1 ]; then
+                srcbranch=$(echo "$prop" | cut -d'=' -f2)
+                break
+            fi
+        done
+    fi
+    if [ -z "$srcbranch" ]; then
+        # fall back on default
+        srcbranch=master
+    fi
+    echo "$srcbranch"
+}
+
+function find_srcrev()
+{
+    local srcuri=$1
+    local srcbranch=$2
+    # parse 'SRC_URI' for the git URI
+    local gituri=$(echo "$srcuri" | cut -d';' -f1)
+    if [ -z "$gituri" ]; then
+        echo "Failed to determine git URI"
+        return 1
+    fi
+    # query for the HEAD of the branch
+    local srcrev=$(git ls-remote "$gituri" "$srcbranch" | awk '{print $1}')
+    if [ -z "$srcrev" ]; then
+        # branch doesn't exist?
+        echo "Failed to get SRCREV from remote: $gituri"
+        return 1
+    fi
+    echo "$srcrev"
+}
+
 function usage()
 {
     echo "Usage: $0 -r RECIPE [-s SRCREV] [-a <build>] [-w DIR] [-h]"
@@ -79,50 +133,20 @@ REC_FILE=$(devtool find-recipe "$RECIPE" | tail -n 1)
 echo "Using recipe file: $REC_FILE"
 
 # get the 'SRC_URI' value from the recipe
-SRC_URI=$(grep SRC_URI "$REC_FILE" | cut -d'=' -f2- | tr -d '"' | xargs)
-if [ -z "$SRC_URI" ]; then
-    echo "Failed to determine SRC_URI value from recipe"
-    exit 1
-fi
+SRC_URI=$(find_srcuri "$REC_FILE")
 echo "Using SRC_URI: $SRC_URI"
 
 # a branch must be known if we have to query the remote for the latest HEAD
 # also, devtool fails if it finds multiple branches with SRCREV
 if [ -z "$SRCBRANCH" ]; then
     # check if 'SRCBRANCH' is specified in recipe
-    SRCBRANCH=$(grep SRCBRANCH "$REC_FILE" | cut -d'=' -f2 | tr -d '"' | xargs)
-fi
-if [ -z "$SRCBRANCH" ]; then
-    # try to parse branch from 'SRC_URI'
-    IFS=';' read -ra TMPARR <<< "$(echo "$SRC_URI" | cut -d';' -f2-)"
-    for prop in "${TMPARR[@]}"; do
-        if [ "$(echo "$prop" | grep -c "branch=")" -eq 1 ]; then
-            SRCBRANCH=$(echo "$prop" | cut -d'=' -f2)
-            break
-        fi
-    done
-fi
-if [ -z "$SRCBRANCH" ]; then
-    # fall back on default
-    SRCBRANCH=master
+    SRCBRANCH=$(find_srcbranch "$REC_FILE" "$SRC_URI")
 fi
 echo "Using SRCBRANCH: $SRCBRANCH"
 
 # if not given SRCREV, we have to query the remote
 if [ -z "$SRCREV" ]; then
-    # parse 'SRC_URI' for the git URI
-    GIT_URI=$(echo "$SRC_URI" | cut -d';' -f1)
-    if [ -z "$GIT_URI" ]; then
-        echo "Failed to determine git URI"
-        exit 1
-    fi
-    # query for the HEAD of the branch
-    SRCREV=$(git ls-remote "$GIT_URI" "$SRCBRANCH" | awk '{print $1}')
-    if [ -z "$SRCREV" ]; then
-        # branch doesn't exist?
-        echo "Failed to get SRCREV from remote: $GIT_URI"
-        exit 1
-    fi
+    SRCREV=$(find_srcrev "$SRC_URI" "$SRCBRANCH")
 fi
 echo "Using SRCREV: $SRCREV"
 
