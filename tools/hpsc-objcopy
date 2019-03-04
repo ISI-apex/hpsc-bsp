@@ -4,8 +4,9 @@ import argparse
 import sys
 
 class FileIO:
-    def __init__(self, fd):
+    def __init__(self, fd, block_size=4096):
         self.fd = fd
+        self.block_size = block_size
     def read_block(self):
         raise Exception("Input from requested format not implemented")
     def write_block(self, b):
@@ -16,6 +17,8 @@ class VerilogHIO(FileIO):
         FileIO.__init__(self, fd)
 
     def read_block(self):
+        b = bytearray(self.block_size)
+        k = 0
         for line in self.fd:
             if line.startswith('//'):
                 continue
@@ -25,13 +28,16 @@ class VerilogHIO(FileIO):
                 raise Exception("Sections not supported")
 
             h = line.strip()
-            b = bytearray(4*8)
-            k = 0
+
             for i in range(len(h) - 1, -1, -8):
                 for j in range(0, 8, 2):
                     b[k] = int(h[i-(j+1):i-j+1], 16)
                     k += 1
-            yield b
+                    if k == self.block_size:
+                        yield b
+                        b = bytearray(self.block_size)
+                        k = 0
+        yield b[0:k]
 
 class BinaryIO(FileIO):
     def __init__(self, fd):
