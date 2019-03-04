@@ -13,6 +13,10 @@
 # set -e
 # TODO: clean up to minimize pollution of user's environment
 
+LAYER_RECIPES=(poky
+               meta-openembedded
+               meta-hpsc)
+
 function usage()
 {
     echo "Usage: $0 -w DIR [-h]"
@@ -52,8 +56,11 @@ POKY_DL_DIR=${PWD}/src/poky_dl
 
 # clone poky and the layers we configure
 if [ "$IS_FETCH" -ne 0 ]; then
-    ./build-recipe.sh -w "$WORKING_DIR" -a fetch \
-                      -r poky -r meta-openembedded -r meta-hpsc || exit $?
+    REC_PARAMS=()
+    for rec in "${LAYER_RECIPES[@]}"; do
+        REC_PARAMS+=("-r" "$rec")
+    done
+    ./build-recipe.sh -w "$WORKING_DIR" -a fetch "${REC_PARAMS[@]}" || exit $?
 fi
 
 cd "$WORKING_DIR"
