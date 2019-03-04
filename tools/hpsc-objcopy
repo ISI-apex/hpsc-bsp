@@ -6,16 +6,16 @@ import sys
 class FileIO:
     def __init__(self, fd):
         self.fd = fd
-    def read_byte(self):
+    def read_block(self):
         raise Exception("Input from requested format not implemented")
-    def write_byte(self, b):
+    def write_block(self, b):
         raise Exception("Output to requested format not implemented")
 
 class VerilogHIO(FileIO):
     def __init__(self, fd):
         FileIO.__init__(self, fd)
 
-    def read_byte(self):
+    def read_block(self):
         for line in self.fd:
             if line.startswith('//'):
                 continue
@@ -25,17 +25,20 @@ class VerilogHIO(FileIO):
                 raise Exception("Sections not supported")
 
             h = line.strip()
+            b = bytearray(4*8)
+            k = 0
             for i in range(len(h) - 1, -1, -8):
                 for j in range(0, 8, 2):
-                    b = int(h[i-(j+1):i-j+1], 16)
-                    yield b
+                    b[k] = int(h[i-(j+1):i-j+1], 16)
+                    k += 1
+            yield b
 
 class BinaryIO(FileIO):
     def __init__(self, fd):
         FileIO.__init__(self, fd)
 
-    def write_byte(self, b):
-        self.fd.write(bytearray([b]))
+    def write_block(self, b):
+        self.fd.write(b)
 
 FORMATS = {
     "Verilog-H": VerilogHIO,
@@ -82,5 +85,5 @@ fout = open(args.out_file, "wb")
 reader = FORMATS[args.target_input](fin)
 writer = FORMATS[args.target_output](fout)
 
-for b in reader.read_byte():
-    writer.write_byte(b)
+for b in reader.read_block():
+    writer.write_block(b)
