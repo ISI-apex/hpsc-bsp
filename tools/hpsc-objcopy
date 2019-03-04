@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+import struct
 
 class FileIO:
     def __init__(self, fd, block_size=4096):
@@ -13,6 +14,10 @@ class FileIO:
         raise Exception("Output to requested format not implemented")
 
 class VerilogHIO(FileIO):
+    WIDTH_BYTES = 32
+    WORD_SIZE = 8
+    WORDS_PER_LINE = WIDTH_BYTES / WORD_SIZE
+
     def __init__(self, fd):
         FileIO.__init__(self, fd)
 
@@ -44,9 +49,41 @@ class VerilogHIO(FileIO):
                         k = 0
         yield b[0:k]
 
+    def write_block(self, b):
+        nlines = len(b) / self.WIDTH_BYTES
+        k = 0
+
+        for i in range(nlines):
+            line = ("%016X" * self.WORDS_PER_LINE + "\n") % struct.unpack('<QQQQ', b[k:k+self.WIDTH_BYTES])[::-1]
+            k += self.WIDTH_BYTES
+            self.fd.write(line)
+
+        nr = len(b) % self.WIDTH_BYTES
+        if nr > 0:
+            line = bytearray(self.WIDTH_BYTES * 2 + 1)
+            line[-1] = '\n'
+            p = (self.WIDTH_BYTES - 1) * 2
+            for d in range(nr):
+                d = "%02X" % struct.unpack('<B', b[k:k+1])[0]
+                k += 1
+                line[p - 1] = d[0]
+                line[p] = d[1]
+                p -= 2
+            while p >= 0:
+                line[p] = '0'
+                p -= 1
+            self.fd.write(line)
+
 class BinaryIO(FileIO):
     def __init__(self, fd):
         FileIO.__init__(self, fd)
+
+    def read_block(self):
+        while True:
+            b = self.fd.read(self.block_size)
+            yield b
+            if len(b) < self.block_size:
+                break
 
     def write_block(self, b):
         self.fd.write(b)
