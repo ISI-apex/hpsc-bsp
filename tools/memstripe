@@ -1,0 +1,61 @@
+#!/usr/bin/python
+
+import argparse
+import sys
+import os
+
+parser = argparse.ArgumentParser(
+    description="Stripe/unstripe memory images")
+parser.add_argument('-b', '--base', default=0x80000000,
+    type=lambda x: int(x, 16),
+    help='Base address (in base 16) of the data at the beginning of the images')
+parser.add_argument('-o', '--output',
+    help='Output file')
+parser.add_argument('input', nargs='+',
+    help='Input file(s)')
+args = parser.parse_args()
+
+fin = []
+sz = None
+for f in args.input:
+    s = os.stat(f)
+    if sz is not None:
+        if sz != s.st_size:
+            print >>sys.stderr, "Input files of different size"
+            sys.exit(1)
+    sz = s.st_size
+    fin.append(open(f, "rb"))
+
+fout = open(args.output, "wb")
+
+LINE_SZ = 32
+
+lines = sz / LINE_SZ;
+
+BASE_ADDR = args.base
+FROM = 6
+TO = 43
+
+def hash_xor_43_6(addr):
+    addr >>= FROM
+    h = addr & 0x1
+    addr >>= 1
+    for i in range((TO-FROM+1)-1):
+        h ^= addr & 0x1
+        addr >>= 1
+    return h
+
+hashfunc = hash_xor_43_6
+
+offset = 0
+for w in range(lines):
+    addr = BASE_ADDR + offset
+    idx = hashfunc(addr)
+
+    fd = fin[idx]
+
+    fd.seek(offset)
+    w = fd.read(LINE_SZ)
+
+    fout.write(bytearray(w))
+    offset += LINE_SZ
