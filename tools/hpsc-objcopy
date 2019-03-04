@@ -17,6 +17,7 @@ class VerilogHIO(FileIO):
         FileIO.__init__(self, fd)
 
     def read_block(self):
+        d = bytearray(2) # two hex digits per byte
         b = bytearray(self.block_size)
         k = 0
         for line in self.fd:
@@ -29,9 +30,13 @@ class VerilogHIO(FileIO):
 
             h = line.strip()
 
+            c = 0
             for i in range(len(h) - 1, -1, -8):
                 for j in range(0, 8, 2):
-                    b[k] = int(h[i-(j+1):i-j+1], 16)
+                    d[0] = h[-c-1-1]
+                    d[1] = h[-c-1]
+                    c += 2
+                    b[k] = int(str(d), 16)
                     k += 1
                     if k == self.block_size:
                         yield b
