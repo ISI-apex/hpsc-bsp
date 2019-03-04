@@ -5,9 +5,8 @@ import sys
 import struct
 
 class FileIO:
-    def __init__(self, fd, block_size=4096):
+    def __init__(self, fd):
         self.fd = fd
-        self.block_size = block_size
     def read_block(self):
         raise Exception("Input from requested format not implemented")
     def write_block(self, b):
@@ -17,14 +16,12 @@ class VerilogHIO(FileIO):
     WIDTH_BYTES = 32
     WORD_SIZE = 8
     WORDS_PER_LINE = WIDTH_BYTES / WORD_SIZE
+    PACK_FMT = '<' + ('Q' * WORDS_PER_LINE)
 
     def __init__(self, fd):
         FileIO.__init__(self, fd)
 
     def read_block(self):
-        d = bytearray(2) # two hex digits per byte
-        b = bytearray(self.block_size)
-        k = 0
         for line in self.fd:
             if line.startswith('//'):
                 continue
@@ -35,26 +32,20 @@ class VerilogHIO(FileIO):
 
             h = line.strip()
 
-            c = 0
-            for i in range(len(h) - 1, -1, -8):
-                for j in range(0, 8, 2):
-                    d[0] = h[-c-1-1]
-                    d[1] = h[-c-1]
-                    c += 2
-                    b[k] = int(str(d), 16)
-                    k += 1
-                    if k == self.block_size:
-                        yield b
-                        b = bytearray(self.block_size)
-                        k = 0
-        yield b[0:k]
+            k = 0
+            words = []
+            for i in range(self.WORDS_PER_LINE):
+                w = int(h[k:k + self.WORD_SIZE * 2], 16)
+                k += self.WORD_SIZE * 2
+                words.append(w)
+            yield struct.pack(self.PACK_FMT, *words[::-1])
 
     def write_block(self, b):
         nlines = len(b) / self.WIDTH_BYTES
         k = 0
 
         for i in range(nlines):
-            line = ("%016X" * self.WORDS_PER_LINE + "\n") % struct.unpack('<QQQQ', b[k:k+self.WIDTH_BYTES])[::-1]
+            line = ("%016X" * self.WORDS_PER_LINE + "\n") % struct.unpack(self.PACK_FMT, b[k:k+self.WIDTH_BYTES])[::-1]
             k += self.WIDTH_BYTES
             self.fd.write(line)
 
@@ -75,8 +66,9 @@ class VerilogHIO(FileIO):
             self.fd.write(line)
 
 class BinaryIO(FileIO):
-    def __init__(self, fd):
+    def __init__(self, fd, block_size=4096):
         FileIO.__init__(self, fd)
+        self.block_size = block_size
 
     def read_block(self):
         while True:
