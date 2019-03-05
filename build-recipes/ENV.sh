@@ -16,6 +16,12 @@ export GIT_REPO=""
 export GIT_REV=""
 export GIT_BRANCH=""
 
+# or you must set the following
+
+export WGET_URL=""
+export WGET_OUTPUT=""
+export WGET_OUTPUT_MD5=""
+
 #
 # The following build steps should be overridden as appropriate.
 #

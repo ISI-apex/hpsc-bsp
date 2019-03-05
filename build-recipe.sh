@@ -94,7 +94,13 @@ for recname in "${RECIPES[@]}"; do
         if [ $IS_FETCH -ne 0 ]; then
             echo "$recname: fetch"
             (
-                git_clone_fetch_checkout "${GIT_REPO}" "$src" "$GIT_REV"
+                if [ -n "$GIT_REPO" ]; then
+                    git_clone_fetch_checkout "$GIT_REPO" "$src" "$GIT_REV"
+                else
+                    mkdir -p "$src"
+                    wget_and_md5 "$WGET_URL" "${src}/${WGET_OUTPUT}" \
+                                 "$WGET_OUTPUT_MD5"
+                fi
                 echo "$recname: post_fetch"
                 cd "$src"
                 do_post_fetch
