@@ -19,6 +19,17 @@ function find_recipe()
     echo "$file"
 }
 
+function find_srcbranch()
+{
+    local recfile=$1
+    local srcbranch=$(grep GIT_BRANCH "$recfile" | cut -d'=' -f2 | tr -d '"')
+    if [ -z "$srcbranch" ]; then
+        echo "Failed to get SRCBRANCH from recipe: $recfile" >&2
+        return 1
+    fi
+    echo "$srcbranch"
+}
+
 function find_srcrev()
 {
     local recfile=$1
@@ -55,10 +66,11 @@ function usage()
     echo "    -s SRCREV: the git revision hash to upgrade to;"
     echo "               if not specified, the latest HEAD of SRCBRANCH is queried"
     echo "    -b SRCBRANCH: the git branch to use;"
-    echo "                  if not specified, 'hpsc' is used"
+    echo "                  if not specified, it is searched for in the recipe"
     echo "    -a ACTION"
     echo "       upgrade: (default) upgrade the recipe"
     echo "       find-recipe: print the recipe file and exit"
+    echo "       find-srcbranch: print the branch to use and exit"
     echo "       find-srcrev: query for and print the HEAD revision and exit"
     echo "    -c 1|0: whether to commit changes (1), or not (0); default = 0"
     echo "    -h: show this message and exit"
@@ -67,7 +79,7 @@ function usage()
 
 RECIPE=""
 SRCREV=""
-SRCBRANCH="hpsc"
+SRCBRANCH=""
 ACTION="upgrade"
 IS_COMMIT=0
 while getopts "r:s:b:a:c:p:h?" o; do
@@ -85,6 +97,7 @@ while getopts "r:s:b:a:c:p:h?" o; do
             ACTION="${OPTARG}"
             if [ "$ACTION" != "upgrade" ] &&
                [ "$ACTION" != "find-recipe" ] &&
+               [ "$ACTION" != "find-srcbranch" ] &&
                [ "$ACTION" != "find-srcrev" ]; then
                 echo "Error: no such action: ${OPTARG}"
                 usage
@@ -111,6 +124,15 @@ fi
 REC_FILE=$(find_recipe "$RECIPE")
 if [ "$ACTION" == "find-recipe" ]; then
     echo "$REC_FILE"
+    exit 0
+fi
+
+# we need SRCBRANCH if it was requested or if SRCREV wasn't provided
+if [ -z "$SRCBRANCH" ]; then
+    SRCBRANCH=$(find_srcbranch "$REC_FILE")
+fi
+if [ "$ACTION" == "find-srcbranch" ]; then
+    find_srcbranch "$REC_FILE"
     exit 0
 elif [ "$ACTION" == "find-srcrev" ]; then
     find_srcrev "$REC_FILE" "$SRCBRANCH"
