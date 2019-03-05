@@ -52,7 +52,7 @@ fi
 build_work_dirs "$WORKING_DIR"
 
 IS_FETCH=${IS_FETCH:-1}
-POKY_DL_DIR=${PWD}/src/poky_dl
+POKY_DL_DIR=$(cd "$WORKING_DIR" && echo "${PWD}/src/poky_dl")
 
 # clone poky and the layers we configure
 if [ "$IS_FETCH" -ne 0 ]; then
