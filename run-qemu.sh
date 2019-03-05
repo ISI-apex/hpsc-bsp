@@ -140,7 +140,12 @@ create_images()
 {
     set -e
     create_syscfg_image
-    create_kern_image
+
+    if [ $CREATE_KERN_IMAGE -eq 1 ]
+    then
+        create_kern_image
+    fi
+
     create_lsio_smc_sram_port_image
     create_if_absent "${HPPS_SRAM_FILE}" create_hpps_smc_sram_port_image
     create_if_absent "${HPPS_NAND_IMAGE}" create_hpps_smc_nand_port_image
@@ -289,10 +294,21 @@ fi
 # Privatize generated files, ports, screen sessions for this Qemu instance
 
 SYSCFG_BIN=syscfg.bin.${ID}
-HPPS_KERN=uImage.${ID}
 TRCH_SRAM_FILE=trch_sram.bin.${ID}
 HPPS_NAND_IMAGE=rootfs_nand.bin.${ID}
 HPPS_SRAM_FILE=hpps_sram.bin.${ID}
+
+# Support legacy setup where the kernel image is not created by the build
+CREATE_KERN_IMAGE=0
+if [ -z "$HPPS_KERN" ]
+    if [ -z "$HPPS_KERN_BIN" ] # kernel image is created from this file
+    then
+        echo "ERROR: neither HPPS_KERN nor HPPS_KERN_BIN is defined" 2>&1
+        exit 1
+    fi
+    CREATE_KERN_IMAGE=1
+    HPPS_KERN=uImage.${ID}
+fi
 
 MAC_ADDR=00:0a:35:00:02:$ID
 # This target IP is for 'user' networking mode, where the address is private,
