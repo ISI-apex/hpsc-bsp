@@ -25,15 +25,6 @@ function source_if_exists()
     fi
 }
 
-# Environment settings (paths to build artifacts and tools) may be overriden by
-# placing the file at multiple locations (vars in later files override vars in
-# earlier files):
-QEMU_ENV=qemu-env.sh
-
-source_if_exists "$(dirname "$0")/$QEMU_ENV"
-source_if_exists "$HPSC_ROOT/$QEMU_ENV"
-source_if_exists "$PWD/$QEMU_ENV"
-
 PORT_BASE=$((1024 + $(id -u) + 1000)) # arbitrary, but unique and not system
 LOG_FILE=/tmp/qemu-$(whoami).log
 BRIDGE=br0
@@ -66,6 +57,15 @@ HPPS_NAND_PAGE_SIZE=2048 # bytes
 HPPS_NAND_OOB_SIZE=64 # bytes
 HPPS_NAND_ECC_SIZE=12 # bytes
 HPPS_NAND_PAGES_PER_BLOCK=64 # bytes
+
+# Environment settings (paths to build artifacts and tools and the default
+# settings defined above) may be overriden by placing the file at multiple
+# locations (vars in later files override vars in earlier files):
+QEMU_ENV=qemu-env.sh
+
+source_if_exists "$(dirname "$0")/$QEMU_ENV"
+source_if_exists "$HPSC_ROOT/$QEMU_ENV"
+source_if_exists "$PWD/$QEMU_ENV"
 
 function nand_blocks() {
     local size=$1
