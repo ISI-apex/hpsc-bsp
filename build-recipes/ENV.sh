@@ -14,6 +14,7 @@
 
 export GIT_REPO=""
 export GIT_REV=""
+export GIT_BRANCH=""
 
 #
 # The following build steps should be overridden as appropriate.

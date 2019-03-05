@@ -2,6 +2,7 @@
 
 export GIT_REPO="https://github.com/ISI-apex/hpsc-utils.git"
 export GIT_REV=6312ada9b1a11e8115e633e42f62179d4abf9dba
+export GIT_BRANCH="hpsc"
 
 function do_build()
 {
