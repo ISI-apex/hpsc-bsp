@@ -20,7 +20,7 @@ POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch
 BAREMETAL_DIR=work/hpsc-baremetal
 UTILS_DIR=work/hpsc-utils
 RTPS_R52_UBOOT_DIR=work/u-boot-rtps-r52
-ECLIPSE_INSTALLER=work/hpsc-eclipse.tar.gz
+ECLIPSE_INSTALLER=work/hpsc-eclipse/hpsc-eclipse.tar.gz
 
 # Generated artifacts for BSP directory
 BSP_ARTIFACTS_TOP=("cfgc"
