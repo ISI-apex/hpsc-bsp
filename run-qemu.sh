@@ -301,6 +301,7 @@ HPPS_SRAM_FILE=hpps_sram.bin.${ID}
 # Support legacy setup where the kernel image is not created by the build
 CREATE_KERN_IMAGE=0
 if [ -z "$HPPS_KERN" ]
+then
     if [ -z "$HPPS_KERN_BIN" ] # kernel image is created from this file
     then
         echo "ERROR: neither HPPS_KERN nor HPPS_KERN_BIN is defined" 2>&1
