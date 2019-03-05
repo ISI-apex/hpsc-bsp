@@ -13,7 +13,7 @@ function find_srcuri()
     local recfile=$1
     local srcuri=$(grep SRC_URI "$recfile" | cut -d'=' -f2- | tr -d '"' | xargs)
     if [ -z "$srcuri" ]; then
-        echo "Failed to determine SRC_URI value from recipe"
+        echo "Failed to determine SRC_URI value from recipe" >&2
         return 1
     fi
     echo "$srcuri"
@@ -49,22 +49,57 @@ function find_srcrev()
     # parse 'SRC_URI' for the git URI
     local gituri=$(echo "$srcuri" | cut -d';' -f1)
     if [ -z "$gituri" ]; then
-        echo "Failed to determine git URI"
+        echo "Failed to determine git URI" >&2
         return 1
     fi
     # query for the HEAD of the branch
     local srcrev=$(git ls-remote "$gituri" "$srcbranch" | awk '{print $1}')
     if [ -z "$srcrev" ]; then
         # branch doesn't exist?
-        echo "Failed to get SRCREV from remote: $gituri"
+        echo "Failed to get SRCREV from remote: $gituri" >&2
         return 1
     fi
     echo "$srcrev"
 }
 
+function verify_recipe_git_status()
+{
+    local recfile=$1
+    local laybranch=$2
+    (
+        # must be in the recipe's git repo directory structure
+        cd "$(dirname "$recfile")"
+        if [ -n "$(git diff --name-only --cached)" ]; then
+            echo "Recipe's repository has staged changes -" \
+                 "commit or reset before proceeding"
+            return 1
+        fi
+        # the configure script likely checks out a detached HEAD, but we should
+        # be on the HEAD of a branch when committing
+        if ! git symbolic-ref --short -q HEAD > /dev/null; then
+            echo "Recipe's repository has detached HEAD"
+            # don't checkout "", we'll lose any local changes in the layer!
+            if [ -z "$laybranch" ]; then
+                echo "Need '-B LAYBRANCH' when layer is in detached HEAD state"
+                return 1
+            fi
+            # check that what user requested is actually a branch
+            if [ "$(git branch -a | cut -c 3- | grep -c "^${laybranch}$")" -ne 1 ]; then
+                echo "LAYBRANCH did not match a known branch: $laybranch"
+                echo "May need to pull layer branch from remote"
+                return 1
+            fi
+            echo "Checking out layer branch: $laybranch"
+            git checkout "$laybranch"
+            # assert that we're now on a branch
+            git symbolic-ref --short -q HEAD > /dev/null
+        fi
+    )
+}
+
 function usage()
 {
-    echo "Usage: $0 -r RECIPE [-s SRCREV] [-a <build>] [-w DIR] [-h]"
+    echo "Usage: $0 -r RECIPE [-s SRCREV] [-b SRCBRANCH] [-B LAYBRANCH] [-a <build>] [-c 1|0] [-w DIR] [-h]"
     echo "    -r RECIPE: the name of the recipe to upgrade"
     echo "               e.g.: arm-trusted-firmware, linux-hpsc, u-boot-hpps"
     echo "    -s SRCREV: the git revision hash to upgrade to"
@@ -72,9 +107,12 @@ function usage()
     echo "    -b SRCBRANCH: the git branch that SRCREV is on"
     echo "                  if not specified, uses the recipe's current branch"
     echo "                  if that cannot be determined, 'master' is assumed"
+    echo "    -B LAYBRANCH: the layer branch - usually required when committing"
+    echo "                  (avoids committing on detached HEAD from layer's BSP recipe)"
     echo "    -a ACTION: additional actions to run:"
     echo "       build: test building the upgraded recipe (can be slow);"
     echo "              requires building cross-compiler, sysroot, and dependencies"
+    echo "    -c 1|0: whether to commit changes (1), or not (0); default = 0"
     echo "    -w DIR: set the working directory (default=\"DEVEL\")"
     echo "            (should be different than the normal BSP build directory)"
     echo "    -h: show this message and exit"
@@ -84,9 +122,11 @@ function usage()
 RECIPE=""
 SRCREV=""
 SRCBRANCH=""
+LAYBRANCH=""
 IS_BUILD=0
+IS_COMMIT=0
 WORKING_DIR="DEVEL"
-while getopts "r:s:b:a:w:h?" o; do
+while getopts "r:s:b:B:a:c:w:h?" o; do
     case "$o" in
         r)
             RECIPE="${OPTARG}"
@@ -97,6 +137,9 @@ while getopts "r:s:b:a:w:h?" o; do
         b)
             SRCBRANCH="${OPTARG}"
             ;;
+        B)
+            LAYBRANCH="${OPTARG}"
+            ;;
         a)
             if [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
@@ -104,6 +147,9 @@ while getopts "r:s:b:a:w:h?" o; do
                 echo "Error: no such action: ${OPTARG}"
                 usage
             fi
+            ;;
+        c)
+            IS_COMMIT="${OPTARG}"
             ;;
         w)
             WORKING_DIR="${OPTARG}"
@@ -129,8 +175,17 @@ source "${BSP_DIR}/configure-hpsc-yocto-env.sh" -w "$WORKING_DIR"
 # devtool doesn't appear able to determine the latest revision on its own, so
 # we have to parse the recipe to get the git remote, then query it
 echo "Running 'find-recipe'..."
-REC_FILE=$(devtool find-recipe "$RECIPE" | tail -n 1)
+FIND_REC_OUT=$(devtool find-recipe "$RECIPE") || (
+    echo "$FIND_REC_OUT"
+    exit 1
+)
+REC_FILE=$(echo "$FIND_REC_OUT" | tail -n 1)
 echo "Using recipe file: $REC_FILE"
+
+# verify current git status before we start making changes to files
+if [ "$IS_COMMIT" -ne 0 ]; then
+    verify_recipe_git_status "$REC_FILE" "$LAYBRANCH"
+fi
 
 # get the 'SRC_URI' value from the recipe
 SRC_URI=$(find_srcuri "$REC_FILE")
@@ -189,4 +244,20 @@ devtool finish "$RECIPE" "$(dirname "$REC_FILE")"
 # can't allow 'reset' anymore, just cleanup the old workspace source tree
 trap cleanup EXIT
 
-echo "Recipe $RECIPE upgraded, you may now commit changes: $REC_FILE"
+if [ -n "$(git status -s "$REC_FILE")" ]; then
+    echo "Recipe file upgraded: $REC_FILE"
+    # commit change, if requested
+    if [ "$IS_COMMIT" -ne 0 ]; then
+        echo "Committing changes to recipe"
+        (
+            cd "$(dirname "$REC_FILE")"
+            git add "$REC_FILE"
+            git commit -m "$RECIPE: upgrade to rev: $SRCREV"
+            # TODO: optional push?
+        )
+    else
+        echo "You may now commit changes"
+    fi
+else
+    echo "No changes to recipe file: $REC_FILE"
+fi
