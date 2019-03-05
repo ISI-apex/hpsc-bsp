@@ -234,7 +234,8 @@ fi
 echo "Running 'finish'..."
 devtool finish "$RECIPE" "$(dirname "$REC_FILE")"
 # can't allow 'reset' anymore, just cleanup the old workspace source tree
-trap cleanup EXIT
+trap - EXIT
+cleanup
 
 (
     cd "$(dirname "$REC_FILE")"
