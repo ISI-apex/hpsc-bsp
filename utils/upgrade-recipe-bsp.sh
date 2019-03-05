@@ -30,7 +30,8 @@ function find_srcrev()
         return 1
     fi
     # query for the HEAD of the branch
-    local srcrev=$(git ls-remote "$git_uri" "$srcbranch" | awk '{print $1}')
+    local matches=$(git ls-remote -h "$git_uri" "$srcbranch")
+    local srcrev=$(echo "$matches" | awk '{print $1}')
     if [ -z "$srcrev" ]; then
         # branch doesn't exist?
         echo "Failed to get SRCREV from remote: $git_uri" >&2
@@ -41,7 +42,7 @@ function find_srcrev()
 
 function verify_recipe_git_status()
 {
-    if [ -n "$(git diff --name-only --cached)" ]; then
+    if ! git diff-index --cached --quiet HEAD --; then
         echo "Repository has staged changes - commit or reset before proceeding"
         return 1
     fi
@@ -137,7 +138,7 @@ if [ "$(grep -c GIT_REV "$REC_FILE")" -ne 1 ]; then
 fi
 sed -i "s/GIT_REV.*/GIT_REV=${SRCREV}/" "$REC_FILE"
 
-if [ -n "$(git status -s "$REC_FILE")" ]; then
+if ! git diff-index HEAD --quiet "$REC_FILE"; then
     echo "Recipe file upgraded: $REC_FILE"
     # commit change, if requested
     if [ "$IS_COMMIT" -ne 0 ]; then

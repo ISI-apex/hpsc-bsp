@@ -53,7 +53,8 @@ function find_srcrev()
         return 1
     fi
     # query for the HEAD of the branch
-    local srcrev=$(git ls-remote "$gituri" "$srcbranch" | awk '{print $1}')
+    local matches=$(git ls-remote -h "$gituri" "$srcbranch")
+    local srcrev=$(echo "$matches" | awk '{print $1}')
     if [ -z "$srcrev" ]; then
         # branch doesn't exist?
         echo "Failed to get SRCREV from remote: $gituri" >&2
@@ -69,7 +70,7 @@ function verify_recipe_git_status()
     (
         # must be in the recipe's git repo directory structure
         cd "$(dirname "$recfile")"
-        if [ -n "$(git diff --name-only --cached)" ]; then
+        if ! git diff-index --cached --quiet HEAD --; then
             echo "Recipe's repository has staged changes -" \
                  "commit or reset before proceeding"
             return 1
@@ -78,21 +79,12 @@ function verify_recipe_git_status()
         # be on the HEAD of a branch when committing
         if ! git symbolic-ref --short -q HEAD > /dev/null; then
             echo "Recipe's repository has detached HEAD"
-            # don't checkout "", we'll lose any local changes in the layer!
             if [ -z "$laybranch" ]; then
                 echo "Need '-B LAYBRANCH' when layer is in detached HEAD state"
                 return 1
             fi
-            # check that what user requested is actually a branch
-            if [ "$(git branch -a | cut -c 3- | grep -c "^${laybranch}$")" -ne 1 ]; then
-                echo "LAYBRANCH did not match a known branch: $laybranch"
-                echo "May need to pull layer branch from remote"
-                return 1
-            fi
             echo "Checking out layer branch: $laybranch"
-            git checkout "$laybranch"
-            # assert that we're now on a branch
-            git symbolic-ref --short -q HEAD > /dev/null
+            git checkout "$laybranch" --
         fi
     )
 }
@@ -244,20 +236,20 @@ devtool finish "$RECIPE" "$(dirname "$REC_FILE")"
 # can't allow 'reset' anymore, just cleanup the old workspace source tree
 trap cleanup EXIT
 
-if [ -n "$(git status -s "$REC_FILE")" ]; then
-    echo "Recipe file upgraded: $REC_FILE"
-    # commit change, if requested
-    if [ "$IS_COMMIT" -ne 0 ]; then
-        echo "Committing changes to recipe"
-        (
-            cd "$(dirname "$REC_FILE")"
+(
+    cd "$(dirname "$REC_FILE")"
+    if ! git diff-index HEAD --quiet "$REC_FILE"; then
+        echo "Recipe file upgraded: $REC_FILE"
+        # commit change, if requested
+        if [ "$IS_COMMIT" -ne 0 ]; then
+            echo "Committing changes to recipe"
             git add "$REC_FILE"
             git commit -m "$RECIPE: upgrade to rev: $SRCREV"
             # TODO: optional push?
-        )
+        else
+            echo "You may now commit changes"
+        fi
     else
-        echo "You may now commit changes"
+        echo "No changes to recipe file: $REC_FILE"
     fi
-else
-    echo "No changes to recipe file: $REC_FILE"
-fi
+)
