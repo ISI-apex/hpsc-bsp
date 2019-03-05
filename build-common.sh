@@ -67,3 +67,19 @@ function check_md5sum()
         return 1
     fi
 }
+
+function wget_and_md5()
+{
+    local url=$1
+    local output=$2
+    local md5_expected=$3
+    assert_str "$url"
+    assert_str "$output"
+    assert_str "$md5_expected"
+    local name=$(basename "$output")
+    if [ ! -e "$output" ]; then
+        echo "$name: downloading from: $url"
+        wget -O "$output" "$url"
+        check_md5sum "$output" "$md5_expected"
+    fi
+}
