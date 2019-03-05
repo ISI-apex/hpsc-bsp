@@ -13,7 +13,8 @@ RECIPES=("hpsc-baremetal"
          "u-boot-rtps-a53"
          "qemu"
          "qemu-devicetrees"
-         "hpsc-utils")
+         "hpsc-utils"
+         "hpsc-eclipse")
 
 # Check that baremetal toolchain is on PATH
 function check_bm_toolchain()

@@ -231,7 +231,6 @@ if [ $IS_FETCH -ne 0 ]; then
     echo "Fetching sources..."
     ./build-hpsc-yocto.sh -w "$WORKING_DIR" -a fetch
     ./build-hpsc-other.sh -w "$WORKING_DIR" -a fetch
-    ./build-hpsc-eclipse.sh -w "$WORKING_DIR" -a fetch
 fi
 
 if [ $IS_BUILD -ne 0 ]; then
@@ -246,8 +245,6 @@ if [ $IS_BUILD -ne 0 ]; then
     export PATH=$PATH:${PWD}/${WORKING_DIR}/${TC_BM_DIR}/bin
     export POKY_SDK="${PWD}/${WORKING_DIR}/${TC_POKY_DIR}"
     ./build-hpsc-other.sh -w "$WORKING_DIR" -a extract -a build
-    # build Eclipse
-    ./build-hpsc-eclipse.sh -w "$WORKING_DIR" -a build
 fi
 
 cd "$WORKING_DIR"

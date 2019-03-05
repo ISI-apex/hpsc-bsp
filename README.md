@@ -11,7 +11,6 @@ This repository includes:
 Uses the ARM bare metal toolchain to build the TRCH and R52 firmware and u-boot for the R52s.
 Uses the Yocto SDK toolchain to build test utilities.
 Uses the host compiler to build QEMU.
-1. `build-hpsc-eclipse.sh` - downloads and builds the HPSC Eclipse distribution.
 1. `run-qemu.sh` - uses the output from the build scripts above to boot QEMU.
 
 Scripts must be run from the same directory.
@@ -94,7 +93,7 @@ The host compiler is used to build:
 1. `hpsc-utils/host/qemu-nand-creator` - QEMU NAND flash image creator
 1. `hpsc-utils/host/sram-image-utils` - SRAM image creation utility
 
-Finally, the Poky SDK must be installed to build test utilities.
+The Poky SDK must be installed to build test utilities.
 Set `POKY_SDK` to the install location, e.g. (using the default location):
 
 	export POKY_SDK=/opt/poky/2.6
@@ -107,6 +106,10 @@ The Poky SDK is used to build:
 1. `hpsc-utils/linux/shm-tester` - shared memory test utility
 1. `hpsc-utils/linux/wdtester` - watchdog test utility
 
+The HPSC Eclipse distribution is also built:
+
+1. `hpsc-eclipse/hpsc-eclipse.tar.gz` - TRCH firmware
+
 To run a build:
 
 	./build-hpsc-other.sh
@@ -115,12 +118,3 @@ Booting QEMU
 ------------
 
 After the builds complete, the user can run the `run-qemu.sh` script to launch QEMU.
-
-Eclipse
--------
-
-To download eclipse, install additional plugins, and package up again:
-
-	./build-hpsc-eclipse.sh
-
-The final artifact is `hpsc-eclipse.tar.gz`.
