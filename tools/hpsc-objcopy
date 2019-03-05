@@ -3,6 +3,7 @@
 import argparse
 import sys
 import struct
+import os
 
 class FileIO:
     def __init__(self, fd):
@@ -122,8 +123,14 @@ validate_format("output", args.target_output, FORMATS)
 fin = open(args.in_file, "rb")
 fout = open(args.out_file, "wb")
 
-reader = FORMATS[args.target_input](fin)
-writer = FORMATS[args.target_output](fout)
+try:
+    reader = FORMATS[args.target_input](fin)
+    writer = FORMATS[args.target_output](fout)
 
-for b in reader.read_block():
-    writer.write_block(b)
+    for b in reader.read_block():
+        writer.write_block(b)
+except:
+    fname = fout.name
+    fout.close()
+    os.unlink(fname)
+    raise
