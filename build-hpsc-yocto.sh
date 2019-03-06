@@ -75,6 +75,7 @@ fi
 if [ $IS_FETCH -ne 0 ]; then
     bitbake core-image-hpsc --runall="fetch"
     bitbake core-image-hpsc -c populate_sdk --runall="fetch"
+    bitbake core-image-hpsc -c testimage --runall="fetch"
 fi
 
 # force offline now to catch anything that still tries to fetch
