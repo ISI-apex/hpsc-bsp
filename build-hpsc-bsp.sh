@@ -29,8 +29,8 @@ BSP_ARTIFACTS_TOP=("cfgc"
                    "run-qemu.sh"
                    "syscfg.ini"
                    "syscfg-schema.json")
-BSP_ARTIFACTS_QEMU=("work/qemu/BUILD/aarch64-softmmu/qemu-system-aarch64"
-                    "work/qemu/BUILD/qemu-bridge-helper"
+BSP_ARTIFACTS_QEMU=("work/qemu/build/_install/bin/qemu-system-aarch64"
+                    "work/qemu/build/_install/libexec/qemu-bridge-helper"
                     "work/qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb")
 BSP_ARTIFACTS_HPPS=("${POKY_IMAGE_DIR}/arm-trusted-firmware.bin"
                     "${POKY_IMAGE_DIR}/u-boot.bin"
