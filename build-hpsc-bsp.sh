@@ -221,12 +221,8 @@ build_work_dirs "$WORKING_DIR"
 
 if [ $IS_FETCH -ne 0 ]; then
     # get toolchains
-    echo "Fetching toolchains..."
-    if [ ! -e "${WORKING_DIR}/${BM_TC_TBZ2}" ]; then
-        echo "Downloading bare metal toolchain installer..."
-        wget -O "${WORKING_DIR}/${BM_TC_TBZ2}" "$BM_URL"
-        check_md5sum "${WORKING_DIR}/${BM_TC_TBZ2}" "$BM_MD5"
-    fi
+    echo "Downloading bare metal toolchain installer..."
+    wget_and_md5 "$BM_URL" "${WORKING_DIR}/${BM_TC_TBZ2}" "$BM_MD5"
     # fetch sources
     echo "Fetching sources..."
     ./build-hpsc-yocto.sh -w "$WORKING_DIR" -a fetch
