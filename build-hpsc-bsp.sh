@@ -9,9 +9,7 @@ set -e
 TC_BM_DIR=env/gcc-arm-none-eabi-7-2018-q2-update
 TC_POKY_DIR=env/poky
 
-BM_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2"
-BM_MD5=299ebd3f1c2c90930d28ab82e5d8d6c0
-BM_TC_TBZ2=src/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
+BM_TC_TBZ2=src/gcc-arm-none-eabi/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
 
 # Paths generated as part of build
 POKY_DEPLOY_DIR=work/poky_build/tmp/deploy
@@ -222,7 +220,7 @@ build_work_dirs "$WORKING_DIR"
 if [ $IS_FETCH -ne 0 ]; then
     # get toolchains
     echo "Downloading bare metal toolchain installer..."
-    wget_and_md5 "$BM_URL" "${WORKING_DIR}/${BM_TC_TBZ2}" "$BM_MD5"
+    ./build-recipe.sh -w "$WORKING_DIR" -r "gcc-arm-none-eabi" -a fetch
     # fetch sources
     echo "Fetching sources..."
     ./build-hpsc-yocto.sh -w "$WORKING_DIR" -a fetch
