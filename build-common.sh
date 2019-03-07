@@ -43,7 +43,7 @@ function git_clone_fetch_checkout()
         echo "$dir: fetch"
         git fetch origin --prune --force
         echo "$dir: checkout: $checkout"
-        git checkout "$checkout"
+        git checkout "$checkout" --
         # pull, if needed
         local is_detached=$(git status | grep -c detached)
         if [ "$is_detached" -eq 0 ]; then
