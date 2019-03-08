@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/hpsc-baremetal.git"
-export GIT_REV=111a30b662bd807972696bf5a5bc99637cc8a26b
+export GIT_REV=04a7eb8001a651cf0e82594baa00418453303439
 export GIT_BRANCH="hpsc"
 
 function do_build()
