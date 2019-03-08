@@ -69,12 +69,16 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
     IS_POPULATE_SDK=1
 fi
 
+# these recipes are only used for test, so must be fetched/built separately
+TEST_RECIPES=(openmp-test pthreads-test)
+
 . ./configure-hpsc-yocto-env.sh -w "$WORKING_DIR"
 
 # finally, execute the requested action(s)
 if [ $IS_FETCH -ne 0 ]; then
     bitbake core-image-hpsc --runall="fetch"
     bitbake core-image-hpsc -c populate_sdk --runall="fetch"
+    bitbake "${TEST_RECIPES[@]}" --runall="fetch"
     bitbake core-image-hpsc -c testimage --runall="fetch"
 fi
 
@@ -92,6 +96,7 @@ if [ $IS_POPULATE_SDK -ne 0 ]; then
 fi
 
 if [ $IS_TEST -ne 0 ]; then
+    bitbake "${TEST_RECIPES[@]}"
     bitbake core-image-hpsc -c testimage
 fi
 
