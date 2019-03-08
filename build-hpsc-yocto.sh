@@ -70,7 +70,7 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
 fi
 
 # these recipes are only used for test, so must be fetched/built separately
-TEST_RECIPES=(openmp-test pthreads-test)
+TEST_RECIPES=(openmp-test pthreads-test hpsc-utils)
 
 . ./configure-hpsc-yocto-env.sh -w "$WORKING_DIR"
 
