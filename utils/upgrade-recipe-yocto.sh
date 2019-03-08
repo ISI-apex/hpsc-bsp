@@ -67,6 +67,7 @@ function verify_recipe_git_status()
 {
     local recfile=$1
     local laybranch=$2
+    local layremote=$3
     (
         # must be in the recipe's git repo directory structure
         cd "$(dirname "$recfile")"
@@ -86,12 +87,15 @@ function verify_recipe_git_status()
             echo "Checking out layer branch: $laybranch"
             git checkout "$laybranch" --
         fi
+        echo "Pulling from layer remote: $layremote"
+        git pull --ff-only "$layremote"
     )
 }
 
 function usage()
 {
-    echo "Usage: $0 -r RECIPE [-s SRCREV] [-b SRCBRANCH] [-B LAYBRANCH] [-a <build>] [-c 1|0] [-w DIR] [-h]"
+    echo "Usage: $0 -r RECIPE [-s SRCREV] [-b SRCBRANCH] [-B LAYBRANCH] " \
+         "[-B LAYREMOTE] [-a <build>] [-c 1|0] [-w DIR] [-h]"
     echo "    -r RECIPE: the name of the recipe to upgrade"
     echo "               e.g.: arm-trusted-firmware, linux-hpsc, u-boot-hpps"
     echo "    -s SRCREV: the git revision hash to upgrade to"
@@ -101,6 +105,8 @@ function usage()
     echo "                  if that cannot be determined, 'master' is assumed"
     echo "    -B LAYBRANCH: the layer branch - usually required when committing"
     echo "                  (avoids committing on detached HEAD from layer's BSP recipe)"
+    echo "    -O LAYREMOTE: the layer remote to pull from when committing"
+    echo "                  defaults to 'origin'"
     echo "    -a ACTION: additional actions to run:"
     echo "       build: test building the upgraded recipe (can be slow);"
     echo "              requires building cross-compiler, sysroot, and dependencies"
@@ -115,6 +121,7 @@ RECIPE=""
 SRCREV=""
 SRCBRANCH=""
 LAYBRANCH=""
+LAYREMOTE="origin"
 IS_BUILD=0
 IS_COMMIT=0
 WORKING_DIR="DEVEL"
@@ -131,6 +138,9 @@ while getopts "r:s:b:B:a:c:w:h?" o; do
             ;;
         B)
             LAYBRANCH="${OPTARG}"
+            ;;
+        O)
+            LAYREMOTE="${OPTARG}"
             ;;
         a)
             if [ "${OPTARG}" == "build" ]; then
@@ -176,7 +186,7 @@ echo "Using recipe file: $REC_FILE"
 
 # verify current git status before we start making changes to files
 if [ "$IS_COMMIT" -ne 0 ]; then
-    verify_recipe_git_status "$REC_FILE" "$LAYBRANCH"
+    verify_recipe_git_status "$REC_FILE" "$LAYBRANCH" "$LAYREMOTE"
 fi
 
 # get the 'SRC_URI' value from the recipe
