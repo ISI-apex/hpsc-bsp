@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/qemu-devicetrees.git"
-export GIT_REV=371f3116a014431fd8b4f6079bc740e7aaa499ce
+export GIT_REV=bf769b15a3251b52678b859d331441685fc55078
 export GIT_BRANCH="hpsc"
 
 function do_build()
