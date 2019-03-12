@@ -3,6 +3,40 @@
 # Fail-fast
 set -e
 
+# Parse test module JSON file to get its recipe dependencies
+function get_json_dependent_recipes()
+{
+    python -c "import sys, json
+json = json.load(sys.stdin)
+print '\n'.join([json[j]['pkg'] for j in json])" < "$1"
+}
+
+# Search layer for test module JSON files
+function find_layer_test_mod_jsons()
+{
+    # per Yocto documentation, test cases always in: lib/oeqa/runtime/cases
+    local tcdir="$1/lib/oeqa/runtime/cases"
+    if test -d "$tcdir"; then
+        find "$tcdir" -maxdepth 1 -name "*.json"
+    fi
+}
+
+# Search layer for JSON-specified test dependencies
+function find_layer_test_recipes_for_suites()
+{
+    local laydir=$1
+    shift
+    # grep expression replaces "suite1 suite2 ..." with "suite1|suite2|..." so
+    # JSONS only matches specified test modules
+    local suite_e=$(echo "$*" | tr "\s" "|")
+    local JSONS=($(find_layer_test_mod_jsons "$laydir" | grep -E "$suite_e"))
+    local RECIPES=()
+    for f in "${JSONS[@]}"; do
+        RECIPES+=($(get_json_dependent_recipes "$f"))
+    done
+    echo "${RECIPES[@]}" # note: may contain duplicate entries
+}
+
 function usage()
 {
     echo "Usage: $0 [-a <all|fetch|build|populate_sdk|test|taskexp>] [-w DIR] [-h]"
@@ -69,10 +103,19 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
     IS_POPULATE_SDK=1
 fi
 
-# these recipes are only used for test, so must be fetched/built separately
-TEST_RECIPES=(openmp-test pthreads-test hpsc-utils)
-
 . ./configure-hpsc-yocto-env.sh -w "$WORKING_DIR"
+
+# test-only recipes must be fetched/built independently of rootfs image
+TEST_RECIPES=()
+TEST_SUITES=($(grep TEST_SUITES conf/local.conf | cut -d'=' -f2- | tr -d '"' | xargs))
+echo "Found test suites: (${TEST_SUITES[*]})"
+LAYERS=($(bitbake-layers show-layers | tail -n +4 | awk '{print $2}'))
+for l in "${LAYERS[@]}"; do
+    TEST_RECIPES+=($(find_layer_test_recipes_for_suites "$l" "${TEST_SUITES[@]}"))
+done
+# filter duplicate entries
+TEST_RECIPES=($(echo "${TEST_RECIPES[@]}" | tr ' ' '\n' | sort -u))
+echo "Found test recipes: (${TEST_RECIPES[*]})"
 
 # finally, execute the requested action(s)
 if [ $IS_FETCH -ne 0 ]; then
