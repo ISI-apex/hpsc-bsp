@@ -29,6 +29,13 @@ export WGET_OUTPUT_MD5=""
 # perform operations that require internet
 function do_post_fetch()
 {
+    # operates in src dir
+    :
+}
+function do_late_fetch()
+{
+    # operates in work dir
+    # $1 = src dir
     :
 }
 
