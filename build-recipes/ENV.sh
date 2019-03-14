@@ -8,6 +8,7 @@
 # and functions.
 #
 # Global variables access to recipes are:
+#  REC_UTIL_DIR: the recipe's utility directory (for content not kept in recipe)
 #  REC_SRC_DIR: the recipe's source directory
 #  REC_WORK_DIR: the recipe's work directory (where builds are performed)
 #
