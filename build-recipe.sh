@@ -90,6 +90,7 @@ function build_recipe_fetch()
 }
 
 for recname in "${RECIPES[@]}"; do
+    export REC_UTIL_DIR="${REC_DIR}/${recname}"
     export REC_SRC_DIR="${PWD}/src/${recname}"
     export REC_WORK_DIR="${PWD}/work/${recname}"
     (
