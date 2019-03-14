@@ -28,7 +28,13 @@ function find_layer_test_recipes_for_suites()
     shift
     # grep expression replaces "suite1 suite2 ..." with "suite1|suite2|..." so
     # JSONS only matches specified test modules
-    local suite_e=$(echo "$*" | tr "\s" "|")
+    # NOTE: assumes no newline characters or leading/trailing whitespace
+    local suite_e=$(echo "$*" | tr "[:blank:]" "|")
+    if [ -z "$(echo "$suite_e" | tr -d "|")" ]; then
+        # no test modules (or specified as empty string or whitespace) causes
+        # function to match on all JSON files when we actually want to filter
+        return 
+    fi
     local JSONS=($(find_layer_test_mod_jsons "$laydir" | grep -E "$suite_e"))
     local RECIPES=()
     for f in "${JSONS[@]}"; do
