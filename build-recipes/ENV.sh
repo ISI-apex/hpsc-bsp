@@ -7,6 +7,10 @@
 # All recipes extend this script, so may (and sometimes must) override variables
 # and functions.
 #
+# Global variables access to recipes are:
+#  REC_SRC_DIR: the recipe's source directory
+#  REC_WORK_DIR: the recipe's work directory (where builds are performed)
+#
 
 #
 # Recipes override the GIT or WGET configurations (GIT takes precedence).
@@ -22,18 +26,17 @@ export WGET_OUTPUT_MD5=""
 
 #
 # The following build steps should be overridden as appropriate.
+# Functions operate in REC_WORK_DIR unless otherwise specified.
 #
 
 # perform operations that require internet
 function do_post_fetch()
 {
-    # operates in src dir
+    # operates in REC_SRC_DIR
     :
 }
 function do_late_fetch()
 {
-    # operates in work dir
-    # $1 = src dir
     :
 }
 
