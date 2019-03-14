@@ -73,6 +73,23 @@ WORKING_DIR_PWD=${PWD}
 # recipes extend the ENV script
 source "${REC_DIR}/ENV.sh"
 
+function build_recipe_fetch()
+{
+    local recname=$1
+    local src=$2
+    if [ -n "$GIT_REPO" ]; then
+        git_clone_fetch_checkout "$GIT_REPO" "$src" "$GIT_REV"
+    else
+        mkdir -p "$src"
+        if [ -n "$WGET_URL" ]; then
+            wget_and_md5 "$WGET_URL" "${src}/${WGET_OUTPUT}" \
+                         "$WGET_OUTPUT_MD5"
+        else
+            echo "$recname: nothing to fetch"
+        fi
+    fi
+}
+
 for recname in "${RECIPES[@]}"; do
     src="src/${recname}"
     work="work/${recname}"
@@ -81,15 +98,9 @@ for recname in "${RECIPES[@]}"; do
 
         if [ $IS_FETCH -ne 0 ]; then
             echo "$recname: fetch"
+            build_recipe_fetch "$recname" "$src"
+            echo "$recname: post_fetch"
             (
-                if [ -n "$GIT_REPO" ]; then
-                    git_clone_fetch_checkout "$GIT_REPO" "$src" "$GIT_REV"
-                else
-                    mkdir -p "$src"
-                    wget_and_md5 "$WGET_URL" "${src}/${WGET_OUTPUT}" \
-                                 "$WGET_OUTPUT_MD5"
-                fi
-                echo "$recname: post_fetch"
                 cd "$src"
                 do_post_fetch
             )
