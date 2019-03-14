@@ -68,7 +68,6 @@ REC_DIR="${PWD}/build-recipes"
 source ./build-common.sh
 build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
-WORKING_DIR_PWD=${PWD}
 
 # recipes extend the ENV script
 source "${REC_DIR}/ENV.sh"
@@ -91,41 +90,41 @@ function build_recipe_fetch()
 }
 
 for recname in "${RECIPES[@]}"; do
-    src="src/${recname}"
-    work="work/${recname}"
+    export REC_SRC_DIR="${PWD}/src/${recname}"
+    export REC_WORK_DIR="${PWD}/work/${recname}"
     (
         source "${REC_DIR}/${recname}.sh"
 
         if [ $IS_FETCH -ne 0 ]; then
             echo "$recname: fetch"
-            build_recipe_fetch "$recname" "$src"
+            build_recipe_fetch "$recname" "$REC_SRC_DIR"
             echo "$recname: post_fetch"
             (
-                cd "$src"
+                cd "$REC_SRC_DIR"
                 do_post_fetch
             )
             # clean to ensure that updates are built
             echo "$recname: clean"
-            rm -rf "$work"
+            rm -rf "$REC_WORK_DIR"
             # extract to work dir
             echo "$recname: extract"
-            cp -r "$src" "$work"
+            cp -r "$REC_SRC_DIR" "$REC_WORK_DIR"
             # late fetch is for fetching that requires a work dir first
             echo "$recname: late_fetch"
             (
-                cd "$work"
-                do_late_fetch "${WORKING_DIR_PWD}/${src}"
+                cd "$REC_WORK_DIR"
+                do_late_fetch
             )
         fi
 
         if [ $IS_BUILD -ne 0 ]; then
-            if [ ! -d "$work" ]; then
+            if [ ! -d "$REC_WORK_DIR" ]; then
                 echo "$recname: Error: must 'fetch' before 'build'"
                 exit 1
             fi
             echo "$recname: build"
             (
-                cd "$work"
+                cd "$REC_WORK_DIR"
                 do_build && RC=0 || RC=$?
                 if [ $RC -eq 0 ]; then
                     echo "$recname: build successful"
@@ -137,13 +136,13 @@ for recname in "${RECIPES[@]}"; do
         fi
 
         if [ $IS_TEST -ne 0 ]; then
-            if [ ! -d "$work" ]; then
+            if [ ! -d "$REC_WORK_DIR" ]; then
                 echo "$recname: Error: must 'fetch' before 'test'"
                 exit 1
             fi
             echo "$recname: test"
             (
-                cd "$work"
+                cd "$REC_WORK_DIR"
                 do_test
             )
         fi
