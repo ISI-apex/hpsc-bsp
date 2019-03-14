@@ -41,11 +41,10 @@ PREBUILD_FNS=(check_bm_toolchain
 
 function usage()
 {
-    echo "Usage: $0 [-a <all|fetch|clean|extract|build|test>] [-w DIR] [-h]"
+    echo "Usage: $0 [-a <all|fetch|extract|build|test>] [-w DIR] [-h]"
     echo "    -a ACTION"
-    echo "       all: (default) fetch, clean, extract, build, and test"
+    echo "       all: (default) fetch, extract, build, and test"
     echo "       fetch: download/update sources (forces clean)"
-    echo "       clean: clean compiled sources"
     echo "       extract: copy sources to working directory"
     echo "       build: compile pre-downloaded sources"
     echo "       test: run unit tests"
@@ -60,7 +59,6 @@ function usage()
 HAS_ACTION=0
 IS_ALL=0
 IS_FETCH=0
-IS_CLEAN=0
 IS_EXTRACT=0
 IS_BUILD=0
 IS_TEST=0
@@ -71,11 +69,6 @@ while getopts "h?a:w:" o; do
             HAS_ACTION=1
             if [ "${OPTARG}" == "fetch" ]; then
                 IS_FETCH=1
-                # clean to ensure that updates are built
-                # TODO: only clean repos that are actually changed?
-                IS_CLEAN=1
-            elif [ "${OPTARG}" == "clean" ]; then
-                IS_CLEAN=1
             elif [ "${OPTARG}" == "extract" ]; then
                 IS_EXTRACT=1
             elif [ "${OPTARG}" == "build" ]; then
@@ -104,7 +97,6 @@ done
 shift $((OPTIND-1))
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_FETCH=1
-    IS_CLEAN=1
     IS_EXTRACT=1
     IS_BUILD=1
     IS_TEST=1
@@ -120,11 +112,6 @@ function for_each_recipe()
 if [ $IS_FETCH -ne 0 ]; then
     echo "Performing action: fetch..."
     for_each_recipe fetch
-fi
-
-if [ $IS_CLEAN -ne 0 ]; then
-    echo "Performing action: clean..."
-    for_each_recipe clean
 fi
 
 if [ $IS_EXTRACT -ne 0 ]; then
