@@ -4,13 +4,13 @@ HPSC Chiplet Board Support Package
 This repository includes:
 
 1. `build-hpsc-bsp.sh` - top-level build script.
-1. `build-common.sh` - common utilities for build scripts.
-1. `build-config.sh` - configuration for most build sources and revisions (see "Updating the BSP" below).
 1. `build-hpsc-yocto.sh` - uses the Yocto framework to build the bulk of the Chiplet artifacts, particularly those for Linux on the HPPS.
 1. `build-hpsc-other.sh` - builds additional artifacts.
 Uses the ARM bare metal toolchain to build the TRCH and R52 firmware and u-boot for the R52s.
 Uses the Yocto SDK toolchain to build test utilities.
 Uses the host compiler to build QEMU.
+1. `build-common.sh` - common utilities for build scripts.
+1. `build-recipe.sh` - used to build individual components; wrapped by other build scripts.
 1. `run-qemu.sh` - uses the output from the build scripts above to boot QEMU.
 
 Scripts must be run from the same directory.
@@ -22,12 +22,13 @@ https://github.com/orgs/ISI-apex/teams/hpsc/repositories
 Updating the BSP
 ----------------
 
-To update the sources that the BSP build scripts use, you must modify the build configurations.
-Sources built directly by the local build scripts are configured in `build-config.sh`.
+To update the sources that the BSP build scripts use, you must modify the build recipes, located in `build-recipes/`.
 
-However, some sources (ATF, linux, and u-boot for the HPPS) are managed by Yocto recipes.
+Some sources (ATF, linux, and u-boot for the HPPS) are managed by Yocto recipes.
 These recipes are found in the [meta-hpsc](https://github.com/ISI-apex/meta-hpsc) project and must be configured there.
 The `meta-hpsc` project revision is then configured locally in `build-config.sh` and fetched by the `build-hpsc-yocto.sh` script.
+
+There are some helper scripts in `utils/` to automate upgrading dependencies.
 
 BSP Build
 ---------
