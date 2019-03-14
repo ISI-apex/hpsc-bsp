@@ -65,6 +65,7 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
 fi
 
 REC_DIR="${PWD}/build-recipes"
+export ENV_WORKING_DIR="${PWD}/${WORKING_DIR}"
 source ./build-common.sh
 build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
