@@ -11,6 +11,7 @@
 #  REC_UTIL_DIR: the recipe's utility directory (for content not kept in recipe)
 #  REC_SRC_DIR: the recipe's source directory
 #  REC_WORK_DIR: the recipe's work directory (where builds are performed)
+#  ENV_WORKING_DIR: the parent directory; should only be used by functions here
 #
 
 #
@@ -61,4 +62,12 @@ function do_test()
 function make_parallel()
 {
     make -j "$(nproc)" "$@"
+}
+
+function get_dependency()
+{
+    # $1 = dependency
+    (
+        cd "${ENV_WORKING_DIR}/work/$1" && pwd
+    )
 }
