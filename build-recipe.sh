@@ -5,12 +5,11 @@ set -e
 
 function usage()
 {
-    echo "Usage: $0 [-r RECIPE] [-a <all|fetch|extract|build|test>] [-w DIR] [-h]"
+    echo "Usage: $0 [-r RECIPE] [-a <all|fetch|build|test>] [-w DIR] [-h]"
     echo "    -r RECIPE: the recipe to use"
     echo "    -a ACTION"
-    echo "       all: (default) fetch, extract, build, and test"
+    echo "       all: (default) fetch, build, and test"
     echo "       fetch: download/update sources (forces clean)"
-    echo "       extract: copy sources to working directory"
     echo "       build: compile pre-downloaded sources"
     echo "       test: run tests"
     echo "    -w DIR: set the working directory (default=\"BUILD\")"
@@ -23,7 +22,6 @@ RECIPES=()
 HAS_ACTION=0
 IS_ALL=0
 IS_FETCH=0
-IS_EXTRACT=0
 IS_BUILD=0
 IS_TEST=0
 WORKING_DIR="BUILD"
@@ -36,8 +34,6 @@ while getopts "r:a:w:h?" o; do
             HAS_ACTION=1
             if [ "${OPTARG}" == "fetch" ]; then
                 IS_FETCH=1
-            elif [ "${OPTARG}" == "extract" ]; then
-                IS_EXTRACT=1
             elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
             elif [ "${OPTARG}" == "test" ]; then
@@ -64,7 +60,6 @@ done
 shift $((OPTIND-1))
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_FETCH=1
-    IS_EXTRACT=1
     IS_BUILD=1
     IS_TEST=1
 fi
@@ -100,24 +95,14 @@ for recname in "${RECIPES[@]}"; do
             # clean to ensure that updates are built
             echo "$recname: clean"
             rm -rf "work/${recname}"
-        fi
-
-        if [ $IS_EXTRACT -ne 0 ]; then
-            if [ ! -d "$src" ]; then
-                echo "$recname: Error: must 'fetch' before 'extract'"
-                exit 1
-            fi
-            if [ -d "$work" ]; then
-                echo "$recname: extract: work directory already exists, skipping..."
-            else
-                echo "$recname: extract"
-                cp -r "src/${recname}" "$work"
-            fi
+            # extract to work dir
+            echo "$recname: extract"
+            cp -r "src/${recname}" "$work"
         fi
 
         if [ $IS_BUILD -ne 0 ]; then
             if [ ! -d "$work" ]; then
-                echo "$recname: Error: must 'extract' before 'build'"
+                echo "$recname: Error: must 'fetch' before 'build'"
                 exit 1
             fi
             echo "$recname: build"
@@ -135,7 +120,7 @@ for recname in "${RECIPES[@]}"; do
 
         if [ $IS_TEST -ne 0 ]; then
             if [ ! -d "$work" ]; then
-                echo "$recname: Error: must 'extract' before 'test'"
+                echo "$recname: Error: must 'fetch' before 'test'"
                 exit 1
             fi
             echo "$recname: test"

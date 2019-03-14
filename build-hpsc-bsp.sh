@@ -238,7 +238,7 @@ if [ $IS_BUILD -ne 0 ]; then
                    "${WORKING_DIR}/${TC_POKY_DIR}"
     export PATH=$PATH:${PWD}/${WORKING_DIR}/${TC_BM_DIR}/bin
     export POKY_SDK="${PWD}/${WORKING_DIR}/${TC_POKY_DIR}"
-    ./build-hpsc-other.sh -w "$WORKING_DIR" -a extract -a build
+    ./build-hpsc-other.sh -w "$WORKING_DIR" -a build
 fi
 
 cd "$WORKING_DIR"

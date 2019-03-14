@@ -41,11 +41,10 @@ PREBUILD_FNS=(check_bm_toolchain
 
 function usage()
 {
-    echo "Usage: $0 [-a <all|fetch|extract|build|test>] [-w DIR] [-h]"
+    echo "Usage: $0 [-a <all|fetch|build|test>] [-w DIR] [-h]"
     echo "    -a ACTION"
-    echo "       all: (default) fetch, extract, build, and test"
+    echo "       all: (default) fetch, build, and test"
     echo "       fetch: download/update sources (forces clean)"
-    echo "       extract: copy sources to working directory"
     echo "       build: compile pre-downloaded sources"
     echo "       test: run unit tests"
     echo "    -w DIR: set the working directory (default=\"BUILD\")"
@@ -59,7 +58,6 @@ function usage()
 HAS_ACTION=0
 IS_ALL=0
 IS_FETCH=0
-IS_EXTRACT=0
 IS_BUILD=0
 IS_TEST=0
 WORKING_DIR="BUILD"
@@ -69,8 +67,6 @@ while getopts "h?a:w:" o; do
             HAS_ACTION=1
             if [ "${OPTARG}" == "fetch" ]; then
                 IS_FETCH=1
-            elif [ "${OPTARG}" == "extract" ]; then
-                IS_EXTRACT=1
             elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
             elif [ "${OPTARG}" == "test" ]; then
@@ -97,7 +93,6 @@ done
 shift $((OPTIND-1))
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_FETCH=1
-    IS_EXTRACT=1
     IS_BUILD=1
     IS_TEST=1
 fi
@@ -112,11 +107,6 @@ function for_each_recipe()
 if [ $IS_FETCH -ne 0 ]; then
     echo "Performing action: fetch..."
     for_each_recipe fetch
-fi
-
-if [ $IS_EXTRACT -ne 0 ]; then
-    echo "Performing action: extract..."
-    for_each_recipe extract
 fi
 
 if [ $IS_BUILD -ne 0 ]; then
