@@ -68,6 +68,7 @@ REC_DIR="${PWD}/build-recipes"
 source ./build-common.sh
 build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
+WORKING_DIR_PWD=${PWD}
 
 # recipes extend the ENV script
 source "${REC_DIR}/ENV.sh"
@@ -94,10 +95,16 @@ for recname in "${RECIPES[@]}"; do
             )
             # clean to ensure that updates are built
             echo "$recname: clean"
-            rm -rf "work/${recname}"
+            rm -rf "$work"
             # extract to work dir
             echo "$recname: extract"
-            cp -r "src/${recname}" "$work"
+            cp -r "$src" "$work"
+            # late fetch is for fetching that requires a work dir first
+            echo "$recname: late_fetch"
+            (
+                cd "$work"
+                do_late_fetch "${WORKING_DIR_PWD}/${src}"
+            )
         fi
 
         if [ $IS_BUILD -ne 0 ]; then
