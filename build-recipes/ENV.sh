@@ -9,14 +9,12 @@
 #
 
 #
-# The following must be overridden
+# Recipes override the GIT or WGET configurations (GIT takes precedence).
 #
 
 export GIT_REPO=""
 export GIT_REV=""
 export GIT_BRANCH=""
-
-# or you must set the following
 
 export WGET_URL=""
 export WGET_OUTPUT=""
