@@ -129,5 +129,5 @@ function do_deploy()
                               "${image_dir}/hpsc.dtb" \
                               "${image_dir}/Image.gz" \
                               "${image_dir}/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot"
-    deploy_artifacts toolchains "${deploy_dir}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.sh"
+    deploy_artifacts toolchains "${deploy_dir}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.1.sh"
 }

@@ -31,7 +31,7 @@ function check_poky_toolchain()
 {
     if [ -z "$POKY_SDK" ] || [ ! -d "$POKY_SDK" ]; then
         echo "Error: POKY_SDK not found: $POKY_SDK"
-        echo "  e.g., export POKY_SDK=/opt/poky/2.6"
+        echo "  e.g., export POKY_SDK=/opt/poky/2.6.1"
         return 1
     fi
 }

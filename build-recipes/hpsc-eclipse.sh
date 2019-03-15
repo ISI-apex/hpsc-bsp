@@ -27,7 +27,7 @@ ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group/1.4.1.201804240009
                     org.eclipse.linuxtools.profiling.source.feature.group/7.1.0.201812121718
                     org.eclipse.linuxtools.profiling.remote.source.feature.group/7.1.0.201812121718)
 
-DEFAULT_POKY_ROOT=/opt/poky/2.6
+DEFAULT_POKY_ROOT=/opt/poky/2.6.1
 DEFAULT_BM_BINDIR=/opt/gcc-arm-none-eabi-7-2018-q2-update/bin
 
 ECLIPSE_DIR=eclipse

@@ -96,7 +96,7 @@ The host compiler is used to build:
 The Poky SDK must be installed to build test utilities.
 Set `POKY_SDK` to the install location, e.g. (using the default location):
 
-	export POKY_SDK=/opt/poky/2.6
+	export POKY_SDK=/opt/poky/2.6.1
 
 The Poky SDK is used to build:
 

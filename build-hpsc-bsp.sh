@@ -10,7 +10,7 @@ TC_BM_DIR=env/gcc-arm-none-eabi-7-2018-q2-update
 TC_POKY_DIR=env/poky
 
 BM_TC_TBZ2=src/gcc-arm-none-eabi/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
-POKY_TC_INSTALLER=work/hpsc-yocto/poky_build/tmp/deploy/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.sh
+POKY_TC_INSTALLER=work/hpsc-yocto/poky_build/tmp/deploy/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.1.sh
 
 # Generated artifacts for BSP directory
 BSP_ARTIFACTS_TOP=("cfgc"
