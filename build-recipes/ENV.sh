@@ -28,7 +28,7 @@ export WGET_OUTPUT=""
 export WGET_OUTPUT_MD5=""
 
 # Some recipes may only provide sources (e.g., then used by meta recipes)
-# Sources are fetched and do_post_fetch is executed, but not do_late_fetch.
+# Only functions do_fetch and do_post_fetch are executed, but not do_late_fetch.
 export DO_FETCH_ONLY=0
 
 # When out of source, REC_SRC_DIR isn't automatically copied to REC_WORK_DIR.
@@ -38,12 +38,26 @@ export DO_BUILD_OUT_OF_SOURCE=0
 # Users can still force the work directory to be cleaned
 export DO_CLEAN_AFTER_FETCH=1
 
+ENV_UTIL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/ENV" >/dev/null 2>&1 && pwd)"
+source "${ENV_UTIL_DIR}/util.sh"
+
 #
 # The following build steps should be overridden as appropriate.
 # Functions operate in REC_WORK_DIR unless otherwise specified.
 #
 
 # perform operations that require internet
+function do_fetch()
+{
+    # operates in REC_SRC_DIR
+    if [ -n "$GIT_REPO" ]; then
+        env_git_clone_fetch_checkout "$GIT_REPO" . "$GIT_REV"
+    elif [ -n "$WGET_URL" ]; then
+        env_wget_and_md5 "$WGET_URL" "$WGET_OUTPUT" "$WGET_OUTPUT_MD5"
+    else
+        echo "do_fetch: nothing to fetch"
+    fi
+}
 function do_post_fetch()
 {
     # operates in REC_SRC_DIR
