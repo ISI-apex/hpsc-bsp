@@ -44,6 +44,9 @@ if [ -z "$WORKING_DIR" ]; then
     return 1
 fi
 
+BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && cd .. && pwd)"
+cd "$BSP_DIR"
+
 IS_FETCH=${IS_FETCH:-1}
 # clone poky and the layers we configure
 if [ "$IS_FETCH" -ne 0 ]; then
