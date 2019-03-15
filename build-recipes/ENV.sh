@@ -27,6 +27,10 @@ export WGET_URL=""
 export WGET_OUTPUT=""
 export WGET_OUTPUT_MD5=""
 
+# Some recipes may only provide sources (e.g., then used by meta recipes)
+# Sources are fetched and do_post_fetch is executed, but not do_late_fetch.
+export DO_FETCH_ONLY=0
+
 # When out of source, REC_SRC_DIR isn't automatically copied to REC_WORK_DIR.
 export DO_BUILD_OUT_OF_SOURCE=0
 

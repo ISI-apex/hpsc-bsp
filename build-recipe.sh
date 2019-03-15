@@ -111,6 +111,11 @@ for recname in "${RECIPES[@]}"; do
                 do_post_fetch
             )
         fi
+        # if this is a source-only recipe, we're finished
+        if [ "$DO_FETCH_ONLY" -ne 0 ]; then
+            echo "$recname: DO_FETCH_ONLY is set, nothing left to do"
+            continue
+        fi
         # clean if requested or clean-after-fetch not overridden by recipe
         if [ $IS_CLEAN -ne 0 ] || 
            [ $IS_FETCH -ne 0 ] && [ "$DO_CLEAN_AFTER_FETCH" -eq 1 ]; then
