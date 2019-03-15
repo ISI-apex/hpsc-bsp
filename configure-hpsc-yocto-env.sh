@@ -11,94 +11,63 @@
 
 # This script is sourced, it must not set -e
 # set -e
-# TODO: clean up to minimize pollution of user's environment
-
-LAYER_RECIPES=(poky
-               meta-openembedded
-               meta-hpsc)
-
-TEST_MODULES=(perl ping scp ssh date openmp pthreads shm_standalone)
 
 function usage()
 {
     echo "Usage: $0 -w DIR [-h]"
     echo "    -w DIR: set the working directory"
     echo "    -h: show this message and exit"
-    exit 1
 }
 
 # Script options
 WORKING_DIR=""
 # parse options
 OPTIND=1 # reset since we're probably being sourced
-while getopts "h?w:" o; do
+while getopts "w:h?" o; do
     case "$o" in
         w)
             WORKING_DIR="${OPTARG}"
             ;;
         h)
             usage
+            return
             ;;
         *)
             echo "Unknown option"
-            usage
+            return 1
             ;;
     esac
 done
 shift $((OPTIND-1))
 if [ -z "$WORKING_DIR" ]; then
     usage
+    return 1
 fi
-
-. ./build-common.sh
-build_work_dirs "$WORKING_DIR"
 
 IS_FETCH=${IS_FETCH:-1}
-POKY_DL_DIR=$(cd "$WORKING_DIR" && echo "${PWD}/src/poky_dl")
-
 # clone poky and the layers we configure
 if [ "$IS_FETCH" -ne 0 ]; then
-    REC_PARAMS=()
-    for rec in "${LAYER_RECIPES[@]}"; do
-        REC_PARAMS+=("-r" "$rec")
-    done
-    ./build-recipe.sh -w "$WORKING_DIR" -a fetch "${REC_PARAMS[@]}" || exit $?
+    ./build-recipe.sh -w "$WORKING_DIR" -a fetch -r hpsc-yocto || return $?
 fi
 
-cd "$WORKING_DIR"
+# TODO: mimicks build-recipes/hpsc-yocto.sh... could easily get out of sync
 
-# poky's sanity checker tries to reach example.com unless we force it offline
-export BB_NO_NETWORK=1
-# We can use poky and its layers in src dir since everything is out-of-tree
-BITBAKE_LAYERS=("${PWD}/src/meta-openembedded/meta-oe"
-                "${PWD}/src/meta-openembedded/meta-python"
-                "${PWD}/src/meta-hpsc/meta-hpsc-bsp")
-# create build directory and cd to it
-. ./src/poky/oe-init-build-env work/poky_build || exit $?
-# configure layers
-for layer in "${BITBAKE_LAYERS[@]}"; do
-    bitbake-layers add-layer "$layer" || exit $?
+FULL_WD="${PWD}/${WORKING_DIR}"
+
+DL_DIR="${FULL_WD}/src/hpsc-yocto/poky_dl"
+BUILD_DIR="${FULL_WD}/work/hpsc-yocto/poky_build"
+
+POKY_DIR="${FULL_WD}/src/poky"
+META_OE_DIR="${FULL_WD}/src/meta-openembedded"
+META_HPSC_DIR="${FULL_WD}/src/meta-hpsc"
+LAYERS=("${META_OE_DIR}/meta-oe"
+        "${META_OE_DIR}/meta-python"
+        "${META_HPSC_DIR}/meta-hpsc-bsp")
+
+for l in "${LAYERS[@]}"; do
+    LAYER_ARGS+=("-l" "$l")
 done
-unset BB_NO_NETWORK
-
-# configure local.conf
-function conf_replace_or_append()
-{
-    local line=$1
-    local file="conf/local.conf"
-    local key=$(echo "$line" | awk '{print $1}')
-    # support assignment types: ?=, +=, or =
-    # Using '@' instead of '/' in sed so paths can be values
-    grep -q "^$key ?*+*=" "$file" && sed -i "s@^${key} .*@${line}@" "$file" || \
-        echo "$line" >> "$file"
-}
-conf_replace_or_append "MACHINE ?= \"hpsc-chiplet\""
-conf_replace_or_append "DL_DIR ?= \"${POKY_DL_DIR}\""
-conf_replace_or_append "FORTRAN_forcevariable = \",fortran\""
-# the following commands are needed for enabling runtime tests
-conf_replace_or_append "INHERIT_append += \" testimage\""
-conf_replace_or_append "TEST_TARGET = \"simpleremote\""
-conf_replace_or_append "TEST_SERVER_IP = \"$(hostname -I | cut -d ' ' -f 1)\""
-conf_replace_or_append "TEST_TARGET_IP = \"127.0.0.1:3040\""
-conf_replace_or_append "IMAGE_FSTYPES_append += \" cpio.gz\""
-conf_replace_or_append "TEST_SUITES += \"${TEST_MODULES[*]}\""
+source build-recipes/hpsc-yocto/configure-env.sh -d "${DL_DIR}" \
+                                                 -b "${BUILD_DIR}" \
+                                                 -p "${POKY_DIR}" \
+                                                 "${LAYER_ARGS[@]}"
