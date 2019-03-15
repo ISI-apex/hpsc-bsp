@@ -12,7 +12,7 @@ TC_POKY_DIR=env/poky
 BM_TC_TBZ2=src/gcc-arm-none-eabi/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
 
 # Paths generated as part of build
-POKY_DEPLOY_DIR=work/poky_build/tmp/deploy
+POKY_DEPLOY_DIR=work/hpsc-yocto/poky_build/tmp/deploy
 POKY_IMAGE_DIR=${POKY_DEPLOY_DIR}/images/hpsc-chiplet
 POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.sh
 BAREMETAL_DIR=work/hpsc-baremetal
