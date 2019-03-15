@@ -82,7 +82,8 @@ if [ $IS_BUILD -ne 0 ]; then
     for_each_recipe build
 fi
 
-# TODO: need environment to run bitbake
 if [ $IS_TEST -ne 0 ]; then
+    # first need environment to run bitbake
+    source ./utils/configure-hpsc-yocto-env.sh
     bitbake core-image-hpsc -c testimage
 fi
