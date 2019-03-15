@@ -123,7 +123,7 @@ for recname in "${RECIPES[@]}"; do
         fi
         # clean if requested or clean-after-fetch not overridden by recipe
         if [ $IS_CLEAN -ne 0 ] || 
-           [ $IS_FETCH -ne 0 ] && [ "$DO_CLEAN_AFTER_FETCH" -eq 1 ]; then
+           [[ $IS_FETCH -ne 0 && "$DO_CLEAN_AFTER_FETCH" -eq 1 ]]; then
             echo "$recname: clean"
             rm -rf "$REC_WORK_DIR"
         fi
