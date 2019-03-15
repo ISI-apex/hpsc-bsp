@@ -65,22 +65,17 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -eq 1 ]; then
     # IS_TEST=1
 fi
 
-function for_each_recipe()
-{
-    for rec in "${RECIPES[@]}"; do
-        ./build-recipe.sh -r "$rec" -w "$WORKING_DIR" -a "$1"
-    done
-}
-
+ACTION_FLAGS=()
 if [ $IS_FETCH -ne 0 ]; then
-    echo "Performing action: fetch..."
-    for_each_recipe fetch
+    ACTION_FLAGS+=(-a fetch)
+fi
+if [ $IS_BUILD -ne 0 ]; then
+    ACTION_FLAGS+=(-a build)
 fi
 
-if [ $IS_BUILD -ne 0 ]; then
-    echo "Performing action: build..."
-    for_each_recipe build
-fi
+for rec in "${RECIPES[@]}"; do
+    ./build-recipe.sh -r "$rec" -w "$WORKING_DIR" "${ACTION_FLAGS[@]}"
+done
 
 if [ $IS_TEST -ne 0 ]; then
     # first need environment to run bitbake
