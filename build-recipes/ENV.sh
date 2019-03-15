@@ -30,6 +30,10 @@ export WGET_OUTPUT_MD5=""
 # When out of source, REC_SRC_DIR isn't automatically copied to REC_WORK_DIR.
 export DO_BUILD_OUT_OF_SOURCE=0
 
+# By default, REC_WORK_DIR is cleaned after fetch, but recipes can override
+# Users can still force the work directory to be cleaned
+export DO_CLEAN_AFTER_FETCH=1
+
 #
 # The following build steps should be overridden as appropriate.
 # Functions operate in REC_WORK_DIR unless otherwise specified.

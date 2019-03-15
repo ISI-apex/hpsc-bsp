@@ -5,11 +5,12 @@ set -e
 
 function usage()
 {
-    echo "Usage: $0 [-r RECIPE] [-a <all|fetch|build|test>] [-w DIR] [-h]"
+    echo "Usage: $0 [-r RECIPE] [-a <all|fetch|clean|build|test>] [-w DIR] [-h]"
     echo "    -r RECIPE: the recipe to use"
     echo "    -a ACTION"
     echo "       all: (default) fetch, build, and test"
-    echo "       fetch: download/update sources (forces clean)"
+    echo "       fetch: download/update sources"
+    echo "       clean: force clean, even on recipes that don't autoclean"
     echo "       build: compile pre-downloaded sources"
     echo "       test: run tests"
     echo "    -w DIR: set the working directory (default=\"BUILD\")"
@@ -22,6 +23,7 @@ RECIPES=()
 HAS_ACTION=0
 IS_ALL=0
 IS_FETCH=0
+IS_CLEAN=0
 IS_BUILD=0
 IS_TEST=0
 WORKING_DIR="BUILD"
@@ -36,6 +38,8 @@ while getopts "r:a:w:h?" o; do
                 IS_FETCH=1
             elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
+            elif [ "${OPTARG}" == "clean" ]; then
+                IS_CLEAN=1
             elif [ "${OPTARG}" == "test" ]; then
                 IS_TEST=1
             elif [ "${OPTARG}" == "all" ]; then
@@ -97,6 +101,7 @@ for recname in "${RECIPES[@]}"; do
     (
         source "${REC_DIR}/${recname}.sh"
 
+        # fetch is broken up to allow custom clean and extract
         if [ $IS_FETCH -ne 0 ]; then
             echo "$recname: fetch"
             build_recipe_fetch "$recname" "$REC_SRC_DIR"
@@ -105,16 +110,23 @@ for recname in "${RECIPES[@]}"; do
                 cd "$REC_SRC_DIR"
                 do_post_fetch
             )
-            # clean to ensure that updates are built
+        fi
+        # clean if requested or clean-after-fetch not overridden by recipe
+        if [ $IS_CLEAN -ne 0 ] || 
+           [ $IS_FETCH -ne 0 ] && [ "$DO_CLEAN_AFTER_FETCH" -eq 1 ]; then
             echo "$recname: clean"
             rm -rf "$REC_WORK_DIR"
+        fi
+        # extract to (or create) work dir
+        if [ ! -d "$REC_WORK_DIR" ]; then
             if [ "$DO_BUILD_OUT_OF_SOURCE" -eq 0 ]; then
-                # extract to work dir
                 echo "$recname: extract"
                 cp -r "$REC_SRC_DIR" "$REC_WORK_DIR"
             else
                 mkdir -p "$REC_WORK_DIR"
             fi
+        fi
+        if [ $IS_FETCH -ne 0 ]; then
             # late fetch is for fetching that requires a work dir first
             echo "$recname: late_fetch"
             (
