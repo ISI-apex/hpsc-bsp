@@ -28,3 +28,9 @@ function do_test()
 {
     make_parallel -C build check-unit
 }
+
+function do_deploy()
+{
+    deploy_artifacts "BSP" build/_install/bin/qemu-system-aarch64 \
+                           build/_install/libexec/qemu-bridge-helper
+}

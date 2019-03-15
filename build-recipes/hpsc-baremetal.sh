@@ -8,3 +8,9 @@ function do_build()
 {
     make_parallel
 }
+
+function do_deploy()
+{
+    deploy_artifacts BSP/rtps-r52 rtps/bld/rtps.uimg
+    deploy_artifacts BSP/trch trch/bld/trch.elf
+}

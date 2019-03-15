@@ -18,3 +18,14 @@ function do_build()
         )
     done
 }
+
+function do_deploy()
+{
+    deploy_artifacts BSP/host-utils host/qemu-nand-creator \
+                                    host/sram-image-utils
+    deploy_artifacts BSP/aarch64-poky-linux-utils linux/mboxtester \
+                                                  linux/rtit-tester \
+                                                  linux/shm-standalone-tester \
+                                                  linux/shm-tester \
+                                                  linux/wdtester
+}

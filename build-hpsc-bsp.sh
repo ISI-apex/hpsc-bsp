@@ -10,15 +10,7 @@ TC_BM_DIR=env/gcc-arm-none-eabi-7-2018-q2-update
 TC_POKY_DIR=env/poky
 
 BM_TC_TBZ2=src/gcc-arm-none-eabi/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
-
-# Paths generated as part of build
-POKY_DEPLOY_DIR=work/hpsc-yocto/poky_build/tmp/deploy
-POKY_IMAGE_DIR=${POKY_DEPLOY_DIR}/images/hpsc-chiplet
-POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.sh
-BAREMETAL_DIR=work/hpsc-baremetal
-UTILS_DIR=work/hpsc-utils
-RTPS_R52_UBOOT_DIR=work/u-boot-rtps-r52
-ECLIPSE_INSTALLER=work/hpsc-eclipse/hpsc-eclipse.tar.gz
+POKY_TC_INSTALLER=work/hpsc-yocto/poky_build/tmp/deploy/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.sh
 
 # Generated artifacts for BSP directory
 BSP_ARTIFACTS_TOP=("cfgc"
@@ -27,28 +19,6 @@ BSP_ARTIFACTS_TOP=("cfgc"
                    "run-qemu.sh"
                    "syscfg.ini"
                    "syscfg-schema.json")
-BSP_ARTIFACTS_QEMU=("work/qemu/build/_install/bin/qemu-system-aarch64"
-                    "work/qemu/build/_install/libexec/qemu-bridge-helper"
-                    "work/qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb")
-BSP_ARTIFACTS_HPPS=("${POKY_IMAGE_DIR}/arm-trusted-firmware.bin"
-                    "${POKY_IMAGE_DIR}/u-boot.bin"
-                    "${POKY_IMAGE_DIR}/hpsc.dtb"
-                    "${POKY_IMAGE_DIR}/Image.gz"
-                    "${POKY_IMAGE_DIR}/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot")
-BSP_ARTIFACTS_AARCH64_UTIL=("${UTILS_DIR}/linux/mboxtester"
-                            "${UTILS_DIR}/linux/rtit-tester"
-                            "${UTILS_DIR}/linux/shm-standalone-tester"
-                            "${UTILS_DIR}/linux/shm-tester"
-                            "${UTILS_DIR}/linux/wdtester")
-BSP_ARTIFACTS_HOST_UTIL=("${UTILS_DIR}/host/qemu-nand-creator"
-                         "${UTILS_DIR}/host/sram-image-utils")
-BSP_ARTIFACTS_RTPS_R52=("${BAREMETAL_DIR}/rtps/bld/rtps.uimg"
-                        "${RTPS_R52_UBOOT_DIR}/u-boot.bin")
-BSP_ARTIFACTS_TRCH=("${BAREMETAL_DIR}/trch/bld/trch.elf")
-
-# Toolchain installers for toolchains directory
-TOOLCHAIN_ARTIFACTS=("$BM_TC_TBZ2"
-                     "$POKY_TC_INSTALLER")
 
 function sdk_bm_setup()
 {
@@ -246,25 +216,17 @@ cd "$WORKING_DIR"
 if [ $IS_STAGE -ne 0 ]; then
     # top-level
     STAGE_DIR="stage/${PREFIX}"
-    stage_artifacts "$STAGE_DIR" "$ECLIPSE_INSTALLER"
+    mkdir -p "$STAGE_DIR"
+
+    # artifacts deployed by recipes
+    cp -r deploy/* "$STAGE_DIR"
 
     # BSP
     BSP_DIR=${STAGE_DIR}/BSP
-    stage_artifacts "$BSP_DIR" "${BSP_ARTIFACTS_TOP[@]/#/${TOPDIR}/}" \
-                               "${BSP_ARTIFACTS_QEMU[@]}"
+    stage_artifacts "$BSP_DIR" "${BSP_ARTIFACTS_TOP[@]/#/${TOPDIR}/}"
     # Qemu environment needs to be updated with new paths
     transform_qemu_env "${BSP_DIR}/qemu-env.sh" \
                        "${BSP_DIR}/run-qemu.sh"
-
-    stage_artifacts "${BSP_DIR}/hpps" "${BSP_ARTIFACTS_HPPS[@]}"
-    stage_artifacts "${BSP_DIR}/rtps-r52" "${BSP_ARTIFACTS_RTPS_R52[@]}"
-    stage_artifacts "${BSP_DIR}/trch" "${BSP_ARTIFACTS_TRCH[@]}"
-    stage_artifacts "${BSP_DIR}/aarch64-poky-linux-utils" \
-                    "${BSP_ARTIFACTS_AARCH64_UTIL[@]}"
-    stage_artifacts "${BSP_DIR}/host-utils" "${BSP_ARTIFACTS_HOST_UTIL[@]}"
-
-    # toolchains
-    stage_artifacts "${STAGE_DIR}/toolchains" "${TOOLCHAIN_ARTIFACTS[@]}"
 fi
 
 if [ $IS_PACKAGE -ne 0 ]; then

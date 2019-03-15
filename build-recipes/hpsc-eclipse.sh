@@ -78,3 +78,8 @@ EOL
     echo "hpsc-eclipse: creating HPSC eclipse distribution: $ECLIPSE_HPSC"
     tar czf "$ECLIPSE_HPSC" "$ECLIPSE_DIR"
 }
+
+function do_deploy()
+{
+    deploy_artifacts "" "$ECLIPSE_HPSC"
+}

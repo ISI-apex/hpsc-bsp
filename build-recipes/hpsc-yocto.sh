@@ -120,3 +120,14 @@ function do_build()
     )
 }
 
+function do_deploy()
+{
+    local deploy_dir=poky_build/tmp/deploy
+    local image_dir=${deploy_dir}/images/hpsc-chiplet
+    deploy_artifacts BSP/hpps "${image_dir}/arm-trusted-firmware.bin" \
+                              "${image_dir}/u-boot.bin" \
+                              "${image_dir}/hpsc.dtb" \
+                              "${image_dir}/Image.gz" \
+                              "${image_dir}/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot"
+    deploy_artifacts toolchains "${deploy_dir}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.sh"
+}

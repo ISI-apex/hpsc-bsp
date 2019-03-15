@@ -8,3 +8,8 @@ function do_build()
 {
     make_parallel
 }
+
+function do_deploy()
+{
+    deploy_artifacts "BSP" LATEST/SINGLE_ARCH/hpsc-arch.dtb
+}

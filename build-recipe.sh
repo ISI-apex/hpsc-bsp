@@ -9,6 +9,7 @@ function build_work_dirs()
     mkdir -p "${wdir}" \
              "${wdir}/src" \
              "${wdir}/work" \
+             "${wdir}/deploy" \
              "${wdir}/env" \
              "${wdir}/stage"
 }
@@ -36,6 +37,7 @@ IS_FETCH=0
 IS_CLEAN=0
 IS_BUILD=0
 IS_TEST=0
+IS_DEPLOY=0
 WORKING_DIR="BUILD"
 while getopts "r:a:w:h?" o; do
     case "$o" in
@@ -48,6 +50,7 @@ while getopts "r:a:w:h?" o; do
                 IS_FETCH=1
             elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
+                IS_DEPLOY=1 # currently implied by build
             elif [ "${OPTARG}" == "clean" ]; then
                 IS_CLEAN=1
             elif [ "${OPTARG}" == "test" ]; then
@@ -75,11 +78,13 @@ shift $((OPTIND-1))
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_FETCH=1
     IS_BUILD=1
+    IS_DEPLOY=1
     IS_TEST=1
 fi
 
 REC_DIR="${PWD}/build-recipes"
 export ENV_WORKING_DIR="${PWD}/${WORKING_DIR}"
+export ENV_DEPLOY_DIR="${ENV_WORKING_DIR}/deploy"
 build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
 
@@ -109,7 +114,11 @@ for recname in "${RECIPES[@]}"; do
         fi
         # if this is a source-only recipe, we're finished
         if [ "$DO_FETCH_ONLY" -ne 0 ]; then
-            echo "$recname: DO_FETCH_ONLY is set, nothing left to do"
+            echo "$recname: source deploy (DO_FETCH_ONLY is set)"
+            (
+                cd "$REC_SRC_DIR"
+                do_deploy
+            )
             continue
         fi
         # clean if requested or clean-after-fetch not overridden by recipe
@@ -165,6 +174,17 @@ for recname in "${RECIPES[@]}"; do
                 do_test
             )
         fi
+
+        if [ $IS_DEPLOY -ne 0 ]; then
+            if [ ! -d "$REC_WORK_DIR" ]; then
+                echo "$recname: Error: must 'fetch' before 'deploy'"
+                exit 1
+            fi
+            echo "$recname: deploy"
+            (
+                cd "$REC_WORK_DIR"
+                do_deploy
+            )
+        fi
     )
 done
-

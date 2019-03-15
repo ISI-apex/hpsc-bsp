@@ -9,3 +9,8 @@ function do_build()
     make hpsc_rtps_r52_defconfig
     make_parallel CROSS_COMPILE=arm-none-eabi-
 }
+
+function do_deploy()
+{
+    deploy_artifacts BSP/rtps-r52 u-boot.bin
+}
