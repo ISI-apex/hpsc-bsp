@@ -16,6 +16,7 @@
 
 #
 # Recipes override the GIT or WGET configurations (GIT takes precedence).
+# If GIT_REPO and WGET_URL are both empty, the recipe is a "meta" recipe.
 #
 
 export GIT_REPO=""
@@ -25,6 +26,9 @@ export GIT_BRANCH=""
 export WGET_URL=""
 export WGET_OUTPUT=""
 export WGET_OUTPUT_MD5=""
+
+# When out of source, REC_SRC_DIR isn't automatically copied to REC_WORK_DIR.
+export DO_BUILD_OUT_OF_SOURCE=0
 
 #
 # The following build steps should be overridden as appropriate.

@@ -108,9 +108,13 @@ for recname in "${RECIPES[@]}"; do
             # clean to ensure that updates are built
             echo "$recname: clean"
             rm -rf "$REC_WORK_DIR"
-            # extract to work dir
-            echo "$recname: extract"
-            cp -r "$REC_SRC_DIR" "$REC_WORK_DIR"
+            if [ "$DO_BUILD_OUT_OF_SOURCE" -eq 0 ]; then
+                # extract to work dir
+                echo "$recname: extract"
+                cp -r "$REC_SRC_DIR" "$REC_WORK_DIR"
+            else
+                mkdir -p "$REC_WORK_DIR"
+            fi
             # late fetch is for fetching that requires a work dir first
             echo "$recname: late_fetch"
             (
