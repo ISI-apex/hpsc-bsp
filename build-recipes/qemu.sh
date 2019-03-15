@@ -16,12 +16,14 @@ function do_post_fetch()
 function do_build()
 {
     mkdir -p build
-    cd build
-    "${REC_SRC_DIR}/configure" --target-list="aarch64-softmmu" \
-                               --prefix="${PWD}/_install" \
-                               --enable-fdt --disable-kvm --disable-xen
-    make_parallel
-    make_parallel install
+    (
+        cd build
+        "${REC_SRC_DIR}/configure" --target-list="aarch64-softmmu" \
+                                   --prefix="${PWD}/_install" \
+                                   --enable-fdt --disable-kvm --disable-xen
+        make_parallel
+        make_parallel install
+    )
 }
 
 function do_test()
