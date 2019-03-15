@@ -72,10 +72,10 @@ function make_parallel()
     make -j "$(nproc)" "$@"
 }
 
-function get_dependency()
+function get_dependency_src()
 {
     # $1 = dependency
     (
-        cd "${ENV_WORKING_DIR}/work/$1" && pwd
+        cd "${ENV_WORKING_DIR}/src/$1" && pwd
     )
 }
