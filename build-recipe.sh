@@ -108,12 +108,17 @@ function build_lifecycle()
         echo "$recname: post_fetch"
         cd "$REC_SRC_DIR"
         do_post_fetch
+        # if this is a source-only recipe, we're finished
+        if [ "$DO_FETCH_ONLY" -ne 0 ]; then
+            echo "$recname: source deploy (DO_FETCH_ONLY is set)"
+            cd "$REC_SRC_DIR"
+            do_deploy
+            return
+        fi
     fi
-    # if this is a source-only recipe, we're finished
+    # check again in case IS_FETCH wasn't set
     if [ "$DO_FETCH_ONLY" -ne 0 ]; then
-        echo "$recname: source deploy (DO_FETCH_ONLY is set)"
-        cd "$REC_SRC_DIR"
-        do_deploy
+        echo "$recname: nothing to do (DO_FETCH_ONLY is set)"
         return
     fi
     # clean if requested or clean-after-fetch not overridden by recipe
