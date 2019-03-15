@@ -38,6 +38,7 @@ IS_CLEAN=0
 IS_BUILD=0
 IS_TEST=0
 IS_DEPLOY=0
+IS_TOOLCHAIN_INSTALL=0
 WORKING_DIR="BUILD"
 while getopts "r:a:w:h?" o; do
     case "$o" in
@@ -51,6 +52,7 @@ while getopts "r:a:w:h?" o; do
             elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
                 IS_DEPLOY=1 # currently implied by build
+                IS_TOOLCHAIN_INSTALL=1 # currently implied by build
             elif [ "${OPTARG}" == "clean" ]; then
                 IS_CLEAN=1
             elif [ "${OPTARG}" == "test" ]; then
@@ -78,8 +80,9 @@ shift $((OPTIND-1))
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_FETCH=1
     IS_BUILD=1
-    IS_DEPLOY=1
     IS_TEST=1
+    IS_DEPLOY=1
+    IS_TOOLCHAIN_INSTALL=1
 fi
 
 REC_DIR="${PWD}/build-recipes"
@@ -97,6 +100,7 @@ function build_lifecycle()
     export REC_UTIL_DIR="${REC_DIR}/${recname}"
     export REC_SRC_DIR="${ENV_WORKING_DIR}/src/${recname}"
     export REC_WORK_DIR="${ENV_WORKING_DIR}/work/${recname}"
+    export REC_ENV_DIR="${ENV_WORKING_DIR}/env" # shared b/w recipes, shhh... ;)
     source "${REC_DIR}/${recname}.sh"
 
     # fetch is broken up to allow custom clean and extract
@@ -108,75 +112,84 @@ function build_lifecycle()
         echo "$recname: post_fetch"
         cd "$REC_SRC_DIR"
         do_post_fetch
-        # if this is a source-only recipe, we're finished
-        if [ "$DO_FETCH_ONLY" -ne 0 ]; then
-            echo "$recname: source deploy (DO_FETCH_ONLY is set)"
-            cd "$REC_SRC_DIR"
-            do_deploy
-            return
-        fi
-    fi
-    # check again in case IS_FETCH wasn't set
-    if [ "$DO_FETCH_ONLY" -ne 0 ]; then
-        echo "$recname: nothing to do (DO_FETCH_ONLY is set)"
-        return
-    fi
-    # clean if requested or clean-after-fetch not overridden by recipe
-    if [ $IS_CLEAN -ne 0 ] || 
-       [[ $IS_FETCH -ne 0 && "$DO_CLEAN_AFTER_FETCH" -eq 1 ]]; then
-        echo "$recname: clean"
-        rm -rf "$REC_WORK_DIR"
-    fi
-    # extract to (or create) work dir
-    if [ ! -d "$REC_WORK_DIR" ]; then
-        if [ "$DO_BUILD_OUT_OF_SOURCE" -eq 0 ]; then
-            echo "$recname: extract"
-            cp -r "$REC_SRC_DIR" "$REC_WORK_DIR"
-        else
-            mkdir -p "$REC_WORK_DIR"
-        fi
-    fi
-    if [ $IS_FETCH -ne 0 ]; then
-        # late fetch is for fetching that requires a work dir first
-        echo "$recname: late_fetch"
-        cd "$REC_WORK_DIR"
-        do_late_fetch
     fi
 
-    if [ $IS_BUILD -ne 0 ]; then
+    if [ "$DO_FETCH_ONLY" -eq 0 ]; then
+        # clean if requested or clean-after-fetch not overridden by recipe
+        if [ $IS_CLEAN -ne 0 ] || 
+           [[ $IS_FETCH -ne 0 && "$DO_CLEAN_AFTER_FETCH" -eq 1 ]]; then
+            echo "$recname: clean"
+            rm -rf "$REC_WORK_DIR"
+        fi
+        # extract to (or create) work dir
         if [ ! -d "$REC_WORK_DIR" ]; then
-            echo "$recname: Error: must 'fetch' before 'build'"
-            return 1
+            if [ "$DO_BUILD_OUT_OF_SOURCE" -eq 0 ]; then
+                echo "$recname: extract"
+                cp -r "$REC_SRC_DIR" "$REC_WORK_DIR"
+            else
+                mkdir -p "$REC_WORK_DIR"
+            fi
         fi
-        echo "$recname: build"
-        cd "$REC_WORK_DIR"
-        do_build && RC=0 || RC=$?
-        if [ $RC -eq 0 ]; then
-            echo "$recname: build successful"
-        else
-            echo "$recname: Error: build failed with exit code: $RC"
-            return $RC
+        if [ $IS_FETCH -ne 0 ]; then
+            # late fetch is for fetching that requires a work dir first
+            echo "$recname: late_fetch"
+            cd "$REC_WORK_DIR"
+            do_late_fetch
         fi
-    fi
 
-    if [ $IS_TEST -ne 0 ]; then
-        if [ ! -d "$REC_WORK_DIR" ]; then
-            echo "$recname: Error: must 'fetch' before 'test'"
-            return 1
+        if [ $IS_BUILD -ne 0 ]; then
+            if [ ! -d "$REC_WORK_DIR" ]; then
+                echo "$recname: Error: must 'fetch' before 'build'"
+                return 1
+            fi
+            echo "$recname: build"
+            cd "$REC_WORK_DIR"
+            do_build && RC=0 || RC=$?
+            if [ $RC -eq 0 ]; then
+                echo "$recname: build successful"
+            else
+                echo "$recname: Error: build failed with exit code: $RC"
+                return $RC
+            fi
         fi
-        echo "$recname: test"
-        cd "$REC_WORK_DIR"
-        do_test
+
+        if [ $IS_TEST -ne 0 ]; then
+            if [ ! -d "$REC_WORK_DIR" ]; then
+                echo "$recname: Error: must 'fetch' before 'test'"
+                return 1
+            fi
+            echo "$recname: test"
+            cd "$REC_WORK_DIR"
+            do_test
+        fi
     fi
 
     if [ $IS_DEPLOY -ne 0 ]; then
-        if [ ! -d "$REC_WORK_DIR" ]; then
-            echo "$recname: Error: must 'fetch' before 'deploy'"
-            return 1
+        if [ "$DO_FETCH_ONLY" -ne 0 ]; then
+            cd "$REC_SRC_DIR"
+        else
+            if [ ! -d "$REC_WORK_DIR" ]; then
+                echo "$recname: Error: must 'fetch' before 'deploy'"
+                return 1
+            fi
+            cd "$REC_WORK_DIR"
         fi
         echo "$recname: deploy"
-        cd "$REC_WORK_DIR"
         do_deploy
+    fi
+
+    if [ $IS_TOOLCHAIN_INSTALL -ne 0 ]; then
+        if [ "$DO_FETCH_ONLY" -ne 0 ]; then
+            cd "$REC_SRC_DIR"
+        else
+            if [ ! -d "$REC_WORK_DIR" ]; then
+                echo "$recname: Error: must 'fetch' before 'toolchain_install'"
+                return 1
+            fi
+            cd "$REC_WORK_DIR"
+        fi
+        echo "$recname: toolchain_install"
+        do_toolchain_install
     fi
 }
 

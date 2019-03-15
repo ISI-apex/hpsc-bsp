@@ -10,3 +10,14 @@ function do_deploy()
 {
     deploy_artifacts toolchains "$WGET_OUTPUT"
 }
+
+function do_toolchain_install()
+{
+    local inst_dir="${REC_ENV_DIR}/gcc-arm-none-eabi-7-2018-q2-update"
+    if [ -d "$inst_dir" ]; then
+        echo "Bare metal toolchain already installed: $inst_dir"
+    else
+        echo "Installing bare metal toolchain..."
+        tar xjf "$WGET_OUTPUT" -C "$(dirname "$inst_dir")"
+    fi
+}

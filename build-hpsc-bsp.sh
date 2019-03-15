@@ -9,9 +9,6 @@ set -e
 TC_BM_DIR=env/gcc-arm-none-eabi-7-2018-q2-update
 TC_POKY_DIR=env/poky
 
-BM_TC_TBZ2=src/gcc-arm-none-eabi/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
-POKY_TC_INSTALLER=work/hpsc-yocto/poky_build/tmp/deploy/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.1.sh
-
 # Generated artifacts for BSP directory
 BSP_ARTIFACTS_TOP=("cfgc"
                    "qemu-env.sh"
@@ -19,39 +16,6 @@ BSP_ARTIFACTS_TOP=("cfgc"
                    "run-qemu.sh"
                    "syscfg.ini"
                    "syscfg-schema.json")
-
-function sdk_bm_setup()
-{
-    local INSTALL_TBZ2=$1
-    local INSTALL_DIR=$2
-    if [ ! -e "$INSTALL_TBZ2" ]; then
-        echo "Bare metal toolchain installer not found: $INSTALL_TBZ2"
-        exit 1
-    fi
-    if [ ! -d "$INSTALL_DIR" ]; then
-        echo "Installing bare metal toolchain..."
-        tar xjf "$INSTALL_TBZ2" -C "$(dirname "$INSTALL_DIR")"
-    fi
-}
-
-function sdk_poky_setup()
-{
-    local INSTALL_SH=$1
-    local INSTALL_DIR=$2
-    if [ ! -e "$INSTALL_SH" ]; then
-        echo "Poky toolchain installer not found: $INSTALL_SH"
-        exit 1
-    fi
-    # always set +x - even if we don't extract it here, we deliver it in the BSP
-    chmod +x "$INSTALL_SH"
-    if [ ! -d "$INSTALL_DIR" ]; then
-        echo "Installing poky toolchain..."
-        "$INSTALL_SH" <<EOF
-$INSTALL_DIR
-y
-EOF
-    fi
-}
 
 function stage_artifacts()
 {
@@ -188,24 +152,17 @@ fi
 TOPDIR=${PWD}
 
 if [ $IS_FETCH -ne 0 ]; then
-    # get toolchains
-    echo "Downloading bare metal toolchain installer..."
-    ./build-recipe.sh -w "$WORKING_DIR" -r "gcc-arm-none-eabi" -a fetch
-    # fetch sources
     echo "Fetching sources..."
+    ./build-recipe.sh -w "$WORKING_DIR" -r "gcc-arm-none-eabi" -a fetch
     ./build-hpsc-yocto.sh -w "$WORKING_DIR" -a fetch
     ./build-hpsc-other.sh -w "$WORKING_DIR" -a fetch
 fi
 
 if [ $IS_BUILD -ne 0 ]; then
     echo "Building..."
-    # build Yocto
+    # this ordering matters
+    ./build-recipe.sh -w "$WORKING_DIR" -r "gcc-arm-none-eabi" -a build
     ./build-hpsc-yocto.sh -w "$WORKING_DIR" -a build
-    ./build-hpsc-yocto.sh -w "$WORKING_DIR" -a populate_sdk
-    # build other packages
-    sdk_bm_setup "${WORKING_DIR}/${BM_TC_TBZ2}" "${WORKING_DIR}/${TC_BM_DIR}"
-    sdk_poky_setup "${WORKING_DIR}/${POKY_TC_INSTALLER}" \
-                   "${WORKING_DIR}/${TC_POKY_DIR}"
     export PATH=$PATH:${PWD}/${WORKING_DIR}/${TC_BM_DIR}/bin
     export POKY_SDK="${PWD}/${WORKING_DIR}/${TC_POKY_DIR}"
     ./build-hpsc-other.sh -w "$WORKING_DIR" -a build

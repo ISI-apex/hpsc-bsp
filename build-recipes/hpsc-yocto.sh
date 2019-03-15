@@ -108,6 +108,11 @@ function do_late_fetch()
     bitbake core-image-hpsc -c testimage --runall="fetch"
 }
 
+POKY_DEPLOY_DIR=poky_build/tmp/deploy
+POKY_IMAGE_DIR=${POKY_DEPLOY_DIR}/images/hpsc-chiplet
+
+POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.1.sh
+
 function do_build()
 {
     yocto_maybe_init_env
@@ -117,17 +122,30 @@ function do_build()
         export BB_NO_NETWORK=1
         bitbake core-image-hpsc "${TEST_RECIPES[@]}"
         bitbake core-image-hpsc -c populate_sdk
+        chmod +x "$POKY_TC_INSTALLER"
     )
 }
 
 function do_deploy()
 {
-    local deploy_dir=poky_build/tmp/deploy
-    local image_dir=${deploy_dir}/images/hpsc-chiplet
-    deploy_artifacts BSP/hpps "${image_dir}/arm-trusted-firmware.bin" \
-                              "${image_dir}/u-boot.bin" \
-                              "${image_dir}/hpsc.dtb" \
-                              "${image_dir}/Image.gz" \
-                              "${image_dir}/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot"
-    deploy_artifacts toolchains "${deploy_dir}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.1.sh"
+    deploy_artifacts BSP/hpps "${POKY_IMAGE_DIR}/arm-trusted-firmware.bin" \
+                              "${POKY_IMAGE_DIR}/u-boot.bin" \
+                              "${POKY_IMAGE_DIR}/hpsc.dtb" \
+                              "${POKY_IMAGE_DIR}/Image.gz" \
+                              "${POKY_IMAGE_DIR}/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot"
+    deploy_artifacts toolchains "$POKY_TC_INSTALLER"
+}
+
+function do_toolchain_install()
+{
+    local inst_dir="${REC_ENV_DIR}/poky"
+    if [ -d "$inst_dir" ]; then
+        echo "Poky toolchain already installed: $inst_dir"
+    else
+        echo "Installing poky toolchain..."
+        "$POKY_TC_INSTALLER" <<EOF
+$inst_dir
+y
+EOF
+    fi
 }

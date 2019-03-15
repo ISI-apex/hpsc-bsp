@@ -11,6 +11,7 @@
 #  REC_UTIL_DIR: the recipe's utility directory (for content not kept in recipe)
 #  REC_SRC_DIR: the recipe's source directory
 #  REC_WORK_DIR: the recipe's work directory (where builds are performed)
+#  REC_ENV_DIR: the recipe's target directory for installing toolchains
 #  ENV_WORKING_DIR: the parent directory; should only be used by functions here
 #  ENV_DEPLOY_DIR: the deploy directory; should only be used by functions here
 #
@@ -30,7 +31,8 @@ export WGET_OUTPUT_MD5=""
 
 # Some recipes may only provide sources (e.g., then used by meta recipes)
 # Functions do_fetch and do_post_fetch are executed, but not do_late_fetch.
-# Finally, do_deploy is executed in REC_SRC_DIR rather than REC_WORK_DIR.
+# Finally, do_deploy and do_toolchain_install are executed in REC_SRC_DIR rather
+# than REC_WORK_DIR.
 export DO_FETCH_ONLY=0
 
 # When out of source, REC_SRC_DIR isn't automatically copied to REC_WORK_DIR.
@@ -84,6 +86,14 @@ function do_test()
 
 # deploy BSP artifacts to a staging area (hint: utilize deploy_artifacts below)
 function do_deploy()
+{
+    # operates in REC_WORK_DIR
+    # however, if DO_FETCH_ONLY is set, operates in REC_SRC_DIR
+    :
+}
+
+# install toolchains fetched or built (hint: should install to REC_ENV_DIR)
+function do_toolchain_install()
 {
     # operates in REC_WORK_DIR
     # however, if DO_FETCH_ONLY is set, operates in REC_SRC_DIR
