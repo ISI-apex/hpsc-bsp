@@ -3,6 +3,16 @@
 # Fail-fast
 set -e
 
+function build_work_dirs()
+{
+    local wdir=$1
+    mkdir -p "${wdir}" \
+             "${wdir}/src" \
+             "${wdir}/work" \
+             "${wdir}/env" \
+             "${wdir}/stage"
+}
+
 function usage()
 {
     echo "Usage: $0 [-r RECIPE] [-a <all|fetch|clean|build|test>] [-w DIR] [-h]"
@@ -70,7 +80,6 @@ fi
 
 REC_DIR="${PWD}/build-recipes"
 export ENV_WORKING_DIR="${PWD}/${WORKING_DIR}"
-source ./build-common.sh
 build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
 

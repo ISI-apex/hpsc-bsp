@@ -212,10 +212,10 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_PACKAGE_SOURCES=1
 fi
 
-. ./build-common.sh
+# not specifying a recipe just builds the working directory structure
+./build-recipe.sh -w "$WORKING_DIR"
 
 TOPDIR=${PWD}
-build_work_dirs "$WORKING_DIR"
 
 if [ $IS_FETCH -ne 0 ]; then
     # get toolchains

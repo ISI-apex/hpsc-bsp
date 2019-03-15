@@ -9,7 +9,6 @@ This repository includes:
 Uses the ARM bare metal toolchain to build the TRCH and R52 firmware and u-boot for the R52s.
 Uses the Yocto SDK toolchain to build test utilities.
 Uses the host compiler to build QEMU.
-1. `build-common.sh` - common utilities for build scripts.
 1. `build-recipe.sh` - used to build individual components; wrapped by other build scripts.
 1. `run-qemu.sh` - uses the output from the build scripts above to boot QEMU.
 
