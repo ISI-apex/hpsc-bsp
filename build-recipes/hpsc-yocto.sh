@@ -116,14 +116,19 @@ POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch
 function do_build()
 {
     yocto_maybe_init_env
+    if [ "$(basename "${PWD}")" != "poky_build" ]; then
+        # if yocto env was already init'd then we're still in our work directory
+        cd poky_build
+    fi
     # subshell is so BB_NO_NETWORK isn't remembered
     (
         echo "Building with BB_NO_NETWORK=1"
         export BB_NO_NETWORK=1
         bitbake core-image-hpsc "${TEST_RECIPES[@]}"
         bitbake core-image-hpsc -c populate_sdk
-        chmod +x "$POKY_TC_INSTALLER"
     )
+    cd "$REC_WORK_DIR"
+    chmod +x "$POKY_TC_INSTALLER"
 }
 
 function do_deploy()
