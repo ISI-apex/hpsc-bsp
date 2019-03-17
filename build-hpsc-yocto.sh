@@ -6,7 +6,7 @@ set -e
 RECIPES=("poky"
          "meta-openembedded"
          "meta-hpsc"
-         "hpsc-yocto")
+         "hpsc-yocto-hpps")
 
 function usage()
 {
