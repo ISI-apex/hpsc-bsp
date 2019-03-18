@@ -160,17 +160,20 @@ if [ "$(grep -c GIT_REV "$REC_FILE")" -ne 1 ]; then
 fi
 sed -i "s/GIT_REV.*/GIT_REV=${SRCREV}/" "$REC_FILE"
 
-if ! git diff-index HEAD --quiet "$REC_FILE"; then
+# Sometimes have problems with `git diff-index --quiet HEAD -- "$REC_FILE"`
+# returning bad exit code when $REC_FILE uncached? So add first, then check
+git add "$REC_FILE"
+if git diff-index --cached --quiet HEAD -- "$REC_FILE"; then
+    echo "No changes to recipe file: $REC_FILE"
+else
     echo "Recipe file upgraded: $REC_FILE"
     # commit change, if requested
     if [ "$IS_COMMIT" -ne 0 ]; then
         echo "Committing changes to recipe"
-        git add "$REC_FILE"
-        git commit -m "$RECIPE: upgrade to rev: $SRCREV"
+        shortrev=$(git rev-parse --short "$SRCREV")
+        git commit -m "$RECIPE: upgrade to rev: $shortrev"
         # TODO: optional push?
     else
         echo "You may now commit changes"
     fi
-else
-    echo "No changes to recipe file: $REC_FILE"
 fi

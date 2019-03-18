@@ -249,18 +249,19 @@ cleanup
 
 (
     cd "$(dirname "$REC_FILE")"
-    if ! git diff-index HEAD --quiet "$REC_FILE"; then
+    git add "$REC_FILE"
+    if git diff-index --cached --quiet HEAD -- "$REC_FILE"; then
+        echo "No changes to recipe file: $REC_FILE"
+    else
         echo "Recipe file upgraded: $REC_FILE"
         # commit change, if requested
         if [ "$IS_COMMIT" -ne 0 ]; then
             echo "Committing changes to recipe"
-            git add "$REC_FILE"
-            git commit -m "$RECIPE: upgrade to rev: $SRCREV"
+            shortrev=$(git rev-parse --short "$SRCREV")
+            git commit -m "$RECIPE: upgrade to rev: $shortrev"
             # TODO: optional push?
         else
             echo "You may now commit changes"
         fi
-    else
-        echo "No changes to recipe file: $REC_FILE"
     fi
 )
