@@ -92,13 +92,10 @@ function do_deploy()
 function do_toolchain_install()
 {
     local inst_dir="${REC_ENV_DIR}/poky"
-    if [ -d "$inst_dir" ]; then
-        echo "Poky toolchain already installed: $inst_dir"
-    else
-        echo "Installing poky toolchain..."
+    rm -rf "$inst_dir" # re-install every time
+    echo "Installing poky toolchain..."
         "$POKY_TC_INSTALLER" <<EOF
 $inst_dir
 y
 EOF
-    fi
 }
