@@ -22,12 +22,14 @@ Updating the BSP
 ----------------
 
 To update the sources that the BSP build scripts use, you must modify the build recipes, located in `build-recipes/`.
-
-Some sources (ATF, linux, and u-boot for the HPPS) are managed by Yocto recipes.
-These recipes are found in the [meta-hpsc](https://github.com/ISI-apex/meta-hpsc) project and must be configured there.
-The `meta-hpsc` project revision is then configured locally in `build-config.sh` and fetched by the `build-hpsc-yocto.sh` script.
-
 There are some helper scripts in `utils/` to automate upgrading dependencies.
+
+Some sources (ATF, linux, and u-boot for the HPPS) are managed by Yocto recipes, and are thus transitive dependencies.
+These recipes are found in the [meta-hpsc](https://github.com/ISI-apex/meta-hpsc) project and must be configured there.
+The `meta-hpsc` project revision is then configured with a local recipe in `build-recipes/`, like other BSP dependencies.
+
+If you need to add new build recipes, read `build-recipes/ENV.sh` and walk through `build-recipe.sh`.
+See existing recipes for examples.
 
 BSP Build
 ---------
@@ -56,12 +58,11 @@ Yocto Build
 
 Before starting the Yocto build, ensure that your system has python3 installed, which is needed to run bitbake.
 
-For example to perform a build, then create the SDK:
+For example to perform a build and create the SDK:
 
-	./build-hpsc-yocto.sh -a fetch -a build
-	./build-hpsc-yocto.sh -a populate_sdk
+	./build-hpsc-yocto.sh
 
-The generated files needed to run QEMU are located in: `${WORKING_DIR}/work/poky_build/tmp/deploy/images/hpsc-chiplet`.
+The generated files needed to run QEMU are located in: `${WORKING_DIR}/work/hpsc-yocto-hpps/poky_build/tmp/deploy/images/hpsc-chiplet`.
 Specifically:
 
 1. `arm-trusted-firmware.bin` - the Arm Trusted Firmware binary
@@ -70,21 +71,20 @@ Specifically:
 1. `hpsc.dtb` - the Chiplet device tree for SMP Linux
 1. `u-boot.bin` - the U-boot bootloader for the dual A53 cluster
 
-The actual build directories for these files are located in the directory: `${WORKING_DIR}/work/poky_build/tmp/work`.
+The actual build directories for these files are located in the directory: `${WORKING_DIR}/work/hpsc-yocto-hpps/poky_build/tmp/work`.
 
 Other Build
 -----------
 
-Building the remaining components has additional prerequisites.
-First, the ARM bare metal toolchain bin directory must be on `PATH`, e.g. in `/opt`:
+To build the remaining (aka "other") artifacts, run:
 
-	export PATH=$PATH:/opt/gcc-arm-none-eabi-7-2018-q2-update/bin
+	./build-hpsc-other.sh
 
-The bare metal toolchain is used to build (within `${WORKING_DIR}/work/`):
+The bare metal toolchain is fetched and installed, then used to build (within `${WORKING_DIR}/work/`):
 
 1. `hpsc-baremetal/trch/bld/trch.elf` - TRCH firmware
 1. `hpsc-baremetal/rtps/bld/rtps.uimg` - RTPS R52 firmware
-1. `u-boot-r52/u-boot.bin` - u-boot for the RTPS R52s
+1. `u-boot-rtps-r52/u-boot.bin` - u-boot for the RTPS R52s
 
 The host compiler is used to build:
 
@@ -92,11 +92,6 @@ The host compiler is used to build:
 1. `qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb` - the QEMU device tree
 1. `hpsc-utils/host/qemu-nand-creator` - QEMU NAND flash image creator
 1. `hpsc-utils/host/sram-image-utils` - SRAM image creation utility
-
-The Poky SDK must be installed to build test utilities.
-Set `POKY_SDK` to the install location, e.g. (using the default location):
-
-	export POKY_SDK=/opt/poky/2.6.1
 
 The Poky SDK is used to build:
 
@@ -109,10 +104,6 @@ The Poky SDK is used to build:
 The HPSC Eclipse distribution is also built:
 
 1. `hpsc-eclipse/hpsc-eclipse.tar.gz` - TRCH firmware
-
-To run a build:
-
-	./build-hpsc-other.sh
 
 Booting QEMU
 ------------

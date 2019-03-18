@@ -7,18 +7,21 @@
 # All recipes extend this script, so may (and sometimes must) override variables
 # and functions.
 #
-# Global variables access to recipes are:
+# Global variables accessible to recipes are:
 #  REC_UTIL_DIR: the recipe's utility directory (for content not kept in recipe)
 #  REC_SRC_DIR: the recipe's source directory
 #  REC_WORK_DIR: the recipe's work directory (where builds are performed)
 #  REC_ENV_DIR: the recipe's target directory for installing toolchains
-#  ENV_WORKING_DIR: the parent directory; should only be used by functions here
-#  ENV_DEPLOY_DIR: the deploy directory; should only be used by functions here
+# The following variables should only be used by functions in this file:
+#  ENV_WORKING_DIR: the parent directory
+#  ENV_DEPLOY_DIR: the deploy directory
 #
 
 #
 # Recipes override the GIT or WGET configurations (GIT takes precedence).
-# If GIT_REPO and WGET_URL are both empty, the recipe is a "meta" recipe.
+# If GIT_REPO and WGET_URL are both empty, the recipe is a "meta" recipe and 
+# should probably tie together other recipes instead (e.g., those with
+# DO_FETCH_ONLY=1 as described below).
 #
 
 export GIT_REPO=""
@@ -29,23 +32,27 @@ export WGET_URL=""
 export WGET_OUTPUT=""
 export WGET_OUTPUT_MD5=""
 
-# Some recipes may only provide sources (e.g., then used by meta recipes)
-# Functions do_fetch and do_post_fetch are executed, but not do_late_fetch.
-# Finally, do_deploy and do_toolchain_install are executed in REC_SRC_DIR rather
-# than REC_WORK_DIR.
+# Some recipes may only provide sources (e.g., and are used by meta recipes).
+# Functions do_fetch and do_post_fetch will be executed, but not do_late_fetch,
+# do_build, or do_test.
+# Functions do_deploy and do_toolchain_install are executed, but in REC_SRC_DIR
+# rather than REC_WORK_DIR.
 export DO_FETCH_ONLY=0
 
 # When out of source, REC_SRC_DIR isn't automatically copied to REC_WORK_DIR.
+# Instead, an empty work directory is created.
 export DO_BUILD_OUT_OF_SOURCE=0
 
-# By default, REC_WORK_DIR is cleaned after fetch, but recipes can override
-# Users can still force the work directory to be cleaned
+# By default, REC_WORK_DIR is cleaned after fetch, but recipes can override.
+# This capability is for efficiency and should be used sparingly - it may cause
+# issues if recipes don't always perform incremental builds correctly.
+# Users can still force the work directory to be cleaned.
 export DO_CLEAN_AFTER_FETCH=1
 
 # While there is no real dependency tree enforced by the build scripts, recipes
 # may depend on environments exported by other recipes.
 # Environment set by this script always takes precendence though, so a recipe 
-# cannot use another's do_* functions or DO_* variables.
+# cannot use another's do_* functions or DO_*/GIT_*/WGET_* variables.
 # Separate dependencies by a ':' (like the PATH variable).
 export DEPENDS_ENVIRONMENT=""
 
