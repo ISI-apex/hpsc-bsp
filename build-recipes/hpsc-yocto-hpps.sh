@@ -89,13 +89,13 @@ function do_deploy()
     deploy_artifacts toolchains "$POKY_TC_INSTALLER"
 }
 
+export POKY_SDK="${REC_ENV_DIR}/poky" # exported for other recipes
 function do_toolchain_install()
 {
-    local inst_dir="${REC_ENV_DIR}/poky"
-    rm -rf "$inst_dir" # re-install every time
+    rm -rf "$POKY_SDK" # re-install every time
     echo "Installing poky toolchain..."
         "$POKY_TC_INSTALLER" <<EOF
-$inst_dir
+$POKY_SDK
 y
 EOF
 }

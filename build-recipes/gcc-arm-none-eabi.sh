@@ -11,13 +11,15 @@ function do_deploy()
     deploy_artifacts toolchains "$WGET_OUTPUT"
 }
 
+INST_DIR="${REC_ENV_DIR}/gcc-arm-none-eabi-7-2018-q2-update"
 function do_toolchain_install()
 {
-    local inst_dir="${REC_ENV_DIR}/gcc-arm-none-eabi-7-2018-q2-update"
-    if [ -d "$inst_dir" ]; then
-        echo "Bare metal toolchain already installed: $inst_dir"
+    if [ -d "$INST_DIR" ]; then
+        echo "Bare metal toolchain already installed: $INST_DIR"
     else
         echo "Installing bare metal toolchain..."
-        tar xjf "$WGET_OUTPUT" -C "$(dirname "$inst_dir")"
+        tar xjf "$WGET_OUTPUT" -C "$(dirname "$INST_DIR")"
     fi
 }
+
+export PATH="${INST_DIR}/bin:$PATH"

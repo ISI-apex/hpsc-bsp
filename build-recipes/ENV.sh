@@ -42,6 +42,14 @@ export DO_BUILD_OUT_OF_SOURCE=0
 # Users can still force the work directory to be cleaned
 export DO_CLEAN_AFTER_FETCH=1
 
+# While there is no real dependency tree enforced by the build scripts, recipes
+# may depend on environments exported by other recipes.
+# Environment set by this script always takes precendence though, so a recipe 
+# cannot use another's do_* functions or DO_* variables.
+# Separate dependencies by a ':' (like the PATH variable).
+export DEPENDS_ENVIRONMENT=""
+
+
 ENV_UTIL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/ENV" >/dev/null 2>&1 && pwd)"
 source "${ENV_UTIL_DIR}/util.sh"
 
@@ -131,4 +139,30 @@ function deploy_artifacts()
         echo "  $(basename "$f")"
         cp "$f" "${dest}/"
     done
+}
+
+#
+# The following are used for checking dependencies in recipes.
+# Their existence here violates the generality of the recipe design, but are
+# kept here for convenenience (at least for now).
+#
+
+# Check that baremetal toolchain is on PATH
+function ENV_check_bm_toolchain()
+{
+    if ! which arm-none-eabi-gcc > /dev/null 2>&1; then
+        echo "Error: Bare metal cross compiler 'arm-none-eabi-gcc' is not on PATH"
+        echo "  Ensure that recipe has DEPENDS_ENVIRONMENT on 'gcc-arm-none-eabi' and that it is built"
+        return 1
+    fi
+}
+
+# Verify poky toolchain
+function ENV_check_poky_toolchain()
+{
+    if [ -z "$POKY_SDK" ] || [ ! -d "$POKY_SDK" ]; then
+        echo "Error: POKY_SDK not found: $POKY_SDK"
+        echo "  Ensure that recipe has DEPENDS_ENVIRONMENT on 'hpsc-yocto-hpps' and that it is built"
+        return 1
+    fi
 }
