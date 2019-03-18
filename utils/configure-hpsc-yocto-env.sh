@@ -50,15 +50,20 @@ cd "$BSP_DIR"
 IS_FETCH=${IS_FETCH:-1}
 # clone poky and the layers we configure
 if [ "$IS_FETCH" -ne 0 ]; then
-    ./build-recipe.sh -w "$WORKING_DIR" -a fetch -r hpsc-yocto || return $?
+    ./build-recipe.sh -w "$WORKING_DIR" -a fetch -r poky \
+                                                 -r meta-openembedded \
+                                                 -r meta-hpsc \
+                                                 || return $?
 fi
 
-# TODO: mimicks build-recipes/hpsc-yocto.sh... could easily get out of sync
+# TODO: mimicks build-recipes/hpsc-yocto-hpps.sh... could easily get out of sync
 
 FULL_WD="${PWD}/${WORKING_DIR}"
 
-DL_DIR="${FULL_WD}/src/hpsc-yocto/poky_dl"
-BUILD_DIR="${FULL_WD}/work/hpsc-yocto/poky_build"
+mkdir -p "${FULL_WD}/src/hpsc-yocto-hpps" "${FULL_WD}/work/hpsc-yocto-hpps"
+
+DL_DIR="${FULL_WD}/src/hpsc-yocto-hpps/poky_dl"
+BUILD_DIR="${FULL_WD}/work/hpsc-yocto-hpps/poky_build"
 
 POKY_DIR="${FULL_WD}/src/poky"
 META_OE_DIR="${FULL_WD}/src/meta-openembedded"
@@ -70,7 +75,7 @@ LAYERS=("${META_OE_DIR}/meta-oe"
 for l in "${LAYERS[@]}"; do
     LAYER_ARGS+=("-l" "$l")
 done
-source build-recipes/hpsc-yocto/configure-env.sh -d "${DL_DIR}" \
-                                                 -b "${BUILD_DIR}" \
-                                                 -p "${POKY_DIR}" \
-                                                 "${LAYER_ARGS[@]}"
+source build-recipes/hpsc-yocto-hpps/configure-env.sh -d "${DL_DIR}" \
+                                                      -b "${BUILD_DIR}" \
+                                                      -p "${POKY_DIR}" \
+                                                      "${LAYER_ARGS[@]}"

@@ -171,8 +171,8 @@ if [ -z "$RECIPE" ]; then
 fi
 
 # initialize the environment for devtool
-BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && cd .. && pwd)"
-source "${BSP_DIR}/configure-hpsc-yocto-env.sh" -w "$WORKING_DIR"
+THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+source "${THIS_DIR}/configure-hpsc-yocto-env.sh" -w "$WORKING_DIR"
 
 # devtool doesn't appear able to determine the latest revision on its own, so
 # we have to parse the recipe to get the git remote, then query it
