@@ -6,9 +6,6 @@
 # Fail-fast
 set -e
 
-TC_BM_DIR=env/gcc-arm-none-eabi-7-2018-q2-update
-TC_POKY_DIR=env/poky
-
 # Generated artifacts for BSP directory
 BSP_ARTIFACTS_TOP=("cfgc"
                    "qemu-env.sh"
@@ -153,7 +150,6 @@ TOPDIR=${PWD}
 
 if [ $IS_FETCH -ne 0 ]; then
     echo "Fetching sources..."
-    ./build-recipe.sh -w "$WORKING_DIR" -r "gcc-arm-none-eabi" -a fetch
     ./build-hpsc-yocto.sh -w "$WORKING_DIR" -a fetch
     ./build-hpsc-other.sh -w "$WORKING_DIR" -a fetch
 fi
@@ -161,10 +157,7 @@ fi
 if [ $IS_BUILD -ne 0 ]; then
     echo "Building..."
     # this ordering matters
-    ./build-recipe.sh -w "$WORKING_DIR" -r "gcc-arm-none-eabi" -a build
     ./build-hpsc-yocto.sh -w "$WORKING_DIR" -a build
-    export PATH=$PATH:${PWD}/${WORKING_DIR}/${TC_BM_DIR}/bin
-    export POKY_SDK="${PWD}/${WORKING_DIR}/${TC_POKY_DIR}"
     ./build-hpsc-other.sh -w "$WORKING_DIR" -a build
 fi
 

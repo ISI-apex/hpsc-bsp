@@ -7,7 +7,8 @@
 set -e
 
 # The recipes managed by this script
-RECIPES=("hpsc-baremetal"
+RECIPES=("gcc-arm-none-eabi"
+         "hpsc-baremetal"
          "arm-trusted-firmware-rtps-a53"
          "u-boot-rtps-r52"
          "u-boot-rtps-a53"
