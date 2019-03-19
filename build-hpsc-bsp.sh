@@ -6,70 +6,13 @@
 # Fail-fast
 set -e
 
-# Generated artifacts for BSP directory
+# Additional artifacts for BSP directory
 BSP_ARTIFACTS_TOP=("cfgc"
                    "qemu-env.sh"
                    "qmp.py"
                    "run-qemu.sh"
                    "syscfg.ini"
                    "syscfg-schema.json")
-
-function stage_artifacts()
-{
-    local dest=$1
-    shift
-    mkdir -p "$dest"
-    echo "Staging: $dest"
-    for s in "$@"; do
-        echo "  $(basename "$s")"
-        cp "$s" "${dest}/"
-    done
-}
-
-function transform_qemu_env()
-{
-    local script=$1
-    local userscripts=("$@")
-    # TODO: Would be nice if we could just get relative paths from above
-    local RUN_QEMU_REPLACE=(
-        HPPS_FW=hpps/arm-trusted-firmware.bin
-        HPPS_BL=hpps/u-boot.bin
-        HPPS_DT=hpps/hpsc.dtb
-        HPPS_KERN_BIN=hpps/Image.gz
-        HPPS_RAMDISK=hpps/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot
-
-        TRCH_APP=trch/trch.elf
-        RTPS_APP=rtps-r52/rtps.uimg
-
-        RTPS_BL=rtps-r52/u-boot.bin
-
-        QEMU_DIR=.
-        QEMU_BIN_DIR=.
-        QEMU_DT_FILE=hpsc-arch.dtb
-
-        HPSC_HOST_UTILS_DIR=host-utils
-    )
-    for repl in "${RUN_QEMU_REPLACE[@]}"; do
-        prop=$(echo "$repl" | cut -d= -f1)
-        val=$(echo "$repl" | cut -d= -f2)
-        sed -i 's,'"$prop=.*"','"$prop=\"$val\""',' "$script"
-    done
-    local RUN_QEMU_DELETE=(WORKING_DIR
-                           YOCTO_DEPLOY_DIR
-                           BAREMETAL_DIR
-                           RTPS_BL_DIR)
-    for del in "${RUN_QEMU_DELETE[@]}"; do
-        sed -i "/${del}=/d" "$script"
-    done
-    # this is a clumsy attempt to catch changes that break our transformation
-    for del in "${RUN_QEMU_DELETE[@]}"; do
-        if grep "$del" "${userscripts[@]}"; then
-            echo "scripts using '$script' changed, 'transform_qemu_env' needs updating!"
-            echo "  found: '$del'"
-            exit 1
-        fi
-    done
-}
 
 function usage()
 {
@@ -164,19 +107,14 @@ fi
 cd "$WORKING_DIR"
 
 if [ $IS_STAGE -ne 0 ]; then
-    # top-level
+    echo "Staging..."
     STAGE_DIR="stage/${PREFIX}"
-    mkdir -p "$STAGE_DIR"
-
+    BSP_DIR="${STAGE_DIR}/BSP"
+    mkdir -p "$STAGE_DIR" "$BSP_DIR"
     # artifacts deployed by recipes
     cp -r deploy/* "$STAGE_DIR"
-
-    # BSP
-    BSP_DIR=${STAGE_DIR}/BSP
-    stage_artifacts "$BSP_DIR" "${BSP_ARTIFACTS_TOP[@]/#/${TOPDIR}/}"
-    # Qemu environment needs to be updated with new paths
-    transform_qemu_env "${BSP_DIR}/qemu-env.sh" \
-                       "${BSP_DIR}/run-qemu.sh"
+    # remaining artifacts
+    cp "${BSP_ARTIFACTS_TOP[@]/#/${TOPDIR}/}" "${BSP_DIR}/"
 fi
 
 if [ $IS_PACKAGE -ne 0 ]; then
