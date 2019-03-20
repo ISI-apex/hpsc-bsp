@@ -165,10 +165,10 @@ function ENV_check_bm_toolchain()
 }
 
 # Verify poky toolchain
-function ENV_check_poky_toolchain()
+function ENV_check_yocto_hpps_sdk()
 {
-    if [ -z "$POKY_SDK" ] || [ ! -d "$POKY_SDK" ]; then
-        echo "Error: POKY_SDK not found: $POKY_SDK"
+    if [ -z "$YOCTO_HPPS_SDK" ] || [ ! -d "$YOCTO_HPPS_SDK" ]; then
+        echo "Error: YOCTO_HPPS_SDK not found: $YOCTO_HPPS_SDK"
         echo "  Ensure that recipe has DEPENDS_ENVIRONMENT on 'hpsc-yocto-hpps' and that it is built"
         return 1
     fi

@@ -90,13 +90,13 @@ function do_deploy()
     deploy_artifacts toolchains "$POKY_TC_INSTALLER"
 }
 
-export POKY_SDK="${REC_ENV_DIR}/poky" # exported for other recipes
+export YOCTO_HPPS_SDK="${REC_ENV_DIR}/yocto-hpps-sdk" # exported for other recipes
 function do_toolchain_install()
 {
-    rm -rf "$POKY_SDK" # re-install every time
-    echo "Installing poky toolchain..."
+    rm -rf "$YOCTO_HPPS_SDK" # re-install every time
+    echo "Installing Yocto HPPS SDK..."
         "$POKY_TC_INSTALLER" <<EOF
-$POKY_SDK
+$YOCTO_HPPS_SDK
 y
 EOF
 }
