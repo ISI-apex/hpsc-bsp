@@ -4,6 +4,9 @@ export WGET_URL="https://www.eclipse.org/downloads/download.php?file=/technology
 export WGET_OUTPUT="eclipse.tar.gz"
 export WGET_OUTPUT_MD5="6087e4def4382fd334de658f9bde190b"
 
+# to get variables YOCTO_VERSION and GCC_ARM_NONE_EABI_VERSION
+export DEPENDS_ENVIRONMENT="hpsc-yocto-hpps:gcc-arm-none-eabi"
+
 # Eclipse update sites
 ECLIPSE_REPOSITORIES=("http://download.eclipse.org/releases/photon"
                       "http://download.eclipse.org/tm/updates/4.0/"
@@ -27,8 +30,8 @@ ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group/1.4.1.201804240009
                     org.eclipse.linuxtools.profiling.source.feature.group/7.1.0.201812121718
                     org.eclipse.linuxtools.profiling.remote.source.feature.group/7.1.0.201812121718)
 
-DEFAULT_POKY_ROOT=/opt/poky/2.6.1
-DEFAULT_BM_BINDIR=/opt/gcc-arm-none-eabi-7-2018-q2-update/bin
+DEFAULT_POKY_ROOT=/opt/poky/${YOCTO_VERSION}
+DEFAULT_BM_BINDIR=/opt/gcc-arm-none-eabi-${GCC_ARM_NONE_EABI_VERSION}/bin
 
 ECLIPSE_DIR=eclipse
 ECLIPSE_HPSC=hpsc-eclipse.tar.gz

@@ -59,7 +59,8 @@ function do_late_fetch()
 POKY_DEPLOY_DIR=poky_build/tmp/deploy
 POKY_IMAGE_DIR=${POKY_DEPLOY_DIR}/images/hpsc-chiplet
 
-POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.1.sh
+export YOCTO_VERSION=2.6.1 # exported for other recipes
+POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-${YOCTO_VERSION}.sh
 
 function do_build()
 {
