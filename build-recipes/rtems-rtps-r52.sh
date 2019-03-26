@@ -10,10 +10,10 @@ export GIT_BRANCH="hpsc"
 
 export DEPENDS_ENVIRONMENT="rtems-source-builder" # exports PATH
 
-# Builds take a long time
+# Builds take a long time, incremental build seems to be work
 export DO_CLEAN_AFTER_FETCH=0
 
-# TODO: Why is set -e not working here?
+# TODO: Why is set -e being ignored here?
 
 function maybe_bootstrap()
 {
@@ -26,7 +26,7 @@ function maybe_bootstrap()
     local rsb_git_rev_curr=$(arm-rtems5-gcc --version | grep RSB |
                              awk '{print $8}' | cut -d- -f1)
     # idiot-check to make sure we actually got a git hash
-    if [ ${#rsb_git_rev_curr} -eq 40 ]; then
+    if [ ${#rsb_git_rev_curr} -ne 40 ]; then
         echo "WARNING: failed to get RSB revision; will bootstrap RTEMS..."
     elif [ -e hpsc-bsp-rsb-rev.txt ] && [ -e hpsc-bsp-rtems-rev.txt ]; then
         local rsb_git_rev_last=$(cat hpsc-bsp-rsb-rev.txt)
@@ -42,11 +42,12 @@ function maybe_bootstrap()
             do_boostrap=0
        fi
     fi
+    if [ $do_boostrap -eq 1 ]; then
+        echo "rtems: bootstrap"
+        ./bootstrap || return $?
+    fi
     echo "$rsb_git_rev_curr" > hpsc-bsp-rsb-rev.txt
     echo "$GIT_REV" > hpsc-bsp-rtems-rev.txt
-    if [ $do_boostrap -eq 1 ]; then
-        ./bootstrap
-    fi
 }
 
 function exes_to_uboot_fmt()
@@ -65,20 +66,30 @@ function exes_to_uboot_fmt()
     done < <(find . -name "*.exe" -print0)
 }
 
-export RTEMS_R52_BSP=${REC_ENV_DIR}/RTEMS-5-R52-BSP # for other recipes
+export RTEMS_RTPS_R52_BSP=${REC_ENV_DIR}/RTEMS-5-RTPS-R52 # for other recipes
+
 function do_build()
 {
-    rm -rf "$RTEMS_R52_BSP" # always clean prefix
+    maybe_bootstrap || return $?
+
+    mkdir -p b-gen_r52_qemu
+    cd b-gen_r52_qemu
     echo "rtems: gen_r52_qemu: configure"
-    "${RTEMS_WORK_DIR}/configure" --target=arm-rtems5 \
-                                  --prefix="$RTEMS_R52_BSP" \
-                                  --disable-networking \
-                                  --enable-rtemsbsp=gen_r52_qemu \
-                                  --enable-tests || return $?
+    ../configure --target=arm-rtems5 \
+                 --prefix="$RTEMS_RTPS_R52_BSP" \
+                 --disable-networking \
+                 --enable-rtemsbsp=gen_r52_qemu \
+                 --enable-tests || return $?
     echo "rtems: gen_r52_qemu: make"
     make || return $?
-    echo "rtems: gen_r52_qemu: make install"
-    make install || return $?
 
     exes_to_uboot_fmt || return $?
+}
+
+function do_toolchain_install()
+{
+    rm -rf "$RTEMS_RTPS_R52_BSP" # always clean prefix
+    cd b-gen_r52_qemu
+    echo "rtems: gen_r52_qemu: make install"
+    make install
 }
