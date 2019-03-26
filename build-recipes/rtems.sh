@@ -13,10 +13,9 @@ export DEPENDS_ENVIRONMENT="rtems-source-builder" # exports PATH
 # Builds take a long time
 export DO_CLEAN_AFTER_FETCH=0
 
-# TODO: Should this install to env?
-export RTEMS_WORK_DIR=${REC_WORK_DIR} # exported for other recipes
+# TODO: Why is set -e not working here?
 
-function do_build()
+function maybe_bootstrap()
 {
     # RTEMS doesn't do incremental builds, and it's a little slow to bootstrap
     # Try to optimize: see if either RSB or this recipe has been updated
@@ -48,4 +47,38 @@ function do_build()
     if [ $do_boostrap -eq 1 ]; then
         ./bootstrap
     fi
+}
+
+function exes_to_uboot_fmt()
+{
+    while IFS= read -r -d '' file; do
+        # local BASE="$(echo "$file" | sed 's/.exe$//')"
+        local BASE="${file%.exe}" # strip .exe extension
+        echo "${BASE}: arm-rtems5-objcopy"
+        arm-rtems5-objcopy -O binary "${BASE}.exe" "${BASE}.bin" || return $?
+        echo "${BASE}: gzip"
+        gzip -f -9 "${BASE}.bin" || return $?
+        echo "${BASE}: mkimage"
+        mkimage -A arm -O rtems -T kernel -C gzip -a 70000000 -e 70000040 \
+                -n "$(basename "$file")" -d "${BASE}.bin.gz" "${BASE}.img" \
+                || return $?
+    done < <(find . -name "*.exe" -print0)
+}
+
+export RTEMS_R52_BSP=${REC_ENV_DIR}/RTEMS-5-R52-BSP # for other recipes
+function do_build()
+{
+    rm -rf "$RTEMS_R52_BSP" # always clean prefix
+    echo "rtems: gen_r52_qemu: configure"
+    "${RTEMS_WORK_DIR}/configure" --target=arm-rtems5 \
+                                  --prefix="$RTEMS_R52_BSP" \
+                                  --disable-networking \
+                                  --enable-rtemsbsp=gen_r52_qemu \
+                                  --enable-tests || return $?
+    echo "rtems: gen_r52_qemu: make"
+    make || return $?
+    echo "rtems: gen_r52_qemu: make install"
+    make install || return $?
+
+    exes_to_uboot_fmt || return $?
 }
