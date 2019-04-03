@@ -75,6 +75,8 @@ function do_build()
     mkdir -p b-gen_r52_qemu
     cd b-gen_r52_qemu
     echo "rtems: gen_r52_qemu: configure"
+    # required for sleep functions to work when running in QEMU
+    export CLOCK_DRIVER_USE_FAST_IDLE=0
     ../configure --target=arm-rtems5 \
                  --prefix="$RTEMS_RTPS_R52_BSP" \
                  --disable-networking \
