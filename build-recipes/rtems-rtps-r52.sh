@@ -77,6 +77,8 @@ function do_build()
     echo "rtems: gen_r52_qemu: configure"
     # required for sleep functions to work when running in QEMU
     export CLOCK_DRIVER_USE_FAST_IDLE=0
+    # prevents RTEMS from crashing QEMU on failures
+    export BSP_RESET_BOARD_AT_EXIT=0
     ../configure --target=arm-rtems5 \
                  --prefix="$RTEMS_RTPS_R52_BSP" \
                  --disable-networking \
