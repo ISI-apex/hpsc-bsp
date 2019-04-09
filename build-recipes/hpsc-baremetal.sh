@@ -14,6 +14,7 @@ function do_build()
 
 function do_deploy()
 {
-    deploy_artifacts BSP/rtps-r52 rtps/bld/rtps.uimg
+    # RTPS baremetal image superseded by RTEMS image
+    # deploy_artifacts BSP/rtps-r52 rtps/bld/rtps.uimg
     deploy_artifacts BSP/trch trch/bld/trch.elf
 }
