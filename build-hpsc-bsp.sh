@@ -94,6 +94,7 @@ TOPDIR=${PWD}
 if [ $IS_FETCH -ne 0 ]; then
     echo "Fetching sources..."
     ./build-hpsc-yocto.sh -w "$WORKING_DIR" -a fetch
+    ./build-hpsc-rtems.sh -w "$WORKING_DIR" -a fetch
     ./build-hpsc-other.sh -w "$WORKING_DIR" -a fetch
 fi
 
@@ -101,6 +102,7 @@ if [ $IS_BUILD -ne 0 ]; then
     echo "Building..."
     # this ordering matters
     ./build-hpsc-yocto.sh -w "$WORKING_DIR" -a build
+    ./build-hpsc-rtems.sh -w "$WORKING_DIR" -a build
     ./build-hpsc-other.sh -w "$WORKING_DIR" -a build
 fi
 
