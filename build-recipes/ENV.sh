@@ -173,3 +173,23 @@ function ENV_check_yocto_hpps_sdk()
         return 1
     fi
 }
+
+# Check that RTEMS toolchain is on PATH
+function ENV_check_rsb_toolchain()
+{
+    if ! which arm-rtems5-gcc > /dev/null 2>&1; then
+        echo "Error: RTEMS cross compiler 'arm-rtems5-gcc' is not on PATH"
+        echo "  Ensure that recipe has DEPENDS_ENVIRONMENT on 'rtems-source-builder' and that it is built"
+        return 1
+    fi
+}
+
+# Verify RTEMS R52 toolchain
+function ENV_check_rtems_r52_sdk()
+{
+    if [ -z "$RTEMS_RTPS_R52_BSP" ] || [ ! -d "$RTEMS_RTPS_R52_BSP" ]; then
+        echo "Error: RTEMS_RTPS_R52_BSP not found: $RTEMS_RTPS_R52_BSP"
+        echo "  Ensure that recipe has DEPENDS_ENVIRONMENT on 'rtems-rtps-r52' and that it is built"
+        return 1
+    fi
+}
