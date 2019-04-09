@@ -153,12 +153,12 @@ fi
 echo "Using SRCREV: $SRCREV"
 
 # update revision
-if [ "$(grep -c GIT_REV "$REC_FILE")" -ne 1 ]; then
+if [ "$(grep -c "GIT_REV=" "$REC_FILE")" -ne 1 ]; then
     echo "Exactly one instance of GIT_REV should exist in recipe"
     echo "Failed to upgrade recipe"
     exit 1
 fi
-sed -i "s/GIT_REV.*/GIT_REV=${SRCREV}/" "$REC_FILE"
+sed -i "s/GIT_REV=.*/GIT_REV=${SRCREV}/" "$REC_FILE"
 
 # Sometimes have problems with `git diff-index --quiet HEAD -- "$REC_FILE"`
 # returning bad exit code when $REC_FILE uncached? So add first, then check
