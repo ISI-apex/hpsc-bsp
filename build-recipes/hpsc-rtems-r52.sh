@@ -6,7 +6,7 @@
 #
 
 export GIT_REPO="https://github.com/ISI-apex/hpsc-rtems.git"
-export GIT_REV=7fab331d8111d29a9ae1fc572a8e6891690db513
+export GIT_REV=618965e6f65129e22bd95d39e1b4a1e2ae36adb2
 export GIT_BRANCH="hpsc"
 
 # exports PATH and RTEMS_MAKEFILE_PATH
