@@ -66,7 +66,9 @@ function exes_to_uboot_fmt()
     done < <(find . -name "*.exe" -print0)
 }
 
-export RTEMS_RTPS_R52_BSP=${REC_ENV_DIR}/RTEMS-5-RTPS-R52 # for other recipes
+# for other recipes
+export RTEMS_RTPS_R52_BSP=${REC_ENV_DIR}/RTEMS-5-RTPS-R52
+export RTEMS_MAKEFILE_PATH=${RTEMS_RTPS_R52_BSP}/arm-rtems5/gen_r52_qemu
 
 function do_build()
 {
