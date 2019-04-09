@@ -23,7 +23,7 @@ SYSCFG_SCHEMA=syscfg-schema.json
 
 TRCH_APP=${BSP_DIR}/trch/trch.elf
 
-RTPS_APP=${BSP_DIR}/rtps-r52/rtps.uimg
+RTPS_APP=${BSP_DIR}/rtps-r52/rtps-r52.img
 RTPS_BL=${BSP_DIR}/rtps-r52/u-boot.bin
 
 HPPS_FW=${BSP_DIR}/hpps/arm-trusted-firmware.bin
