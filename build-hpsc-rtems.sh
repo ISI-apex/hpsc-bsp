@@ -5,7 +5,8 @@ set -e
 
 RECIPES=("rtems-tools"
          "rtems-source-builder"
-         "rtems-rtps-r52")
+         "rtems-rtps-r52"
+         "hpsc-rtems-r52")
 
 function usage()
 {
