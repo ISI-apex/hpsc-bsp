@@ -15,41 +15,6 @@ export DO_CLEAN_AFTER_FETCH=0
 
 # TODO: Why is set -e being ignored here?
 
-function maybe_bootstrap()
-{
-    # RTEMS doesn't do incremental builds, and it's a little slow to bootstrap
-    # Try to optimize: see if either RSB or this recipe has been updated
-    # NOTE: Assumes both recipes are otherwise static - does NOT rebuild if
-    #       recipes changes in ANY way other than updating GIT_REV!
-    #       Force a clean of the working directory to test other changes
-    local do_boostrap=1
-    local rsb_git_rev_curr=$(arm-rtems5-gcc --version | grep RSB |
-                             awk '{print $8}' | cut -d- -f1)
-    # idiot-check to make sure we actually got a git hash
-    if [ ${#rsb_git_rev_curr} -ne 40 ]; then
-        echo "WARNING: failed to get RSB revision; will bootstrap RTEMS..."
-    elif [ -e hpsc-bsp-rsb-rev.txt ] && [ -e hpsc-bsp-rtems-rev.txt ]; then
-        local rsb_git_rev_last=$(cat hpsc-bsp-rsb-rev.txt)
-        local rtems_rev_last=$(cat hpsc-bsp-rtems-rev.txt)
-        echo "RSB git rev (last): $rsb_git_rev_last"
-        echo "RSB git rev (curr): $rsb_git_rev_curr"
-        echo "RTEMS git rev (last): $rtems_rev_last"
-        echo "RTEMS git rev (curr): $GIT_REV"
-        if [ "$rsb_git_rev_curr" == "$rsb_git_rev_last" ] &&
-           [ "$GIT_REV" == "$rtems_rev_last" ]; then
-            echo "No change in git revisions since last bootstrap; skipping..."
-            echo "Clean this recipe to force a rebuild"
-            do_boostrap=0
-       fi
-    fi
-    if [ $do_boostrap -eq 1 ]; then
-        echo "rtems: bootstrap"
-        ./bootstrap || return $?
-    fi
-    echo "$rsb_git_rev_curr" > hpsc-bsp-rsb-rev.txt
-    echo "$GIT_REV" > hpsc-bsp-rtems-rev.txt
-}
-
 function exes_to_uboot_fmt()
 {
     while IFS= read -r -d '' file; do
@@ -72,7 +37,9 @@ export RTEMS_MAKEFILE_PATH=${RTEMS_RTPS_R52_BSP}/arm-rtems5/gen_r52_qemu
 
 function do_build()
 {
-    maybe_bootstrap || return $?
+    local rsb_src=$(get_dependency_src rtems-source-builder)
+    echo "rtems: sb-bootstrap"
+    "${rsb_src}/source-builder/sb-bootstrap" || return $?
 
     mkdir -p b-gen_r52_qemu
     cd b-gen_r52_qemu
