@@ -62,16 +62,14 @@ For example to perform a build and create the SDK:
 
 	./build-hpsc-yocto.sh
 
-The generated files needed to run QEMU are located in: `${WORKING_DIR}/work/hpsc-yocto-hpps/poky_build/tmp/deploy/images/hpsc-chiplet`.
+The generated files needed to run QEMU are located in: `${WORKING_DIR}/deploy/BSP/hpps/`.
 Specifically:
 
 1. `arm-trusted-firmware.bin` - the Arm Trusted Firmware binary
 1. `core-image-minimal-hpsc-chiplet.cpio.gz.u-boot` - the Linux root file system for booting the dual A53 cluster
-1. `Image.gz` - the Linux kernel binary image
 1. `hpsc.dtb` - the Chiplet device tree for SMP Linux
+1. `Image.gz` - the Linux kernel binary image
 1. `u-boot.bin` - the U-boot bootloader for the dual A53 cluster
-
-The actual build directories for these files are located in the directory: `${WORKING_DIR}/work/hpsc-yocto-hpps/poky_build/tmp/work`.
 
 RTEMS Build
 -----------
@@ -80,15 +78,15 @@ To build RTEMS-related sources and create the SDK:
 
 	./build-hpsc-rtems.sh
 
-The build generates toolchains/SDKs/BSPs in `${WORKING_DIR}/env`:
+The build generates toolchains/SDKs/BSPs in `${WORKING_DIR}/env/`:
 
 1. `RSB-5` - RTEMS Source Builder toolchain
 1. `RT-5` - RTEMS Tools
 1. `RTEMS-5-RTPS-R52` - RTPS R52 RTEMS BSP for building RTEMS applications
 
-Then within `${WORKING_DIR}/work/`:
+Then within `${WORKING_DIR}/deploy/BSP/rtps-r52/`:
 
-1. `hpsc-rtems-rtps-r52/rtps-r52/o-optimize/rtps-r52.img` - RTPS R52 firmware
+1. `rtps-r52.img` - RTPS R52 firmware
 
 Other Build
 -----------
@@ -97,30 +95,29 @@ To build the remaining (aka "other") artifacts, run:
 
 	./build-hpsc-other.sh
 
-The bare metal toolchain is fetched and installed, then used to build (within `${WORKING_DIR}/work/`):
+The bare metal toolchain is fetched and installed, then used to build in `${WORKING_DIR}/deploy/BSP/`:
 
-1. `hpsc-baremetal/trch/bld/trch.elf` - TRCH firmware
-1. `hpsc-baremetal/rtps/bld/rtps.uimg` - RTPS R52 firmware (deprecated in favor of RTEMS)
-1. `u-boot-rtps-r52/u-boot.bin` - u-boot for the RTPS R52s
+1. `trch/trch.elf` - TRCH firmware
+1. `rtps-r52/u-boot.bin` - u-boot for the RTPS R52s
 
-The host compiler is used to build:
+The host compiler is used to build in `${WORKING_DIR}/deploy/BSP/`:
 
-1. `qemu/BUILD/aarch64-softmmu/qemu-system-aarch64` - the QEMU binary
-1. `qemu-devicetrees/LATEST/SINGLE_ARCH/hpsc-arch.dtb` - the QEMU device tree
-1. `hpsc-utils/host/qemu-nand-creator` - QEMU NAND flash image creator
-1. `hpsc-utils/host/sram-image-utils` - SRAM image creation utility
+1. `qemu-system-aarch64` - the QEMU binary
+1. `hpsc-arch.dtb` - the QEMU device tree
+1. `host-utils/qemu-nand-creator` - QEMU NAND flash image creator
+1. `host-utils/sram-image-utils` - SRAM image creation utility
 
-The Poky SDK is used to build:
+The Poky SDK is used to build in `${WORKING_DIR}/deploy/BSP/aarch64-poky-linux-utils/`:
 
-1. `hpsc-utils/linux/mboxtester` - mailbox test utility
-1. `hpsc-utils/linux/rtit-tester` - RTI timer test utility
-1. `hpsc-utils/linux/shm-standalone-tester` - shared memory standalone test utility
-1. `hpsc-utils/linux/shm-tester` - shared memory test utility
-1. `hpsc-utils/linux/wdtester` - watchdog test utility
+1. `mboxtester` - mailbox test utility
+1. `rtit-tester` - RTI timer test utility
+1. `shm-standalone-tester` - shared memory standalone test utility
+1. `shm-tester` - shared memory test utility
+1. `wdtester` - watchdog test utility
 
-The HPSC Eclipse distribution is also built:
+The HPSC Eclipse distribution is also built in `${WORKING_DIR}/deploy/`:
 
-1. `hpsc-eclipse/hpsc-eclipse.tar.gz` - TRCH firmware
+1. `hpsc-eclipse.tar.gz` - HPSC Eclipse installer
 
 Booting QEMU
 ------------
