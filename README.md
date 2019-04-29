@@ -73,6 +73,23 @@ Specifically:
 
 The actual build directories for these files are located in the directory: `${WORKING_DIR}/work/hpsc-yocto-hpps/poky_build/tmp/work`.
 
+RTEMS Build
+-----------
+
+To build RTEMS-related sources and create the SDK:
+
+	./build-hpsc-rtems.sh
+
+The build generates toolchains/SDKs/BSPs in `${WORKING_DIR}/env`:
+
+1. `RSB-5` - RTEMS Source Builder toolchain
+1. `RT-5` - RTEMS Tools
+1. `RTEMS-5-RTPS-R52` - RTPS R52 RTEMS BSP for building RTEMS applications
+
+Then within `${WORKING_DIR}/work/`:
+
+1. `hpsc-rtems-rtps-r52/rtps-r52/o-optimize/rtps-r52.img` - RTPS R52 firmware
+
 Other Build
 -----------
 
@@ -83,7 +100,7 @@ To build the remaining (aka "other") artifacts, run:
 The bare metal toolchain is fetched and installed, then used to build (within `${WORKING_DIR}/work/`):
 
 1. `hpsc-baremetal/trch/bld/trch.elf` - TRCH firmware
-1. `hpsc-baremetal/rtps/bld/rtps.uimg` - RTPS R52 firmware
+1. `hpsc-baremetal/rtps/bld/rtps.uimg` - RTPS R52 firmware (deprecated in favor of RTEMS)
 1. `u-boot-rtps-r52/u-boot.bin` - u-boot for the RTPS R52s
 
 The host compiler is used to build:
