@@ -9,7 +9,7 @@ export GIT_REPO="https://github.com/ISI-apex/hpsc-rtems.git"
 export GIT_REV=4d441ceb8319010b4abf8fce7bd8bd6ba0813e73
 export GIT_BRANCH="hpsc"
 
-# exports PATH and RTEMS_MAKEFILE_PATH
+# exports PATH, RTEMS_RTPS_R52_BSP, and RTEMS_MAKEFILE_PATH
 export DEPENDS_ENVIRONMENT="rtems-source-builder:rtems-rtps-r52"
 
 function do_build()
@@ -22,4 +22,20 @@ function do_build()
 function do_deploy()
 {
     deploy_artifacts BSP/rtps-r52 rtps-r52/o-optimize/rtps-r52.img
+}
+
+function do_toolchain_uninstall()
+{
+    # RTEMS builds don't provide an "uninstall" goal...
+    # delete old binaries, libraries, and headers (in case some were removed)
+    # reliable as long as the project sticks to its libhpsc* naming convention
+    rm -f "${RTEMS_RTPS_R52_BSP}/bin/rtps-r52.{img,exe}"
+    rm -f "${RTEMS_RTPS_R52_BSP}/arm-rtems5/gen_r52_qemu/lib/libhpsc*.a"
+    rm -rf "${RTEMS_RTPS_R52_BSP}/arm-rtems5/gen_r52_qemu/lib/include/libhpsc*"
+}
+
+function do_toolchain_install()
+{
+    do_toolchain_uninstall
+    make install
 }
