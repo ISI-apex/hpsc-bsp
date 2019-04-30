@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/hpsc-utils.git"
-export GIT_REV=681251095f430c029421bee2b1683f970398afda
+export GIT_REV=90e19f673e5e30fd7da0343db6f56262f52521f7
 export GIT_BRANCH="hpsc"
 
 export DEPENDS_ENVIRONMENT="hpsc-yocto-hpps" # exports YOCTO_HPPS_SDK
