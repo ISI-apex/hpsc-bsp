@@ -24,7 +24,9 @@ function do_post_fetch()
 
 function do_toolchain_uninstall()
 {
-    rm -rf "$RSB_ENV_DIR"
+    if [ -e "$RSB_ENV_DIR" ]; then
+        unlink "$RSB_ENV_DIR"
+    fi
 }
 
 RSB_PREFIX="${REC_WORK_DIR}/RSB-5"
@@ -56,7 +58,7 @@ function do_build()
 
 function do_toolchain_install()
 {
-    # TODO: Can we break up build/install step above so we don't have to copy?
+    # TODO: Can we break up build/install step above so we don't have to link to working dir?
     do_toolchain_uninstall # re-install every time
-    cp -r "$RSB_PREFIX" "$REC_ENV_DIR"
+    ln -s "$RSB_PREFIX" "$RSB_ENV_DIR"
 }
