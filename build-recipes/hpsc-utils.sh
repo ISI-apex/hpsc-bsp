@@ -6,6 +6,26 @@ export GIT_BRANCH="hpsc"
 
 export DEPENDS_ENVIRONMENT="hpsc-yocto-hpps" # exports YOCTO_HPPS_SDK
 
+DEPLOY_DIR_1=BSP/host-utils
+DEPLOY_ARTIFACTS_1=(
+    host/qemu-nand-creator
+    host/sram-image-utils
+)
+DEPLOY_DIR_2=BSP/aarch64-poky-linux-utils
+DEPLOY_ARTIFACTS_2=(
+    linux/mboxtester
+    linux/rtit-tester
+    linux/shm-standalone-tester
+    linux/shm-tester
+    linux/wdtester
+)
+
+function do_undeploy()
+{
+    undeploy_artifacts "$DEPLOY_DIR_1" "${DEPLOY_ARTIFACTS_1[@]}"
+    undeploy_artifacts "$DEPLOY_DIR_2" "${DEPLOY_ARTIFACTS_2[@]}"
+}
+
 function do_build()
 {
     for s in host linux; do
@@ -24,11 +44,6 @@ function do_build()
 
 function do_deploy()
 {
-    deploy_artifacts BSP/host-utils host/qemu-nand-creator \
-                                    host/sram-image-utils
-    deploy_artifacts BSP/aarch64-poky-linux-utils linux/mboxtester \
-                                                  linux/rtit-tester \
-                                                  linux/shm-standalone-tester \
-                                                  linux/shm-tester \
-                                                  linux/wdtester
+    deploy_artifacts "$DEPLOY_DIR_1" "${DEPLOY_ARTIFACTS_1[@]}"
+    deploy_artifacts "$DEPLOY_DIR_2" "${DEPLOY_ARTIFACTS_2[@]}"
 }

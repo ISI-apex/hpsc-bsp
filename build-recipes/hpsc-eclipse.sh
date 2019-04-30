@@ -36,6 +36,9 @@ DEFAULT_BM_BINDIR=/opt/gcc-arm-none-eabi-${GCC_ARM_NONE_EABI_VERSION}/bin
 ECLIPSE_DIR=eclipse
 ECLIPSE_HPSC=hpsc-eclipse.tar.gz
 
+DEPLOY_DIR=""
+DEPLOY_ARTIFACTS=("$ECLIPSE_HPSC")
+
 function do_post_fetch()
 {
     # Extract eclipse
@@ -55,6 +58,11 @@ function do_post_fetch()
                            -nosplash \
                            -repository "$ECLIPSE_REPOSITORY_LIST" \
                            -installIUs "$ECLIPSE_PLUGIN_IU_LIST"
+}
+
+function do_undeploy()
+{
+    undeploy_artifacts "$DEPLOY_DIR" "${DEPLOY_ARTIFACTS[@]}"
 }
 
 function do_build()
@@ -84,5 +92,5 @@ EOL
 
 function do_deploy()
 {
-    deploy_artifacts "" "$ECLIPSE_HPSC"
+    deploy_artifacts "$DEPLOY_DIR" "${DEPLOY_ARTIFACTS[@]}"
 }

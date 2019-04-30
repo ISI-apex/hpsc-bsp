@@ -8,12 +8,28 @@ export WGET_OUTPUT_MD5="299ebd3f1c2c90930d28ab82e5d8d6c0"
 
 export DO_FETCH_ONLY=1
 
-function do_deploy()
+INST_DIR="${REC_ENV_DIR}/gcc-arm-none-eabi-${GCC_ARM_NONE_EABI_VERSION}"
+export PATH="${INST_DIR}/bin:$PATH" # for other recipes
+
+DEPLOY_DIR=toolchains
+DEPLOY_ARTIFACTS=("$WGET_OUTPUT")
+
+function do_toolchain_uninstall()
 {
-    deploy_artifacts toolchains "$WGET_OUTPUT"
+    # wildcard in case version was updated
+    rm -rf "${REC_ENV_DIR}"/gcc-arm-none-eabi-*
 }
 
-INST_DIR="${REC_ENV_DIR}/gcc-arm-none-eabi-${GCC_ARM_NONE_EABI_VERSION}"
+function do_undeploy()
+{
+    undeploy_artifacts "$DEPLOY_DIR" "${DEPLOY_ARTIFACTS[@]}"
+}
+
+function do_deploy()
+{
+    deploy_artifacts "$DEPLOY_DIR" "${DEPLOY_ARTIFACTS[@]}"
+}
+
 function do_toolchain_install()
 {
     if [ -d "$INST_DIR" ]; then
@@ -23,5 +39,3 @@ function do_toolchain_install()
         tar xjf "$WGET_OUTPUT" -C "$(dirname "$INST_DIR")"
     fi
 }
-
-export PATH="${INST_DIR}/bin:$PATH"

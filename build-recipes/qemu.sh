@@ -6,11 +6,22 @@ export GIT_BRANCH="hpsc"
 
 export DO_BUILD_OUT_OF_SOURCE=1
 
+DEPLOY_DIR=BSP
+DEPLOY_ARTIFACTS=(
+    build/_install/bin/qemu-system-aarch64
+    build/_install/libexec/qemu-bridge-helper
+)
+
 function do_post_fetch()
 {
     # Fetches submodules, which requires internet
     # We only know which submodules are used b/c we've run configure before...
     ./scripts/git-submodule.sh update ui/keycodemapdb dtc capstone
+}
+
+function do_undeploy()
+{
+    undeploy_artifacts "$DEPLOY_DIR" "${DEPLOY_ARTIFACTS[@]}"
 }
 
 function do_build()
@@ -33,6 +44,5 @@ function do_test()
 
 function do_deploy()
 {
-    deploy_artifacts "BSP" build/_install/bin/qemu-system-aarch64 \
-                           build/_install/libexec/qemu-bridge-helper
+    deploy_artifacts "$DEPLOY_DIR" "${DEPLOY_ARTIFACTS[@]}"
 }

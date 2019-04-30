@@ -6,6 +6,14 @@ export GIT_BRANCH="hpsc"
 
 export DEPENDS_ENVIRONMENT="gcc-arm-none-eabi"
 
+DEPLOY_DIR=BSP/trch
+DEPLOY_ARTIFACTS=(trch/bld/trch.elf)
+
+function do_undeploy()
+{
+    undeploy_artifacts "$DEPLOY_DIR" "${DEPLOY_ARTIFACTS[@]}"
+}
+
 function do_build()
 {
     ENV_check_bm_toolchain
@@ -14,7 +22,5 @@ function do_build()
 
 function do_deploy()
 {
-    # RTPS baremetal image superseded by RTEMS image
-    # deploy_artifacts BSP/rtps-r52 rtps/bld/rtps.uimg
-    deploy_artifacts BSP/trch trch/bld/trch.elf
+    deploy_artifacts "$DEPLOY_DIR" "${DEPLOY_ARTIFACTS[@]}"
 }

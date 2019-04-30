@@ -5,6 +5,14 @@ export GIT_REV=cdfafce46499283b5c9bc9348021d23359387dc0
 export GIT_BRANCH="hpsc-1.1"
 
 export RT_PATH="${REC_ENV_DIR}/RT-5" # exported for other recipes
+
+function do_toolchain_uninstall()
+{
+    if [ -d "$RT_PATH" ]; then
+        ./waf uninstall || rm -rf "$RT_PATH"
+    fi
+}
+
 function do_build()
 {
     ./waf configure --prefix="$RT_PATH"
@@ -13,8 +21,6 @@ function do_build()
 
 function do_toolchain_install()
 {
-    if [ -d "$RT_PATH" ]; then
-        ./waf uninstall || rm -rf "$RT_PATH"
-    fi
+    do_toolchain_uninstall # re-install every time
     ./waf install
 }

@@ -15,6 +15,15 @@ export DO_CLEAN_AFTER_FETCH=0
 
 # TODO: Why is set -e being ignored here?
 
+# for other recipes
+export RTEMS_RTPS_R52_BSP=${REC_ENV_DIR}/RTEMS-5-RTPS-R52
+export RTEMS_MAKEFILE_PATH=${RTEMS_RTPS_R52_BSP}/arm-rtems5/gen_r52_qemu
+
+function do_toolchain_uninstall()
+{
+    rm -rf "$RTEMS_RTPS_R52_BSP"
+}
+
 function exes_to_uboot_fmt()
 {
     while IFS= read -r -d '' file; do
@@ -30,10 +39,6 @@ function exes_to_uboot_fmt()
                 || return $?
     done < <(find . -name "*.exe" -print0)
 }
-
-# for other recipes
-export RTEMS_RTPS_R52_BSP=${REC_ENV_DIR}/RTEMS-5-RTPS-R52
-export RTEMS_MAKEFILE_PATH=${RTEMS_RTPS_R52_BSP}/arm-rtems5/gen_r52_qemu
 
 function do_build()
 {
@@ -61,7 +66,7 @@ function do_build()
 
 function do_toolchain_install()
 {
-    rm -rf "$RTEMS_RTPS_R52_BSP" # always clean prefix
+    do_toolchain_uninstall # always clean prefix
     cd b-gen_r52_qemu
     echo "rtems: gen_r52_qemu: make install"
     make install

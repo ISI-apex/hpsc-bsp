@@ -129,11 +129,31 @@ function build_lifecycle()
         do_post_fetch
     fi
 
+    # uninstall/undeploy on clean request or after fetch
+    if [ $IS_CLEAN -ne 0 ] || [ $IS_FETCH -ne 0 ]; then
+        if [ "$DO_FETCH_ONLY" -ne 0 ]; then
+            echo "$recname: toolchain_uninstall"
+            cd "$REC_SRC_DIR"
+            do_toolchain_uninstall
+            echo "$recname: undeploy"
+            cd "$REC_SRC_DIR"
+            do_undeploy
+        elif [ -d "$REC_WORK_DIR" ]; then
+            echo "$recname: toolchain_uninstall"
+            cd "$REC_WORK_DIR"
+            do_toolchain_uninstall
+            echo "$recname: undeploy"
+            cd "$REC_WORK_DIR"
+            do_undeploy
+        fi # else nowhere to run uninstall/undeploy from
+    fi
+
     if [ "$DO_FETCH_ONLY" -eq 0 ]; then
         # clean if requested or clean-after-fetch not overridden by recipe
         if [ $IS_CLEAN -ne 0 ] || 
            [[ $IS_FETCH -ne 0 && "$DO_CLEAN_AFTER_FETCH" -eq 1 ]]; then
             echo "$recname: clean"
+            cd "$ENV_WORKING_DIR"
             rm -rf "$REC_WORK_DIR"
         fi
         # extract to (or create) work dir

@@ -87,6 +87,22 @@ function do_late_fetch()
     :
 }
 
+# clean any previously installed toolchain artifacts
+function do_toolchain_uninstall()
+{
+    # operates in REC_WORK_DIR
+    # however, if DO_FETCH_ONLY is set, operates in REC_SRC_DIR
+    :
+}
+
+# clean any previously deployed BSP artifacts
+function do_undeploy()
+{
+    # operates in REC_WORK_DIR
+    # however, if DO_FETCH_ONLY is set, operates in REC_SRC_DIR
+    :
+}
+
 # perform actual build (beginning here, internet may be unavailable)
 function do_build()
 {
@@ -145,6 +161,20 @@ function deploy_artifacts()
     for f in "$@"; do
         echo "  $(basename "$f")"
         cp "$f" "${dest}/"
+    done
+}
+
+function undeploy_artifacts()
+{
+    # $1 = destination subdirectory, or empty string "" for root of deploy dir
+    # remaining params optional: files to deploy to subdirectory
+    local subdir=$1
+    shift
+    local dest="${ENV_DEPLOY_DIR}/${subdir}"
+    echo "Undeploying: $dest"
+    for f in "$@"; do
+        echo "  $(basename "$f")"
+        rm -f "${dest}/$(basename "$f")"
     done
 }
 

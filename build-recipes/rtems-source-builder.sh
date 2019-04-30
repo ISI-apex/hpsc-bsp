@@ -9,6 +9,9 @@ export DO_BUILD_OUT_OF_SOURCE=1
 # Builds take a long time
 export DO_CLEAN_AFTER_FETCH=0
 
+RSB_ENV_DIR=${REC_ENV_DIR}/RSB-5
+export PATH="${RSB_ENV_DIR}/bin:$PATH" # exported for other recipes
+
 RSB_CONFIGDIRS="${REC_SRC_DIR}/rtems/config:${REC_SRC_DIR}/source-builder/config:${REC_SRC_DIR}/bare/config"
 function do_post_fetch()
 {
@@ -17,6 +20,11 @@ function do_post_fetch()
                                     --configdir="$RSB_CONFIGDIRS" \
                                     --no-install \
                                     5/rtems-arm
+}
+
+function do_toolchain_uninstall()
+{
+    rm -rf "$RSB_ENV_DIR"
 }
 
 RSB_PREFIX="${REC_WORK_DIR}/RSB-5"
@@ -46,11 +54,9 @@ function do_build()
     fi
 }
 
-RSB_ENV_DIR=${REC_ENV_DIR}/RSB-5
 function do_toolchain_install()
 {
     # TODO: Can we break up build/install step above so we don't have to copy?
-    rm -rf "$RSB_ENV_DIR" # re-install every time
+    do_toolchain_uninstall # re-install every time
     cp -r "$RSB_PREFIX" "$REC_ENV_DIR"
 }
-export PATH="${RSB_ENV_DIR}/bin:$PATH" # exported for other recipes

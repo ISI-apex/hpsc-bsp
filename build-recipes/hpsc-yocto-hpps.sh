@@ -60,7 +60,31 @@ POKY_DEPLOY_DIR=poky_build/tmp/deploy
 POKY_IMAGE_DIR=${POKY_DEPLOY_DIR}/images/hpsc-chiplet
 
 export YOCTO_VERSION=2.6.1 # exported for other recipes
+export YOCTO_HPPS_SDK="${REC_ENV_DIR}/yocto-hpps-sdk" # exported for other recipes
+
 POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-${YOCTO_VERSION}.sh
+
+DEPLOY_DIR_1=BSP/hpps
+DEPLOY_ARTIFACTS_1=(
+    "${POKY_IMAGE_DIR}/arm-trusted-firmware.bin"
+    "${POKY_IMAGE_DIR}/u-boot.bin"
+    "${POKY_IMAGE_DIR}/hpsc.dtb"
+    "${POKY_IMAGE_DIR}/Image.gz"
+    "${POKY_IMAGE_DIR}/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot"
+)
+DEPLOY_DIR_2=toolchains
+DEPLOY_ARTIFACTS_2=("$POKY_TC_INSTALLER")
+
+function do_toolchain_uninstall()
+{
+    rm -rf "$YOCTO_HPPS_SDK"
+}
+
+function do_undeploy()
+{
+    undeploy_artifacts "$DEPLOY_DIR_1" "${DEPLOY_ARTIFACTS_1[@]}"
+    undeploy_artifacts "$DEPLOY_DIR_2" "${DEPLOY_ARTIFACTS_2[@]}"
+}
 
 function do_build()
 {
@@ -82,18 +106,13 @@ function do_build()
 
 function do_deploy()
 {
-    deploy_artifacts BSP/hpps "${POKY_IMAGE_DIR}/arm-trusted-firmware.bin" \
-                              "${POKY_IMAGE_DIR}/u-boot.bin" \
-                              "${POKY_IMAGE_DIR}/hpsc.dtb" \
-                              "${POKY_IMAGE_DIR}/Image.gz" \
-                              "${POKY_IMAGE_DIR}/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot"
-    deploy_artifacts toolchains "$POKY_TC_INSTALLER"
+    deploy_artifacts "$DEPLOY_DIR_1" "${DEPLOY_ARTIFACTS_1[@]}"
+    deploy_artifacts "$DEPLOY_DIR_2" "${DEPLOY_ARTIFACTS_2[@]}"
 }
 
-export YOCTO_HPPS_SDK="${REC_ENV_DIR}/yocto-hpps-sdk" # exported for other recipes
 function do_toolchain_install()
 {
-    rm -rf "$YOCTO_HPPS_SDK" # re-install every time
+    do_toolchain_uninstall # re-install every time
     echo "Installing Yocto HPPS SDK..."
         "$POKY_TC_INSTALLER" <<EOF
 $YOCTO_HPPS_SDK

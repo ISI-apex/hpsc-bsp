@@ -12,17 +12,8 @@ export GIT_BRANCH="hpsc"
 # exports PATH, RTEMS_RTPS_R52_BSP, and RTEMS_MAKEFILE_PATH
 export DEPENDS_ENVIRONMENT="rtems-source-builder:rtems-rtps-r52"
 
-function do_build()
-{
-    ENV_check_rsb_toolchain || return 1
-    ENV_check_rtems_r52_sdk || return 1
-    make_parallel
-}
-
-function do_deploy()
-{
-    deploy_artifacts BSP/rtps-r52 rtps-r52/o-optimize/rtps-r52.img
-}
+DEPLOY_DIR=BSP/rtps-r52
+DEPLOY_ARTIFACTS=(rtps-r52/o-optimize/rtps-r52.img)
 
 function do_toolchain_uninstall()
 {
@@ -34,8 +25,24 @@ function do_toolchain_uninstall()
     rm -rf "${RTEMS_RTPS_R52_BSP}/arm-rtems5/gen_r52_qemu/lib/include/libhpsc*"
 }
 
+function do_undeploy()
+{
+    undeploy_artifacts "$DEPLOY_DIR" "${DEPLOY_ARTIFACTS[@]}"
+}
+
+function do_build()
+{
+    ENV_check_rsb_toolchain || return 1
+    ENV_check_rtems_r52_sdk || return 1
+    make_parallel
+}
+
+function do_deploy()
+{
+    deploy_artifacts "$DEPLOY_DIR" "${DEPLOY_ARTIFACTS[@]}"
+}
+
 function do_toolchain_install()
 {
-    do_toolchain_uninstall
     make install
 }

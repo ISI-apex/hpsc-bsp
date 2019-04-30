@@ -6,6 +6,14 @@ export GIT_BRANCH="hpsc"
 
 export DEPENDS_ENVIRONMENT="gcc-arm-none-eabi"
 
+DEPLOY_DIR=BSP/rtps-r52
+DEPLOY_ARTIFACTS=(u-boot.bin)
+
+function do_undeploy()
+{
+    undeploy_artifacts "$DEPLOY_DIR" "${DEPLOY_ARTIFACTS[@]}"
+}
+
 function do_build()
 {
     ENV_check_bm_toolchain
@@ -15,5 +23,5 @@ function do_build()
 
 function do_deploy()
 {
-    deploy_artifacts BSP/rtps-r52 u-boot.bin
+    deploy_artifacts "$DEPLOY_DIR" "${DEPLOY_ARTIFACTS[@]}"
 }
