@@ -1,4 +1,5 @@
 BUILD
+DEVEL
 *.bin
 *.bin.*
 uImage.*
