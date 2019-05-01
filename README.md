@@ -28,7 +28,7 @@ Some sources (ATF, linux, and u-boot for the HPPS) are managed by Yocto recipes,
 These recipes are found in the [meta-hpsc](https://github.com/ISI-apex/meta-hpsc) project and must be configured there.
 The `meta-hpsc` project revision is then configured with a local recipe in `build-recipes/`, like other BSP dependencies.
 
-If you need to add new build recipes, read `build-recipes/ENV.sh` and walk through `build-recipe.sh`.
+If you need to add new build recipes, read `build-recipes/README.md` and walk through `build-recipe.sh` and `build-recipes/ENV.sh`.
 See existing recipes for examples.
 
 BSP Build
