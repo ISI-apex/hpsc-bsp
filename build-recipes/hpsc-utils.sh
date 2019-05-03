@@ -28,12 +28,14 @@ function do_undeploy()
 
 function do_build()
 {
-    echo "hpsc-utils: build"
-    echo "hpsc-utils: source poky environment"
-    ENV_check_yocto_hpps_sdk
-    source "${YOCTO_HPPS_SDK}/environment-setup-aarch64-poky-linux"
-    unset LDFLAGS
-    make_parallel -C "test/linux"
+    (
+        echo "hpsc-utils: build"
+        echo "hpsc-utils: source poky environment"
+        ENV_check_yocto_hpps_sdk
+        source "${YOCTO_HPPS_SDK}/environment-setup-aarch64-poky-linux"
+        unset LDFLAGS
+        make_parallel -C "test/linux"
+    )
 }
 
 function do_deploy()
