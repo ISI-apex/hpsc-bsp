@@ -14,12 +14,11 @@ fi
 QEMU_PREFIX=/usr/local
 QEMU_DT_FILE=${BSP_DIR}/hpsc-arch.dtb
 
-SRAM_IMAGE_UTILS=${BSP_DIR}/host-utils/sram-image-utils
-NAND_CREATOR=${BSP_DIR}/host-utils/qemu-nand-creator
+SDK_TOOLS=${BSP_DIR}/host-utils
 
 # System configuration interpreted by TRCH
 SYSCFG=syscfg.ini
-SYSCFG_SCHEMA=syscfg-schema.json
+SYSCFG_SCHEMA=${BSP_DIR}/ssw-conf/syscfg-schema.json
 
 TRCH_APP=${BSP_DIR}/trch/trch.elf
 

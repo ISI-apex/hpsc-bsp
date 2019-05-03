@@ -7,12 +7,9 @@
 set -e
 
 # Additional artifacts for BSP directory
-BSP_ARTIFACTS_TOP=("cfgc"
-                   "qemu-env.sh"
-                   "qmp.py"
+BSP_ARTIFACTS_TOP=("qemu-env.sh"
                    "run-qemu.sh"
-                   "syscfg.ini"
-                   "syscfg-schema.json")
+                   "syscfg.ini")
 
 function usage()
 {
