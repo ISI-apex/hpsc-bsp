@@ -1,0 +1,29 @@
+# Instructions for run-qemu for pre-loading data into memory
+
+# For fast boot mode in which Qemu loads the images directly into
+# DRAM upon startup of the machine (not possible on real HW).
+
+# NOTE: addresses and file paths are given via variables, instead of
+# directly here, because the hpsc-bsp/run-qemu.sh script needs to
+# build a memory image that needs the addresses and file paths.
+
+# CPU IDs: TRC:H 0, RTPS R52: 1-2, RTPS A53: 3, HPPS: 4-12
+# ADDR='-' means do not pass an address (e.g. for ELF loading)
+
+
+# ID              (CPU:)ADDR            FILE
+rtps-bl           1:$RTPS_BL_ADDR       $RTPS_BL
+rtps-os           1:$RTPS_APP_ADDR      $RTPS_APP
+
+hpps-fw           4:$HPPS_FW_ADDR       $HPPS_FW
+hpps-bl           4:$HPPS_BL_ADDR       $HPPS_BL
+hpps-dt           4:$HPPS_DT_ADDR       $HPPS_DT
+hpps-os           4:$HPPS_KERN_ADDR     $HPPS_KERN
+
+# Cannot modify these, so no point in including them here.
+# Instead, simply fallback on the compiled-in/bundled versions.
+# See comments inside run-qemu.sh for how to add these.
+#
+#hpps-bl-dt        4:after(hpps-bl)     $HPPS_BL_DT
+#hpps-bl-env       4:$HPPS_BL_ENV_ADDR  $HPPS_BL_ENV
+#hpps-initramfs    4:$HPPS_INITRAMFS    $HPPS_INITRAMFS

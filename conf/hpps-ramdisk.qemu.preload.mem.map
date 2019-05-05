@@ -1,0 +1,10 @@
+# Instructions for run-qemu for pre-loading data into memory
+
+# For booting HPPS without reliance on non-volatile NAND memory, by pre-loading
+# and storing the Linux root file system in DRAM (not reasonable on real HW).
+
+# CPU IDs: TRC:H 0, RTPS R52: 1-2, RTPS A53: 3, HPPS: 4-12
+# ADDR='-' means do not pass an address (e.g. for ELF loading)
+
+# ID              (CPU:)ADDR            FILE
+hpps-ramdisk      4:0x90000000         $BSP_DIR/hpps/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot

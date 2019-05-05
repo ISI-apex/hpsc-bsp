@@ -9,7 +9,7 @@ set -e
 # Additional artifacts for BSP directory
 BSP_ARTIFACTS_TOP=("qemu-env.sh"
                    "run-qemu.sh"
-                   "syscfg.ini")
+                   "conf/")
 
 function usage()
 {
@@ -113,7 +113,7 @@ if [ $IS_STAGE -ne 0 ]; then
     # artifacts deployed by recipes
     cp -r deploy/* "$STAGE_DIR"
     # remaining artifacts
-    cp "${BSP_ARTIFACTS_TOP[@]/#/${TOPDIR}/}" "${BSP_DIR}/"
+    cp -r "${BSP_ARTIFACTS_TOP[@]/#/${TOPDIR}/}" "${BSP_DIR}/"
 fi
 
 if [ $IS_PACKAGE -ne 0 ]; then
