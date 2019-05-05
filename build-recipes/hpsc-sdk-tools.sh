@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/hpsc-sdk-tools"
-export GIT_REV=9b341fad257e772b9e742654129d297788027cef
+export GIT_REV=371bd28869fba48c2b7c6c078d41a13880f4149f
 export GIT_BRANCH="hpsc"
 
 DEPLOY_DIR_1=BSP/host-utils
@@ -15,7 +15,7 @@ DEPLOY_ARTIFACTS_1=(
     bin/merge-env
     bin/merge-map
     bin/merge-ini
-    bin/run-qemu.sh
+    bin/launch-qemu
     bin/hpsc-objcopy
     bin/memstripe
     bin/miniconfig.sh
