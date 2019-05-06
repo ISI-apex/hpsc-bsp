@@ -15,7 +15,7 @@ DEPLOY_ARTIFACTS_1=(
     test/linux/wdtester
 )
 
-DEPLOY_DIR_2=BSP/ssw-conf
+DEPLOY_DIR_2=BSP/conf
 DEPLOY_ARTIFACTS_2=(
     conf/base/trch/syscfg-schema.json
 )
