@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/qemu.git"
-export GIT_REV=2819de0a6faa64d8e60de32713f00078d9828f18
+export GIT_REV=c90967ad135087cc68087edca16acd3dc582c3ef
 export GIT_BRANCH="hpsc"
 
 export DO_BUILD_OUT_OF_SOURCE=1
