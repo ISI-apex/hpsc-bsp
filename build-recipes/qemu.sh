@@ -29,6 +29,8 @@ function do_build()
     mkdir -p build
     (
         cd build
+        # Clusters: TRCH = 0, RTPS R52 = 1, RTPS A53 = 2, HPPS = 3
+        export CFLAGS="${CFLAGS} -DGDB_TARGET_CLUSTER=1 "
         "${REC_SRC_DIR}/configure" --target-list="aarch64-softmmu" \
                                    --prefix="${PWD}/_install" \
                                    --enable-fdt --disable-kvm --disable-xen
