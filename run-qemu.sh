@@ -38,13 +38,13 @@ run() {
 
 create_kern_image() {
     echo Packing the kernel binary into a U-boot image...
-    run mkimage -C gzip -A arm64 -d "${HPPS_KERN_BIN}" -a ${HPPS_KERN_LOAD_ADDR} "${HPPS_KERN}"
+    run mkimage -C gzip -A arm64 -d "${HPPS_KERN_BIN}" -a "${HPPS_KERN_LOAD_ADDR}" "${HPPS_KERN}"
 }
 
 create_syscfg_image()
 {
     echo Compiling system config from INI to binary format...
-    run ${SDK_TOOLS}/cfgc -s "${SYSCFG_SCHEMA}" "${SYSCFG}" "${SYSCFG_BIN}"
+    run "${SDK_TOOLS}/cfgc" -s "${SYSCFG_SCHEMA}" "${SYSCFG}" "${SYSCFG_BIN}"
 }
 
 syscfg_get()
@@ -95,8 +95,8 @@ create_syscfg_image
 
 echo Creating TRCH SMC SRAM image and adding boot images...
 SRAM_IMG_TOOL=${SDK_TOOLS}/sram-image-utils
-run "${SRAM_IMG_TOOL}" create "${TRCH_SMC_SRAM}" ${LSIO_SRAM_SIZE}
-run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${SYSCFG_BIN}"   "syscfg"  ${SYSCFG_ADDR}
+run "${SRAM_IMG_TOOL}" create "${TRCH_SMC_SRAM}" "${LSIO_SRAM_SIZE}"
+run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${SYSCFG_BIN}"   "syscfg"  "${SYSCFG_ADDR}"
 
 # These config choices are not command-line switches, in order to eliminate the
 # possibility of syscfg.ini being inconsistent with the command-line switch.
@@ -105,12 +105,12 @@ then
     ARGS+=(-m "${CONF_DIR}/sw-images.qemu.preload.mem.map")
 else
     echo "System configured to load SW images from TRCH SMC SRAM. Adding images..."
-    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${RTPS_BL}"      "rtps-bl" ${RTPS_BL_ADDR}
-    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${RTPS_APP}"     "rtps-os" ${RTPS_APP_ADDR}
-    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_BL}"      "hpps-bl" ${HPPS_BL_ADDR}
-    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_FW}"      "hpps-fw" ${HPPS_FW_ADDR}
-    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_DT}"      "hpps-dt" ${HPPS_DT_ADDR}
-    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_KERN}"    "hpps-os" ${HPPS_KERN_ADDR}
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${RTPS_BL}"      "rtps-bl" "${RTPS_BL_ADDR}"
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${RTPS_APP}"     "rtps-os" "${RTPS_APP_ADDR}"
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_BL}"      "hpps-bl" "${HPPS_BL_ADDR}"
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_FW}"      "hpps-fw" "${HPPS_FW_ADDR}"
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_DT}"      "hpps-dt" "${HPPS_DT_ADDR}"
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_KERN}"    "hpps-os" "${HPPS_KERN_ADDR}"
 fi
 
 if [ "$(syscfg_get HPPS rootfs_loc)" = "HPPS_DRAM" ]
@@ -128,4 +128,4 @@ ARGS+=(-n user -p 22 -p 2345)
 # launch-qemu SDK tool assumes the SDK has been loaded into env
 export PATH="${BSP_DIR}:${SDK_TOOLS}:$PATH"
 
-run ${SDK_TOOLS}/launch-qemu -e ${QEMU_ENV} -d ${QEMU_DT} "${ARGS[@]}" "$@"
+run "${SDK_TOOLS}/launch-qemu" -e "${QEMU_ENV}" -d "${QEMU_DT}" "${ARGS[@]}" "$@"
