@@ -30,12 +30,7 @@ function do_undeploy()
 
 function do_build()
 {
-    for s in bin; do
-        (
-            echo "hpsc-utils: $s: build"
-            make_parallel -C "$s"
-        )
-    done
+    make_parallel -C bin
 }
 
 function do_deploy()
