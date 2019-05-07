@@ -4,16 +4,17 @@ HPSC Chiplet Board Support Package
 This repository includes:
 
 1. `build-hpsc-bsp.sh` - top-level build script.
-1. `build-hpsc-yocto.sh` - uses the Yocto framework to build the bulk of the Chiplet artifacts, particularly those for Linux on the HPPS.
+1. `build-hpsc-yocto.sh` - builds Yocto Linux SDK for the HPPS Cortex-A53 clusters, including the reference root filesystem.
+1. `build-hpsc-rtems.sh` - builds the RTEMS SDK, BSP, and reference software for the RTPS Cortex-R52s.
 1. `build-hpsc-other.sh` - builds additional artifacts.
-Uses the ARM bare metal toolchain to build the TRCH and R52 firmware and u-boot for the R52s.
-Uses the Yocto SDK toolchain to build test utilities.
-Uses the host compiler to build QEMU.
-1. `build-recipe.sh` - used to build individual components; wrapped by other build scripts.
-1. `run-qemu.sh` - uses the output from the build scripts above to boot QEMU.
+Uses the ARM bare metal toolchain to build the TRCH firmware for the Cortex-M4 and u-boot for the Cortex-R52s.
+Uses the Yocto SDK toolchain to build Linux test utilities.
+Uses the host compiler to build QEMU and HPSC SDK utilities.
+1. `build-recipe.sh` - build individual component recipes; wrapped by other build scripts.
+1. `run-qemu.sh` - runs QEMU using the output from the build scripts.
 
 Scripts must be run from the same directory.
-Most scripts support the `-h` flag to print usage help.
+Use the `-h` flag to print script usage help.
 
 Build scripts download from the git repositories located at:
 https://github.com/orgs/ISI-apex/teams/hpsc/repositories
@@ -62,8 +63,7 @@ For example to perform a build and create the SDK:
 
 	./build-hpsc-yocto.sh
 
-The generated files needed to run QEMU are located in: `${WORKING_DIR}/deploy/BSP/hpps/`.
-Specifically:
+The build generates in `${WORKING_DIR}/deploy/BSP/hpps/`:
 
 1. `arm-trusted-firmware.bin` - the Arm Trusted Firmware binary
 1. `core-image-minimal-hpsc-chiplet.cpio.gz.u-boot` - the Linux root file system for booting the dual A53 cluster
@@ -71,20 +71,24 @@ Specifically:
 1. `Image.gz` - the Linux kernel binary image
 1. `u-boot.bin` - the U-boot bootloader for the dual A53 cluster
 
+and in `${WORKING_DIR}/deploy/toolchains`:
+
+1. `poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.1.sh` - the SDK installer
+
 RTEMS Build
 -----------
 
-To build RTEMS-related sources and create the SDK:
+To build RTEMS-related sources and create the SDK and R52 BSP:
 
 	./build-hpsc-rtems.sh
 
-The build generates toolchains/SDKs/BSPs in `${WORKING_DIR}/env/`:
+The build generates _non-relocatable_ toolchains/SDKs/BSPs in `${WORKING_DIR}/env/`:
 
-1. `RSB-5` - RTEMS Source Builder toolchain
+1. `RSB-5` - RTEMS Source Builder SDK
 1. `RT-5` - RTEMS Tools
 1. `RTEMS-5-RTPS-R52` - RTPS R52 RTEMS BSP for building RTEMS applications
 
-Then within `${WORKING_DIR}/deploy/BSP/rtps-r52/`:
+and in `${WORKING_DIR}/deploy/BSP/rtps-r52/`:
 
 1. `rtps-r52.img` - RTPS R52 firmware
 
@@ -95,17 +99,28 @@ To build the remaining (aka "other") artifacts, run:
 
 	./build-hpsc-other.sh
 
-The bare metal toolchain is fetched and installed, then used to build in `${WORKING_DIR}/deploy/BSP/`:
+The script fetches and deploys to `${WORKING_DIR}/deploy/toolchains`:
 
-1. `trch/trch.elf` - TRCH firmware
-1. `rtps-r52/u-boot.bin` - u-boot for the RTPS R52s
+1. `gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2` - ARM bare metal toolchain
 
-The host compiler is used to build in `${WORKING_DIR}/deploy/BSP/`:
+The bare metal toolchain is used to build in `${WORKING_DIR}/deploy/BSP/trch`:
 
-1. `qemu-system-aarch64` - the QEMU binary
-1. `hpsc-arch.dtb` - the QEMU device tree
-1. `host-utils/qemu-nand-creator` - QEMU NAND flash image creator
-1. `host-utils/sram-image-utils` - SRAM image creation utility
+1. `trch.elf` - TRCH firmware
+
+and in `${WORKING_DIR}/deploy/BSP/rtps-r52`:
+
+1. `u-boot.bin` - u-boot for the RTPS R52s
+
+The host compiler is used to build in `${WORKING_DIR}/deploy/BSP`:
+
+1. `hpsc-arch.dtb` - QEMU device tree
+1. `qemu-bridge-helper` - QEMU utility for creating TAP devices
+1. `qemu-system-aarch64` - QEMU binary
+
+and in `${WORKING_DIR}/deploy/BSP/host-utils`:
+
+1. `qemu-nand-creator` - QEMU NAND flash image creator
+1. `sram-image-utils` - SRAM image creation utility
 
 The Poky SDK is used to build in `${WORKING_DIR}/deploy/BSP/aarch64-poky-linux-utils/`:
 
@@ -115,7 +130,7 @@ The Poky SDK is used to build in `${WORKING_DIR}/deploy/BSP/aarch64-poky-linux-u
 1. `shm-tester` - shared memory test utility
 1. `wdtester` - watchdog test utility
 
-The HPSC Eclipse distribution is also built in `${WORKING_DIR}/deploy/`:
+The HPSC Eclipse distribution is also built and packaged in `${WORKING_DIR}/deploy/`:
 
 1. `hpsc-eclipse.tar.gz` - HPSC Eclipse installer
 
