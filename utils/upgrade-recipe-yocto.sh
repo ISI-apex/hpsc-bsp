@@ -103,10 +103,9 @@ function usage()
     echo "    -b SRCBRANCH: the git branch that SRCREV is on"
     echo "                  if not specified, uses the recipe's current branch"
     echo "                  if that cannot be determined, 'master' is assumed"
-    echo "    -B LAYBRANCH: the layer branch - usually required when committing"
-    echo "                  (avoids committing on detached HEAD from layer's BSP recipe)"
-    echo "    -O LAYREMOTE: the layer remote to pull from when committing"
-    echo "                  defaults to 'origin'"
+    echo "    -B LAYBRANCH: the layer branch"
+    echo "                  (avoids working on detached HEAD from layer's BSP recipe)"
+    echo "    -O LAYREMOTE: the layer remote to pull from, defaults to 'origin'"
     echo "    -a ACTION: additional actions to run:"
     echo "       build: test building the upgraded recipe (can be slow);"
     echo "              requires building cross-compiler, sysroot, and dependencies"
@@ -185,9 +184,7 @@ REC_FILE=$(echo "$FIND_REC_OUT" | tail -n 1)
 echo "Using recipe file: $REC_FILE"
 
 # verify current git status before we start making changes to files
-if [ "$IS_COMMIT" -ne 0 ]; then
-    verify_recipe_git_status "$REC_FILE" "$LAYBRANCH" "$LAYREMOTE"
-fi
+verify_recipe_git_status "$REC_FILE" "$LAYBRANCH" "$LAYREMOTE"
 
 # get the 'SRC_URI' value from the recipe
 SRC_URI=$(find_srcuri "$REC_FILE")
