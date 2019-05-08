@@ -7,11 +7,11 @@ if [ "$(basename "$THIS_DIR")" == "BSP" ]; then
     BSP_DIR=.
 else
     # development configuration
-    BSP_DIR=${PWD}/BUILD/deploy/BSP
+    BSP_DIR=${THIS_DIR}/BUILD/deploy/BSP
 fi
 
 CONF_DIR="${THIS_DIR}/conf"
-RUN_DIR="run"
+RUN_DIR="${THIS_DIR}/run"
 
 QEMU_DT=${BSP_DIR}/hpsc-arch.dtb
 
