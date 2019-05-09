@@ -11,6 +11,9 @@ else
     BSP_DIR=${THIS_DIR}/BUILD/deploy/BSP
 fi
 
+# ID affects port assignments and screen session names
+ID=0
+
 CONF_DIR="${THIS_DIR}/conf"
 RUN_DIR="${THIS_DIR}/run"
 
