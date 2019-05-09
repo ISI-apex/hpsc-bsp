@@ -1,8 +1,7 @@
 BUILD
 DEVEL
 *.bin
-*.bin.*
-uImage.*
+uImage
 .*.swp
 .*.swo
 *.log
