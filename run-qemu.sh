@@ -54,18 +54,18 @@ syscfg_get()
 
 function usage()
 {
-    echo "Usage: $0 [-h] [-i id] [ args ]" 1>&2
+    echo "Usage: $0 [-h] [-e file] [ args ]" 1>&2
     echo "    args: arguments to forward to launch-qemu SDK tool" 1>&2
-    echo "    -i id: numeric ID to identify the Qemu instance" 1>&2
+    echo "    -e file: environment script, e.g., qemu-env.sh" 1>&2
     echo "    -h : show this message" 1>&2
 }
 
-ID=0
+QEMU_ENV=qemu-env.sh
 
-while getopts "h?i:" o; do
+while getopts "h?e:" o; do
     case "${o}" in
-        i)
-            ID="$OPTARG"
+        e)
+            QEMU_ENV="$OPTARG"
             ;;
         h)
             usage
@@ -82,13 +82,10 @@ shift $((OPTIND-1))
 
 ARGS=()
 
-QEMU_ENV=qemu-env.sh
-source ${QEMU_ENV}
+source "${QEMU_ENV}"
 SDK_TOOLS=${BSP_DIR}/host-utils
 
 mkdir -p "${RUN_DIR}"
-
-ARGS+=(-i ${ID}) # we both use it here (via qemu-env.sh) and foward it
 
 create_kern_image
 create_syscfg_image
