@@ -12,32 +12,34 @@ else
 fi
 
 # ID affects port assignments and screen session names
-ID=0
+: "${ID:=0}"
 
-CONF_DIR="${THIS_DIR}/conf"
-RUN_DIR="${THIS_DIR}/run"
+: "${RUN_DIR:=${THIS_DIR}/run}"
 
-QEMU_DT=${BSP_DIR}/hpsc-arch.dtb
+: "${LOG_FILE:=${RUN_DIR}/qemu.log}"
+
+: "${QEMU_DT:=${BSP_DIR}/hpsc-arch.dtb}"
 
 # System configuration interpreted by TRCH
-SYSCFG=${CONF_DIR}/syscfg.ini
-SYSCFG_SCHEMA=${BSP_DIR}/conf/syscfg-schema.json
-SYSCFG_BIN=${RUN_DIR}/syscfg.bin
+: "${CONF_DIR:=${THIS_DIR}/conf}"
+: "${SYSCFG:=${CONF_DIR}/syscfg.ini}"
+: "${SYSCFG_SCHEMA:=${BSP_DIR}/conf/syscfg-schema.json}"
+: "${SYSCFG_BIN:=${RUN_DIR}/syscfg.bin}"
 
-TRCH_SMC_SRAM=${RUN_DIR}/trch_sram.bin
-TRCH_SMC_SRAM_OVERWRITE=1
+: "${TRCH_SMC_SRAM:=${RUN_DIR}/trch_sram.bin}"
+: "${TRCH_SMC_SRAM_OVERWRITE:=1}"
 
-TRCH_APP=${BSP_DIR}/trch/trch.elf
+: "${TRCH_APP:=${BSP_DIR}/trch/trch.elf}"
 
-RTPS_APP=${BSP_DIR}/rtps-r52/rtps-r52.img
-RTPS_BL=${BSP_DIR}/rtps-r52/u-boot.bin
+: "${RTPS_APP:=${BSP_DIR}/rtps-r52/rtps-r52.img}"
+: "${RTPS_BL:=${BSP_DIR}/rtps-r52/u-boot.bin}"
 
-HPPS_FW=${BSP_DIR}/hpps/arm-trusted-firmware.bin
-HPPS_BL=${BSP_DIR}/hpps/u-boot.bin
-HPPS_DT=${BSP_DIR}/hpps/hpsc.dtb
-HPPS_RAMDISK=${BSP_DIR}/hpps/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot
-HPPS_KERN_BIN=${BSP_DIR}/hpps/Image.gz
-HPPS_KERN=${RUN_DIR}/uImage
+: "${HPPS_FW:=${BSP_DIR}/hpps/arm-trusted-firmware.bin}"
+: "${HPPS_BL:=${BSP_DIR}/hpps/u-boot.bin}"
+: "${HPPS_DT:=${BSP_DIR}/hpps/hpsc.dtb}"
+: "${HPPS_RAMDISK:=${BSP_DIR}/hpps/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot}"
+: "${HPPS_KERN_BIN:=${BSP_DIR}/hpps/Image.gz}"
+: "${HPPS_KERN:=${RUN_DIR}/uImage}"
 
 # Cannot modify these, so no point in including them here.
 # Instead, simply fallback on the compiled-in/bundled versions.
