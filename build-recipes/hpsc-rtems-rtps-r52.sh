@@ -20,9 +20,9 @@ function do_toolchain_uninstall()
     # RTEMS builds don't provide an "uninstall" goal...
     # delete old binaries, libraries, and headers (in case some were removed)
     # reliable as long as the project sticks to its libhpsc* naming convention
-    rm -f "${RTEMS_RTPS_R52_BSP}/bin/rtps-r52.{img,exe}"
-    rm -f "${RTEMS_RTPS_R52_BSP}/arm-rtems5/gen_r52_qemu/lib/libhpsc*.a"
-    rm -rf "${RTEMS_RTPS_R52_BSP}/arm-rtems5/gen_r52_qemu/lib/include/libhpsc*"
+    rm -f "${RTEMS_RTPS_R52_BSP}"/bin/rtps-r52.{img,exe}
+    rm -f "${RTEMS_RTPS_R52_BSP}"/arm-rtems5/gen_r52_qemu/lib/libhpsc*.a
+    rm -rf "${RTEMS_RTPS_R52_BSP}"/arm-rtems5/gen_r52_qemu/lib/include/hpsc*
 }
 
 function do_undeploy()
