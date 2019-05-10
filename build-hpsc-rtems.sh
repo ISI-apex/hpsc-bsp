@@ -3,10 +3,10 @@
 # Fail-fast
 set -e
 
-RECIPES=("rtems-tools"
-         "rtems-source-builder"
-         "rtems-rtps-r52"
-         "hpsc-rtems-rtps-r52")
+RECIPES=("sdk/rtems-tools"
+         "sdk/rtems-source-builder"
+         "ssw/rtps/r52/rtems"
+         "ssw/rtps/r52/hpsc-rtems")
 
 function usage()
 {

@@ -4,7 +4,9 @@ export GIT_REPO="https://github.com/ISI-apex/hpsc-utils.git"
 export GIT_REV=29ee4aa4522731ce45c646d64b61a76a5fc39527
 export GIT_BRANCH="hpsc"
 
-export DEPENDS_ENVIRONMENT="hpsc-yocto-hpps" # exports YOCTO_HPPS_SDK
+# Note: this should be a reference to sdk/; need to split yocto build into
+# the SDK part (the cross compiler) and the SW part.
+export DEPENDS_ENVIRONMENT="ssw/hpps/yocto" # exports YOCTO_HPPS_SDK
 
 DEPLOY_DIR_1=BSP/aarch64-poky-linux-utils
 DEPLOY_ARTIFACTS_1=(

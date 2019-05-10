@@ -1,8 +1,8 @@
 #!/bin/bash
 #
 # Depends on:
-#  rtems-source-builder
-#  rtems-rtps-r52
+#  sdk/rtems-source-builder
+#  ssw/rtps/r52/rtems
 #
 
 export GIT_REPO="https://github.com/ISI-apex/hpsc-rtems.git"
@@ -10,7 +10,7 @@ export GIT_REV=88875f4e09d21b51d7a46344cf91b2b3e2903b4b
 export GIT_BRANCH="hpsc"
 
 # exports PATH, RTEMS_RTPS_R52_BSP, and RTEMS_MAKEFILE_PATH
-export DEPENDS_ENVIRONMENT="rtems-source-builder:rtems-rtps-r52"
+export DEPENDS_ENVIRONMENT="sdk/rtems-source-builder:ssw/rtps/r52/rtems"
 
 DEPLOY_DIR=BSP/rtps-r52
 DEPLOY_ARTIFACTS=(rtps-r52/o-optimize/rtps-r52.img)

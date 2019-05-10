@@ -4,7 +4,7 @@ export GIT_REPO="https://github.com/ISI-apex/hpsc-baremetal.git"
 export GIT_REV=80e21f5a3f7a9c0388d708bc55c4eb4d85fc6c5c
 export GIT_BRANCH="hpsc"
 
-export DEPENDS_ENVIRONMENT="gcc-arm-none-eabi"
+export DEPENDS_ENVIRONMENT="sdk/gcc-arm-none-eabi"
 
 DEPLOY_DIR=BSP/trch
 DEPLOY_ARTIFACTS=(trch/bld/trch.elf)

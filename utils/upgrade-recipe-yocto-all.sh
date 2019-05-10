@@ -6,10 +6,10 @@ set -e
 
 LAYBRANCH=hpsc
 RECIPES=(
-    arm-trusted-firmware
-    u-boot-hpps
-    linux-hpsc # linux takes awhile to upgrade (lots of native dependencies)
-    hpsc-utils
+    ssw/hpps/arm-trusted-firmware
+    ssw/hpps/u-boot
+    ssw/hpps/linux # linux takes awhile to upgrade (lots of native dependencies)
+    ssw/hpsc-utils
 )
 
 THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"

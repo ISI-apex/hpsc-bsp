@@ -37,11 +37,11 @@ function setup_rtems_env()
     local RSB_PREFIX="${BSP_DIR}/${WORKING_DIR#${BSP_DIR}}/env/RSB-5"
     local RTEMS_PREFIX="${BSP_DIR}/${WORKING_DIR#${BSP_DIR}}/env/RTEMS-5-RTPS-R52"
     if [ ! -d "$RSB_PREFIX" ]; then
-        echo "Recipe not built: rtems-source-builder"
+        echo "Recipe not built: sdk/rtems-source-builder"
         return 1
     fi
     if [ ! -d "$RTEMS_PREFIX" ]; then
-        echo "Recipe not built: rtems-rtps-r52"
+        echo "Recipe not built: ssw/rtps/r52/rtems"
         return 1
     fi
     # export environment variables

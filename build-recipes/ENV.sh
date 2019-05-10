@@ -189,7 +189,7 @@ function ENV_check_bm_toolchain()
 {
     if ! which arm-none-eabi-gcc > /dev/null 2>&1; then
         echo "Error: Bare metal cross compiler 'arm-none-eabi-gcc' is not on PATH"
-        echo "  Ensure that recipe has DEPENDS_ENVIRONMENT on 'gcc-arm-none-eabi' and that it is built"
+        echo "  Ensure that recipe has DEPENDS_ENVIRONMENT on 'sdk/gcc-arm-none-eabi' and that it is built"
         return 1
     fi
 }
@@ -199,7 +199,7 @@ function ENV_check_yocto_hpps_sdk()
 {
     if [ -z "$YOCTO_HPPS_SDK" ] || [ ! -d "$YOCTO_HPPS_SDK" ]; then
         echo "Error: YOCTO_HPPS_SDK not found: $YOCTO_HPPS_SDK"
-        echo "  Ensure that recipe has DEPENDS_ENVIRONMENT on 'hpsc-yocto-hpps' and that it is built"
+        echo "  Ensure that recipe has DEPENDS_ENVIRONMENT on 'ssw/hpps/yocto' and that it is built"
         return 1
     fi
 }
@@ -209,7 +209,7 @@ function ENV_check_rsb_toolchain()
 {
     if ! which arm-rtems5-gcc > /dev/null 2>&1; then
         echo "Error: RTEMS cross compiler 'arm-rtems5-gcc' is not on PATH"
-        echo "  Ensure that recipe has DEPENDS_ENVIRONMENT on 'rtems-source-builder' and that it is built"
+        echo "  Ensure that recipe has DEPENDS_ENVIRONMENT on 'sdk/rtems-source-builder' and that it is built"
         return 1
     fi
 }
@@ -219,7 +219,7 @@ function ENV_check_rtems_r52_sdk()
 {
     if [ -z "$RTEMS_RTPS_R52_BSP" ] || [ ! -d "$RTEMS_RTPS_R52_BSP" ]; then
         echo "Error: RTEMS_RTPS_R52_BSP not found: $RTEMS_RTPS_R52_BSP"
-        echo "  Ensure that recipe has DEPENDS_ENVIRONMENT on 'rtems-rtps-r52' and that it is built"
+        echo "  Ensure that recipe has DEPENDS_ENVIRONMENT on 'ssw/rtps/r52/rtems' and that it is built"
         return 1
     fi
 }

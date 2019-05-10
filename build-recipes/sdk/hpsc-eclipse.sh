@@ -5,7 +5,9 @@ export WGET_OUTPUT="eclipse.tar.gz"
 export WGET_OUTPUT_MD5="6087e4def4382fd334de658f9bde190b"
 
 # to get variables YOCTO_VERSION and GCC_ARM_NONE_EABI_VERSION
-export DEPENDS_ENVIRONMENT="hpsc-yocto-hpps:gcc-arm-none-eabi"
+# Note: ideally, this recipe should reference only within sdk/, to accomplish
+# this, split yocto into SDK part (which provides the version) and SW part.
+export DEPENDS_ENVIRONMENT="ssw/hpps/yocto:sdk/gcc-arm-none-eabi"
 
 # Eclipse update sites
 ECLIPSE_REPOSITORIES=("http://download.eclipse.org/releases/photon"

@@ -1,14 +1,14 @@
 #!/bin/bash
 #
 # Depends on:
-#  rtems-source-builder
+#  sdk/rtems-source-builder
 #
 
 export GIT_REPO="https://github.com/ISI-apex/rtems.git"
 export GIT_REV=7b9d68a4c01e9f1256a03f8a73cfa8b17f761037
 export GIT_BRANCH="hpsc"
 
-export DEPENDS_ENVIRONMENT="rtems-source-builder" # exports PATH
+export DEPENDS_ENVIRONMENT="sdk/rtems-source-builder" # exports PATH
 
 # Builds take a long time, incremental build seems to be work
 # export DO_CLEAN_AFTER_FETCH=0
@@ -42,7 +42,7 @@ function exes_to_uboot_fmt()
 
 function do_build()
 {
-    local rsb_src=$(get_dependency_src rtems-source-builder)
+    local rsb_src=$(get_dependency_src "sdk/rtems-source-builder")
     echo "rtems: sb-bootstrap"
     "${rsb_src}/source-builder/sb-bootstrap" || return $?
 

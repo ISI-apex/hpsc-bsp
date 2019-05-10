@@ -97,7 +97,7 @@ function build_set_recipe_env()
     # variables for recipes
     export ENV_WORKING_DIR="${PWD}"
     export ENV_DEPLOY_DIR="${ENV_WORKING_DIR}/deploy"
-    export REC_UTIL_DIR="${REC_DIR}/${recname}"
+    export REC_UTIL_DIR="${REC_DIR}/${recname}/utils"
     export REC_SRC_DIR="${ENV_WORKING_DIR}/src/${recname}"
     export REC_WORK_DIR="${ENV_WORKING_DIR}/work/${recname}"
     export REC_ENV_DIR="${ENV_WORKING_DIR}/env" # shared b/w recipes, shhh... ;)
@@ -160,6 +160,7 @@ function build_lifecycle()
         if [ ! -d "$REC_WORK_DIR" ]; then
             if [ "$DO_BUILD_OUT_OF_SOURCE" -eq 0 ]; then
                 echo "$recname: extract"
+                mkdir -p "$(dirname $REC_WORK_DIR)"
                 cp -r "$REC_SRC_DIR" "$REC_WORK_DIR"
             else
                 mkdir -p "$REC_WORK_DIR"

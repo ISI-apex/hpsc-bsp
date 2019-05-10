@@ -3,10 +3,10 @@
 # Fail-fast
 set -e
 
-RECIPES=("poky"
-         "meta-openembedded"
-         "meta-hpsc"
-         "hpsc-yocto-hpps")
+RECIPES=("ssw/hpps/yocto/poky"
+         "ssw/hpps/yocto/meta-openembedded"
+         "ssw/hpps/yocto/meta-hpsc"
+         "ssw/hpps/yocto")
 
 function usage()
 {

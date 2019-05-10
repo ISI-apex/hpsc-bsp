@@ -20,9 +20,9 @@ export DO_CLEAN_AFTER_FETCH=0
 DL_DIR="${REC_SRC_DIR}/poky_dl"
 BUILD_DIR="${REC_WORK_DIR}/poky_build"
 
-POKY_DIR=$(get_dependency_src "poky")
-META_OE_DIR=$(get_dependency_src "meta-openembedded")
-META_HPSC_DIR=$(get_dependency_src "meta-hpsc")
+POKY_DIR=$(get_dependency_src "ssw/hpps/yocto/poky")
+META_OE_DIR=$(get_dependency_src "ssw/hpps/yocto/meta-openembedded")
+META_HPSC_DIR=$(get_dependency_src "ssw/hpps/yocto/meta-hpsc")
 LAYERS=("${META_OE_DIR}/meta-oe"
         "${META_OE_DIR}/meta-python"
         "${META_HPSC_DIR}/meta-hpsc-bsp")

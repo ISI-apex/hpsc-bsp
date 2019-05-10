@@ -4,7 +4,7 @@ export GIT_REPO="https://github.com/ISI-apex/u-boot.git"
 export GIT_REV=f6a8aca3049e4c2d7819b8e44a5e79241d3bde60
 export GIT_BRANCH="hpsc"
 
-export DEPENDS_ENVIRONMENT="gcc-arm-none-eabi"
+export DEPENDS_ENVIRONMENT="sdk/gcc-arm-none-eabi"
 
 DEPLOY_DIR=BSP/rtps-r52
 DEPLOY_ARTIFACTS=(u-boot.bin)

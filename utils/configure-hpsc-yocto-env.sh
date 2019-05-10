@@ -56,18 +56,21 @@ if [ "$IS_FETCH" -ne 0 ]; then
                                                  || return $?
 fi
 
-# TODO: mimicks build-recipes/hpsc-yocto-hpps.sh... could easily get out of sync
+# TODO: mimicks build-recipes/ssw/hpps/yocto.sh... could easily get out of sync
 
 FULL_WD="${PWD}/${WORKING_DIR}"
+YOCTO_SUBDIR="ssw/hpps/yocto"
+YOCTO_SRC_DIR="${FULL_WD}/src/${YOCTO_SUBDIR}"
+YOCTO_WRK_DIR="${FULL_WD}/work/${YOCTO_SUBDIR}"
 
-mkdir -p "${FULL_WD}/src/hpsc-yocto-hpps" "${FULL_WD}/work/hpsc-yocto-hpps"
+mkdir -p "${YOCTO_SRC_DIR}" "${YOCTO_WORK_DIR}"
 
-DL_DIR="${FULL_WD}/src/hpsc-yocto-hpps/poky_dl"
-BUILD_DIR="${FULL_WD}/work/hpsc-yocto-hpps/poky_build"
+DL_DIR="${YOCTO_SRC_DIR}/poky_dl"
+BUILD_DIR="${YOCTO_WORK_DIR}/poky_build"
 
-POKY_DIR="${FULL_WD}/src/poky"
-META_OE_DIR="${FULL_WD}/src/meta-openembedded"
-META_HPSC_DIR="${FULL_WD}/src/meta-hpsc"
+POKY_DIR="${YOCTO_SRC_DIR}/poky"
+META_OE_DIR="${YOCTO_SRC_DIR}/meta-openembedded"
+META_HPSC_DIR="${YOCTO_SRC_DIR}/meta-hpsc"
 LAYERS=("${META_OE_DIR}/meta-oe"
         "${META_OE_DIR}/meta-python"
         "${META_HPSC_DIR}/meta-hpsc-bsp")
@@ -75,7 +78,7 @@ LAYERS=("${META_OE_DIR}/meta-oe"
 for l in "${LAYERS[@]}"; do
     LAYER_ARGS+=("-l" "$l")
 done
-source build-recipes/hpsc-yocto-hpps/configure-env.sh -d "${DL_DIR}" \
-                                                      -b "${BUILD_DIR}" \
-                                                      -p "${POKY_DIR}" \
-                                                      "${LAYER_ARGS[@]}"
+source build-recipes/${YOCTO_SUBDIR}/utils/configure-env.sh -d "${DL_DIR}" \
+                                                            -b "${BUILD_DIR}" \
+                                                            -p "${POKY_DIR}" \
+                                                            "${LAYER_ARGS[@]}"

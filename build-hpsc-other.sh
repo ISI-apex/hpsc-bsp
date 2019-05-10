@@ -7,16 +7,16 @@
 set -e
 
 # The recipes managed by this script
-RECIPES=("gcc-arm-none-eabi"
-         "hpsc-sdk-tools"
-         "hpsc-baremetal"
-         "arm-trusted-firmware-rtps-a53"
-         "u-boot-rtps-r52"
-         "u-boot-rtps-a53"
-         "qemu"
-         "qemu-devicetrees"
-         "hpsc-utils"
-         "hpsc-eclipse")
+RECIPES=("sdk/gcc-arm-none-eabi"
+         "sdk/hpsc-sdk-tools"
+         "sdk/qemu"
+         "sdk/qemu-devicetrees"
+         "ssw/hpsc-baremetal"
+         "ssw/rtps/a53/arm-trusted-firmware"
+         "ssw/rtps/a53/u-boot"
+         "ssw/rtps/r52/u-boot"
+         "ssw/hpsc-utils"
+         "sdk/hpsc-eclipse")
 
 function usage()
 {

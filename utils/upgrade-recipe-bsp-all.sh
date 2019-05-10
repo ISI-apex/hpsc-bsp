@@ -5,24 +5,24 @@
 set -e
 
 RECIPES=(
-    arm-trusted-firmware-rtps-a53
     # ENV # parent recipe
-    # gcc-arm-none-eabi # not from a git repo, managed manually
-    hpsc-baremetal
-    # hpsc-eclipse # not from a git repo, managed manually
-    hpsc-rtems-rtps-r52
-    hpsc-utils
-    # hpsc-yocto-hpps # meta recipe
-    meta-hpsc
-    # meta-openembedded # using upstream, managed manually
-    # poky # using upstream, managed manually
-    qemu-devicetrees
-    qemu
-    rtems-rtps-r52
-    rtems-source-builder
-    rtems-tools
-    u-boot-rtps-a53
-    u-boot-rtps-r52
+    # sdk/gcc-arm-none-eabi # not from a git repo, managed manually
+    # sdk/hpsc-eclipse # not from a git repo, managed manually
+    sdk/qemu
+    sdk/qemu-devicetrees
+    sdk/rtems-source-builder
+    sdk/rtems-tools
+    # ssw/hpps/yocto # meta recipe
+    ssw/hpps/yocto/meta-hpsc
+    # ssw/hpps/yocto/meta-openembedded # using upstream, managed manually
+    # ssw/hpps/yocto/poky # using upstream, managed manually
+    ssw/hpsc-baremetal
+    ssw/hpsc-utils
+    ssw/rtps/a53/arm-trusted-firmware
+    ssw/rtps/a53/u-boot
+    ssw/rtps/r52/hpsc-rtems
+    ssw/rtps/r52/rtems
+    ssw/rtps/r52/u-boot
 )
 
 THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
