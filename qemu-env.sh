@@ -48,11 +48,11 @@ fi
 # cpio+busybox_make_install+gzip+mkimage} commands for generating these
 # binaries to run-qemu.sh script.
 #
-# export HPPS_BL_DT=${BSP_DIR}/hpps/u-boot.dtb
-# export HPPS_BL_ENV=${BSP_DIR}/hpps/uboot.env.bin
-# export HPPS_INITRAMFS=$BSP_DIR/hpps/initramfs.uimg
+# HPPS_BL_DT=${BSP_DIR}/hpps/u-boot.dtb
+# HPPS_BL_ENV=${BSP_DIR}/hpps/uboot.env.bin
+# HPPS_INITRAMFS=$BSP_DIR/hpps/initramfs.uimg
 
-SYSCFG_ADDR=0x000ff000 # no export b/c never preloaded, always loaded from NV mem
+SYSCFG_ADDR=0x000ff000
 
 RTPS_BL_ADDR=0x60000000       # load address for R52 u-boot
 RTPS_APP_ADDR=0x68000000      # address of baremetal app binary file
@@ -64,5 +64,6 @@ HPPS_KERN_LOAD_ADDR=0x80680000
 HPPS_DT_ADDR=0x80060000
 
 # Not included (see comment above)
-# export HPPS_BL_ENV_ADDR=0x8005_f000
-# export HPPS_INITRAMFS_ADDR=0x8050_0000
+# HPPS_BL_DT_ADDR="HPPS_BL_ADDR + sizeof(HPPS_BL)"
+# HPPS_BL_ENV_ADDR=0x8005_f000
+# HPPS_INITRAMFS_ADDR=0x8050_0000
