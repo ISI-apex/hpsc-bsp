@@ -1,8 +1,8 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/rtems-source-builder.git"
-export GIT_REV=da4a4b1e68d9f2df2dd0f61e9df03c0cb6b6932a
-export GIT_BRANCH="hpsc-1.1"
+export GIT_REV=e8e01f169f57b10719660079663864df253e4854
+export GIT_BRANCH="hpsc"
 
 export DO_BUILD_OUT_OF_SOURCE=1
 

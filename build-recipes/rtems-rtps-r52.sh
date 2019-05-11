@@ -5,13 +5,13 @@
 #
 
 export GIT_REPO="https://github.com/ISI-apex/rtems.git"
-export GIT_REV=55e9322b4217c0743446091fe6782d37c21d7407
-export GIT_BRANCH="hpsc-1.1"
+export GIT_REV=7b9d68a4c01e9f1256a03f8a73cfa8b17f761037
+export GIT_BRANCH="hpsc"
 
 export DEPENDS_ENVIRONMENT="rtems-source-builder" # exports PATH
 
 # Builds take a long time, incremental build seems to be work
-export DO_CLEAN_AFTER_FETCH=0
+# export DO_CLEAN_AFTER_FETCH=0
 
 # TODO: Why is set -e being ignored here?
 
