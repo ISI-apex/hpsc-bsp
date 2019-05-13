@@ -57,8 +57,8 @@ SYSCFG_ADDR=0x000ff000
 RTPS_BL_ADDR=0x60000000       # load address for R52 u-boot
 RTPS_APP_ADDR=0x68000000      # address of baremetal app binary file
 
-HPPS_FW_ADDR=0x80000000
-HPPS_BL_ADDR=0x80020000
+HPPS_FW_ADDR=0x80000000       # must match HPPS CPU0 reset vector (RVBAR)
+HPPS_BL_ADDR=0x80020000       # must match addr hardcoded in ATF source
 HPPS_KERN_ADDR=0x80064000
 HPPS_KERN_LOAD_ADDR=0x80680000
 HPPS_DT_ADDR=0x80060000
