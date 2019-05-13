@@ -35,7 +35,8 @@ fi
 : "${RTPS_BL:=${BSP_DIR}/rtps-r52/u-boot.bin}"
 
 : "${HPPS_FW:=${BSP_DIR}/hpps/arm-trusted-firmware.bin}"
-: "${HPPS_BL:=${BSP_DIR}/hpps/u-boot.bin}"
+: "${HPPS_BL:=${BSP_DIR}/hpps/u-boot-nodtb.bin}"
+: "${HPPS_BL_DT:=${BSP_DIR}/hpps/u-boot.dtb}"
 : "${HPPS_DT:=${BSP_DIR}/hpps/hpsc.dtb}"
 : "${HPPS_RAMDISK:=${BSP_DIR}/hpps/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot}"
 : "${HPPS_KERN_BIN:=${BSP_DIR}/hpps/Image.gz}"
@@ -48,7 +49,6 @@ fi
 # cpio+busybox_make_install+gzip+mkimage} commands for generating these
 # binaries to run-qemu.sh script.
 #
-# HPPS_BL_DT=${BSP_DIR}/hpps/u-boot.dtb
 # HPPS_BL_ENV=${BSP_DIR}/hpps/uboot.env.bin
 # HPPS_INITRAMFS=$BSP_DIR/hpps/initramfs.uimg
 
@@ -59,11 +59,11 @@ RTPS_APP_ADDR=0x68000000      # address of baremetal app binary file
 
 HPPS_FW_ADDR=0x80000000       # must match HPPS CPU0 reset vector (RVBAR)
 HPPS_BL_ADDR=0x80020000       # must match addr hardcoded in ATF source
+HPPS_BL_DT_ADDR=0x8005d000    # must match hardcoded addr in u-boot *early* env
 HPPS_KERN_ADDR=0x80064000
 HPPS_KERN_LOAD_ADDR=0x80680000
 HPPS_DT_ADDR=0x80060000
 
 # Not included (see comment above)
-# HPPS_BL_DT_ADDR="HPPS_BL_ADDR + sizeof(HPPS_BL)"
 # HPPS_BL_ENV_ADDR=0x8005_f000
 # HPPS_INITRAMFS_ADDR=0x8050_0000

@@ -17,6 +17,7 @@ rtps-os           1:$RTPS_APP_ADDR      $RTPS_APP
 
 hpps-fw           4:$HPPS_FW_ADDR       $HPPS_FW
 hpps-bl           4:$HPPS_BL_ADDR       $HPPS_BL
+hpps-bl-dt        4:$HPPS_BL_DT_ADDR    $HPPS_BL_DT
 hpps-dt           4:$HPPS_DT_ADDR       $HPPS_DT
 hpps-os           4:$HPPS_KERN_ADDR     $HPPS_KERN
 
@@ -24,6 +25,5 @@ hpps-os           4:$HPPS_KERN_ADDR     $HPPS_KERN
 # Instead, simply fallback on the compiled-in/bundled versions.
 # See comments inside run-qemu.sh for how to add these.
 #
-#hpps-bl-dt        4:after(hpps-bl)     $HPPS_BL_DT
 #hpps-bl-env       4:$HPPS_BL_ENV_ADDR  $HPPS_BL_ENV
 #hpps-initramfs    4:$HPPS_INITRAMFS    $HPPS_INITRAMFS

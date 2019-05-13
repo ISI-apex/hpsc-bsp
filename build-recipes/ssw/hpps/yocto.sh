@@ -67,7 +67,8 @@ POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch
 DEPLOY_DIR_1=BSP/hpps
 DEPLOY_ARTIFACTS_1=(
     "${POKY_IMAGE_DIR}/arm-trusted-firmware.bin"
-    "${POKY_IMAGE_DIR}/u-boot.bin"
+    "${POKY_IMAGE_DIR}/u-boot-nodtb.bin"
+    "${POKY_IMAGE_DIR}/u-boot.dtb"
     "${POKY_IMAGE_DIR}/hpsc.dtb"
     "${POKY_IMAGE_DIR}/Image.gz"
     "${POKY_IMAGE_DIR}/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot"

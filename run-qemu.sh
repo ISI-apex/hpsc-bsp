@@ -105,6 +105,7 @@ else
     run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${RTPS_BL}"      "rtps-bl" "${RTPS_BL_ADDR}"
     run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${RTPS_APP}"     "rtps-os" "${RTPS_APP_ADDR}"
     run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_BL}"      "hpps-bl" "${HPPS_BL_ADDR}"
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_BL_DT}"   "hpps-bl" "${HPPS_BL_DT_ADDR}"
     run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_FW}"      "hpps-fw" "${HPPS_FW_ADDR}"
     run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_DT}"      "hpps-dt" "${HPPS_DT_ADDR}"
     run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_KERN}"    "hpps-os" "${HPPS_KERN_ADDR}"
