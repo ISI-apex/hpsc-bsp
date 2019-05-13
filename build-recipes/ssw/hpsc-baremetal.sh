@@ -1,13 +1,16 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/hpsc-baremetal.git"
-export GIT_REV=80e21f5a3f7a9c0388d708bc55c4eb4d85fc6c5c
+export GIT_REV=70d292bc58e880a4e80d2b6bcc1797e9ae320d19
 export GIT_BRANCH="hpsc"
 
 export DEPENDS_ENVIRONMENT="sdk/gcc-arm-none-eabi"
 
 DEPLOY_DIR=BSP/trch
-DEPLOY_ARTIFACTS=(trch/bld/trch.elf)
+DEPLOY_ARTIFACTS=(
+    trch/bld/trch.elf
+    trch/syscfg-schema.json
+)
 
 function do_undeploy()
 {

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/hpsc-utils.git"
-export GIT_REV=29ee4aa4522731ce45c646d64b61a76a5fc39527
+export GIT_REV=175172b23c1cdcc379f4091e9a73540145a9b1e8
 export GIT_BRANCH="hpsc"
 
 # Note: this should be a reference to sdk/; need to split yocto build into
@@ -17,15 +17,9 @@ DEPLOY_ARTIFACTS_1=(
     test/linux/wdtester
 )
 
-DEPLOY_DIR_2=BSP/conf
-DEPLOY_ARTIFACTS_2=(
-    conf/base/trch/syscfg-schema.json
-)
-
 function do_undeploy()
 {
     undeploy_artifacts "$DEPLOY_DIR_1" "${DEPLOY_ARTIFACTS_1[@]}"
-    undeploy_artifacts "$DEPLOY_DIR_2" "${DEPLOY_ARTIFACTS_2[@]}"
 }
 
 function do_build()
@@ -43,5 +37,4 @@ function do_build()
 function do_deploy()
 {
     deploy_artifacts "$DEPLOY_DIR_1" "${DEPLOY_ARTIFACTS_1[@]}"
-    deploy_artifacts "$DEPLOY_DIR_2" "${DEPLOY_ARTIFACTS_2[@]}"
 }

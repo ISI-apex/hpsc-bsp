@@ -23,7 +23,7 @@ fi
 # System configuration interpreted by TRCH
 : "${CONF_DIR:=${THIS_DIR}/conf}"
 : "${SYSCFG:=${CONF_DIR}/syscfg.ini}"
-: "${SYSCFG_SCHEMA:=${BSP_DIR}/conf/syscfg-schema.json}"
+: "${SYSCFG_SCHEMA:=${BSP_DIR}/trch/syscfg-schema.json}"
 : "${SYSCFG_BIN:=${RUN_DIR}/syscfg.bin}"
 
 : "${TRCH_SMC_SRAM:=${RUN_DIR}/trch_sram.bin}"
