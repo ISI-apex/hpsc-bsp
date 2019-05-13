@@ -20,7 +20,7 @@
 # Dependencies:
 #   * uboot-tools : for creating U-boot images
 #   * screen : for display of forwarded serial UART ports
-#   * Python 2: with the following modules
+#   * Python 3 with following modules (provided by python36u-libs on CentOS):
 #      - telnetlib : for communication with Qemu via QMP interface
 #      - configparse : for config INI->BIN compiler (cfgc)
 #      - json : for QMP and for cfgc
@@ -49,7 +49,7 @@ create_syscfg_image()
 
 syscfg_get()
 {
-    python -c "import configparser as cp; c = cp.ConfigParser(); c.read('$SYSCFG'); print(c['$1']['$2'])"
+    python3 -c "import configparser as cp; c = cp.ConfigParser(); c.read('$SYSCFG'); print(c['$1']['$2'])"
 }
 
 function usage()
