@@ -56,7 +56,7 @@ function do_build()
                  --enable-rtemsbsp=gen_r52_qemu || return $?
                  # --enable-tests || return $?
     echo "rtems: gen_r52_qemu: make"
-    make || return $?
+    make_parallel || return $?
 
     exes_to_uboot_fmt || return $?
 }
