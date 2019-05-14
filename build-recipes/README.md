@@ -53,9 +53,10 @@ Source and Integration Recipes
 ------------------------------
 
 Some recipes exist exclusively to provide sources for other recipes, e.g.,
-`poky`, `meta-openembedded`, and `meta-hpsc`.
+`ssw/hpps/yocto/poky`, `ssw/hpps/yocto/meta-openembedded`, and
+`ssw/hpps/yocto/meta-hpsc`.
 Similarly, some recipes exist exclusively to integrate other recipes, e.g.,
-`hpsc-yocto-hpps` integrates the aforementioned recipes.
+`ssw/hpps/yocto` integrates the aforementioned recipes.
 Like other recipes, users are still responsible for building in the correct
 order (see Important Notes above).
 
