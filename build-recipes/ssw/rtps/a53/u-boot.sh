@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/u-boot.git"
-export GIT_REV=f6a8aca3049e4c2d7819b8e44a5e79241d3bde60
+export GIT_REV=412039ff0b1633b30bb4e1552b988ff58452554d
 export GIT_BRANCH="hpsc"
 
 function do_build()
