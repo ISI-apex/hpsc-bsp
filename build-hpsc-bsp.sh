@@ -108,12 +108,12 @@ cd "$WORKING_DIR"
 if [ $IS_STAGE -ne 0 ]; then
     echo "Staging..."
     STAGE_DIR="stage/${PREFIX}"
-    BSP_DIR="${STAGE_DIR}/BSP"
-    mkdir -p "$STAGE_DIR" "$BSP_DIR"
+    mkdir -p "$STAGE_DIR"
     # artifacts deployed by recipes
     cp -r deploy/* "$STAGE_DIR"
     # remaining artifacts
-    cp -r "${BSP_ARTIFACTS_TOP[@]/#/${TOPDIR}/}" "${BSP_DIR}/"
+    cp -r "${BSP_ARTIFACTS_TOP[@]/#/${TOPDIR}/}" "${STAGE_DIR}/"
+    touch "${STAGE_DIR}/.staged" # for run-qemu.sh
 fi
 
 if [ $IS_PACKAGE -ne 0 ]; then

@@ -12,7 +12,7 @@ export GIT_BRANCH="hpsc"
 # exports PATH, RTEMS_RTPS_R52_BSP, and RTEMS_MAKEFILE_PATH
 export DEPENDS_ENVIRONMENT="sdk/rtems-source-builder:ssw/rtps/r52/rtems"
 
-DEPLOY_DIR=BSP/rtps-r52
+DEPLOY_DIR=ssw/rtps/r52
 DEPLOY_ARTIFACTS=(rtps-r52/o-optimize/rtps-r52.img)
 
 function do_toolchain_uninstall()

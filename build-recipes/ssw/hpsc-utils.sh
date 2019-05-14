@@ -8,7 +8,7 @@ export GIT_BRANCH="hpsc"
 # the SDK part (the cross compiler) and the SW part.
 export DEPENDS_ENVIRONMENT="ssw/hpps/yocto" # exports YOCTO_HPPS_SDK
 
-DEPLOY_DIR_1=BSP/aarch64-poky-linux-utils
+DEPLOY_DIR_1=ssw/hpps/tests
 DEPLOY_ARTIFACTS_1=(
     test/linux/mboxtester
     test/linux/rtit-tester

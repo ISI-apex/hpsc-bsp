@@ -38,7 +38,7 @@ DEFAULT_BM_BINDIR=/opt/gcc-arm-none-eabi-${GCC_ARM_NONE_EABI_VERSION}/bin
 ECLIPSE_DIR=eclipse
 ECLIPSE_HPSC=hpsc-eclipse.tar.gz
 
-DEPLOY_DIR=""
+DEPLOY_DIR=sdk
 DEPLOY_ARTIFACTS=("$ECLIPSE_HPSC")
 
 function do_post_fetch()

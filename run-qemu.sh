@@ -83,7 +83,6 @@ shift $((OPTIND-1))
 ARGS=()
 
 source "${QEMU_ENV}"
-SDK_TOOLS=${BSP_DIR}/host-utils
 
 mkdir -p "${RUN_DIR}"
 
@@ -124,6 +123,6 @@ run "${SRAM_IMG_TOOL}" show "${TRCH_SMC_SRAM}"
 ARGS+=(-n user -p 22 -p 2345)
 
 # launch-qemu SDK tool assumes the SDK has been loaded into env
-export PATH="${BSP_DIR}:${SDK_TOOLS}:$PATH"
+export PATH="${SDK}:${SDK_TOOLS}:$PATH"
 
 run "${SDK_TOOLS}/launch-qemu" -e "${QEMU_ENV}" -d "${QEMU_DT}" "${ARGS[@]}" "$@"

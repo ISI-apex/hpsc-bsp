@@ -6,7 +6,7 @@ export GIT_BRANCH="hpsc"
 
 export DO_BUILD_OUT_OF_SOURCE=1
 
-DEPLOY_DIR=BSP
+DEPLOY_DIR=sdk
 DEPLOY_ARTIFACTS=(
     build/_install/bin/qemu-system-aarch64
     build/_install/libexec/qemu-bridge-helper

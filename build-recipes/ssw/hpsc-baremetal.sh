@@ -6,7 +6,7 @@ export GIT_BRANCH="hpsc"
 
 export DEPENDS_ENVIRONMENT="sdk/gcc-arm-none-eabi"
 
-DEPLOY_DIR=BSP/trch
+DEPLOY_DIR=ssw/trch
 DEPLOY_ARTIFACTS=(
     trch/bld/trch.elf
     trch/syscfg-schema.json

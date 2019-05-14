@@ -64,7 +64,7 @@ export YOCTO_HPPS_SDK="${REC_ENV_DIR}/yocto-hpps-sdk" # exported for other recip
 
 POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-${YOCTO_VERSION}.sh
 
-DEPLOY_DIR_1=BSP/hpps
+DEPLOY_DIR_1=ssw/hpps
 DEPLOY_ARTIFACTS_1=(
     "${POKY_IMAGE_DIR}/arm-trusted-firmware.bin"
     "${POKY_IMAGE_DIR}/u-boot-nodtb.bin"
@@ -73,7 +73,7 @@ DEPLOY_ARTIFACTS_1=(
     "${POKY_IMAGE_DIR}/Image.gz"
     "${POKY_IMAGE_DIR}/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot"
 )
-DEPLOY_DIR_2=toolchains
+DEPLOY_DIR_2=sdk/toolchains
 DEPLOY_ARTIFACTS_2=("$POKY_TC_INSTALLER")
 
 function do_toolchain_uninstall()

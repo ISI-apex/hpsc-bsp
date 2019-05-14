@@ -4,7 +4,7 @@ export GIT_REPO="https://github.com/ISI-apex/hpsc-sdk-tools"
 export GIT_REV=0561865b49de1af96e5b72f73747c10b42b9d46c
 export GIT_BRANCH="hpsc"
 
-DEPLOY_DIR_1=BSP/host-utils
+DEPLOY_DIR_1=sdk/tools
 DEPLOY_ARTIFACTS_1=(
     bin/qemu-ifup.sh
     bin/qmp.py

@@ -11,7 +11,7 @@ export DO_FETCH_ONLY=1
 INST_DIR="${REC_ENV_DIR}/gcc-arm-none-eabi-${GCC_ARM_NONE_EABI_VERSION}"
 export PATH="${INST_DIR}/bin:$PATH" # for other recipes
 
-DEPLOY_DIR=toolchains
+DEPLOY_DIR=sdk/toolchains
 DEPLOY_ARTIFACTS=("$WGET_OUTPUT")
 
 function do_toolchain_uninstall()

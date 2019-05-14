@@ -3,43 +3,47 @@
 # Relative paths are relative to directory from where run-qemu.sh is invoked.
 
 THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-if [ "$(basename "$THIS_DIR")" == "BSP" ]; then
+if [ -f "${THIS_DIR}/.staged" ]
+then
     # SDK configuration
     BSP_DIR=.
 else
     # development configuration
-    BSP_DIR=${THIS_DIR}/BUILD/deploy/BSP
+    BSP_DIR=${THIS_DIR}/BUILD/deploy
 fi
+
+SDK=${BSP_DIR}/sdk
+SSW=${BSP_DIR}/ssw
 
 # ID affects port assignments and screen session names
 : "${ID:=0}"
 
 : "${RUN_DIR:=${THIS_DIR}/run}"
-
 : "${LOG_FILE:=${RUN_DIR}/qemu.log}"
 
-: "${QEMU_DT:=${BSP_DIR}/hpsc-arch.dtb}"
+: "${QEMU_DT:=${SDK}/hpsc-arch.dtb}"
+: "${SDK_TOOLS:=${SDK}/tools}"
 
 # System configuration interpreted by TRCH
 : "${CONF_DIR:=${THIS_DIR}/conf}"
 : "${SYSCFG:=${CONF_DIR}/syscfg.ini}"
-: "${SYSCFG_SCHEMA:=${BSP_DIR}/trch/syscfg-schema.json}"
+: "${SYSCFG_SCHEMA:=${SSW}/trch/syscfg-schema.json}"
 : "${SYSCFG_BIN:=${RUN_DIR}/syscfg.bin}"
 
 : "${TRCH_SMC_SRAM:=${RUN_DIR}/trch_sram.bin}"
 : "${TRCH_SMC_SRAM_OVERWRITE:=1}"
 
-: "${TRCH_APP:=${BSP_DIR}/trch/trch.elf}"
+: "${TRCH_APP:=${SSW}/trch/trch.elf}"
 
-: "${RTPS_APP:=${BSP_DIR}/rtps-r52/rtps-r52.img}"
-: "${RTPS_BL:=${BSP_DIR}/rtps-r52/u-boot.bin}"
+: "${RTPS_APP:=${SSW}/rtps/r52/rtps-r52.img}"
+: "${RTPS_BL:=${SSW}/rtps/r52/u-boot.bin}"
 
-: "${HPPS_FW:=${BSP_DIR}/hpps/arm-trusted-firmware.bin}"
-: "${HPPS_BL:=${BSP_DIR}/hpps/u-boot-nodtb.bin}"
-: "${HPPS_BL_DT:=${BSP_DIR}/hpps/u-boot.dtb}"
-: "${HPPS_DT:=${BSP_DIR}/hpps/hpsc.dtb}"
-: "${HPPS_RAMDISK:=${BSP_DIR}/hpps/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot}"
-: "${HPPS_KERN_BIN:=${BSP_DIR}/hpps/Image.gz}"
+: "${HPPS_FW:=${SSW}/hpps/arm-trusted-firmware.bin}"
+: "${HPPS_BL:=${SSW}/hpps/u-boot-nodtb.bin}"
+: "${HPPS_BL_DT:=${SSW}/hpps/u-boot.dtb}"
+: "${HPPS_DT:=${SSW}/hpps/hpsc.dtb}"
+: "${HPPS_RAMDISK:=${SSW}/hpps/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot}"
+: "${HPPS_KERN_BIN:=${SSW}/hpps/Image.gz}"
 : "${HPPS_KERN:=${RUN_DIR}/uImage}"
 
 # Cannot modify these, so no point in including them here.
@@ -49,8 +53,8 @@ fi
 # cpio+busybox_make_install+gzip+mkimage} commands for generating these
 # binaries to run-qemu.sh script.
 #
-# HPPS_BL_ENV=${BSP_DIR}/hpps/uboot.env.bin
-# HPPS_INITRAMFS=$BSP_DIR/hpps/initramfs.uimg
+# HPPS_BL_ENV=${SSW}/hpps/uboot.env.bin
+# HPPS_INITRAMFS=${SSW}/hpps/initramfs.uimg
 
 SYSCFG_ADDR=0x000ff000
 

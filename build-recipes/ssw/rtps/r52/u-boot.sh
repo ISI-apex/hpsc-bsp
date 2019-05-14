@@ -6,7 +6,7 @@ export GIT_BRANCH="hpsc"
 
 export DEPENDS_ENVIRONMENT="sdk/gcc-arm-none-eabi"
 
-DEPLOY_DIR=BSP/rtps-r52
+DEPLOY_DIR=ssw/rtps/r52
 DEPLOY_ARTIFACTS=(u-boot.bin)
 
 function do_undeploy()
