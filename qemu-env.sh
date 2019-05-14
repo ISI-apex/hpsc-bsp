@@ -3,13 +3,14 @@
 # Relative paths are relative to directory from where run-qemu.sh is invoked.
 
 THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-if [ -f "${THIS_DIR}/.staged" ]
+DEPLOY_DIR="${THIS_DIR}/BUILD/deploy"
+if [ -d "${DEPLOY_DIR}" ]
 then
-    # SDK configuration
-    BSP_DIR=.
-else
     # development configuration
-    BSP_DIR=${THIS_DIR}/BUILD/deploy
+    BSP_DIR="${DEPLOY_DIR}"
+else
+    # release configuration
+    BSP_DIR=.
 fi
 
 SDK=${BSP_DIR}/sdk

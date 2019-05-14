@@ -113,7 +113,6 @@ if [ $IS_STAGE -ne 0 ]; then
     cp -r deploy/* "$STAGE_DIR"
     # remaining artifacts
     cp -r "${BSP_ARTIFACTS_TOP[@]/#/${TOPDIR}/}" "${STAGE_DIR}/"
-    touch "${STAGE_DIR}/.staged" # for run-qemu.sh
 fi
 
 if [ $IS_PACKAGE -ne 0 ]; then
