@@ -10,9 +10,6 @@ export GIT_BRANCH="hpsc"
 
 export DEPENDS_ENVIRONMENT="sdk/rtems-source-builder" # exports PATH
 
-# Builds take a long time, incremental build seems to be work
-# export DO_CLEAN_AFTER_FETCH=0
-
 # TODO: Why is set -e being ignored here?
 
 # for other recipes
@@ -56,8 +53,8 @@ function do_build()
     ../configure --target=arm-rtems5 \
                  --prefix="$RTEMS_RTPS_R52_BSP" \
                  --disable-networking \
-                 --enable-rtemsbsp=gen_r52_qemu \
-                 --enable-tests || return $?
+                 --enable-rtemsbsp=gen_r52_qemu || return $?
+                 # --enable-tests || return $?
     echo "rtems: gen_r52_qemu: make"
     make || return $?
 
