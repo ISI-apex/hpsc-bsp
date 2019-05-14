@@ -107,19 +107,19 @@ current data.
 
 For example, to upgrade `qemu` to the latest and commit the changes:
 
-	./upgrade-recipe-bsp.sh -r qemu -c 1
+	./upgrade-recipe-bsp.sh -r sdk/qemu -c 1
 
 If you see output at the end like:
 
-	No changes to recipe file: /path/to/hpsc-bsp/build-recipes/qemu.sh
+	No changes to recipe file: /path/to/hpsc-bsp/build-recipes/sdk/qemu.sh
 
 then the recipe already specifies the latest revision and there is nothing more
 to do.
 If you see output at the end like:
 
-	Recipe file upgraded: /path/to/hpsc/hpsc-bsp/build-recipes/qemu.sh
+	Recipe file upgraded: /path/to/hpsc/hpsc-bsp/build-recipes/sdk/qemu.sh
 	Committing changes to recipe
-	[hpsc 1234567] qemu: upgrade to rev: 890abcd
+	[hpsc 1234567] sdk/qemu: upgrade to rev: 890abcd
 
 then changes were made to the recipe.
 You may now push changes to this repository (after testing, of course):
