@@ -133,12 +133,23 @@ if [ $IS_PACKAGE_SOURCES -ne 0 ]; then
     while read f; do
         bsp_files+=("${basedir}/${f}")
     done< <(git ls-tree --name-only --full-tree HEAD)
+
+    srcdir="src"
+
+    # Links to makefiles that transcend any individual component repo, but are
+    # versioned controlled in some component repo (because where else); save
+    # the user from having to specify -f for every make invocation. Needed to
+    # build components in $srcdir not part of the binary release.
+    ln -sf "ssw/hpsc-utils/make/Makefile.hpsc" "${srcdir}/Makefile"
+    ln -sf "hpsc-utils/make/Makefile.ssw" "${srcdir}/ssw/Makefile"
+    ln -sf "hpsc-sdk-tools/make/Makefile.sdk" "${srcdir}/sdk/Makefile"
+
     # cd'ing up seems to be the only way to get TOPDIR as the root directory
     # using --transform with tar broke symlinks in poky
     (
         cd "${TOPDIR}/.."
         tar czf "${basedir}/${WORKING_DIR}/${RELEASE_SRC_TGZ}" \
-            "${bsp_files[@]}" "${basedir}/${WORKING_DIR}/src"
+            "${bsp_files[@]}" "${basedir}/${WORKING_DIR}/${srcdir}"
     )
     echo "md5: $RELEASE_SRC_TGZ"
     md5sum "$RELEASE_SRC_TGZ" > "${RELEASE_SRC_TGZ}.md5"
