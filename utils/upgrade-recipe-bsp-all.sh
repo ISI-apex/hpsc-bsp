@@ -13,6 +13,10 @@ RECIPES=(
     sdk/qemu-devicetrees
     sdk/rtems-source-builder
     sdk/rtems-tools
+    ssw/hpps/arm-trusted-firmware
+    ssw/hpps/busybox
+    ssw/hpps/linux
+    ssw/hpps/u-boot
     # ssw/hpps/yocto # meta recipe
     ssw/hpps/yocto/meta-hpsc
     # ssw/hpps/yocto/meta-openembedded # using upstream, managed manually
