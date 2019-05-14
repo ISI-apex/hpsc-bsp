@@ -127,11 +127,11 @@ if [ $IS_PACKAGE_SOURCES -ne 0 ]; then
     RELEASE_SRC_TGZ=${PREFIX}_src.tar.gz
     # This packaging is dirty and disgusting and makes me sick, but oh well
     echo "Packaging: $RELEASE_SRC_TGZ"
+
     # get the build scripts
-    basedir=$(basename "$TOPDIR")
-    bsp_files=("${basedir}/.git")
+    bsp_files=("../.git")
     while read f; do
-        bsp_files+=("${basedir}/${f}")
+        bsp_files+=("../${f}")
     done< <(git ls-tree --name-only --full-tree HEAD)
 
     srcdir="src"
@@ -144,13 +144,8 @@ if [ $IS_PACKAGE_SOURCES -ne 0 ]; then
     ln -sf "hpsc-utils/make/Makefile.ssw" "${srcdir}/ssw/Makefile"
     ln -sf "hpsc-sdk-tools/make/Makefile.sdk" "${srcdir}/sdk/Makefile"
 
-    # cd'ing up seems to be the only way to get TOPDIR as the root directory
-    # using --transform with tar broke symlinks in poky
-    (
-        cd "${TOPDIR}/.."
-        tar czf "${basedir}/${WORKING_DIR}/${RELEASE_SRC_TGZ}" \
-            "${bsp_files[@]}" "${basedir}/${WORKING_DIR}/${srcdir}"
-    )
+    tar -czf "${RELEASE_SRC_TGZ}" --transform "s,^,${PREFIX}/,rS" \
+        "${bsp_files[@]}" "../${WORKING_DIR}/${srcdir}"
     echo "md5: $RELEASE_SRC_TGZ"
     md5sum "$RELEASE_SRC_TGZ" > "${RELEASE_SRC_TGZ}.md5"
 fi
