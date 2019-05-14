@@ -8,6 +8,7 @@ RECIPES=(
     # ENV # parent recipe
     # sdk/gcc-arm-none-eabi # not from a git repo, managed manually
     # sdk/hpsc-eclipse # not from a git repo, managed manually
+    sdk/hpsc-sdk-tools
     sdk/qemu
     sdk/qemu-devicetrees
     sdk/rtems-source-builder
