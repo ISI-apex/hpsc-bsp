@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/qemu-devicetrees.git"
-export GIT_REV=e3d95a33edbe9b938aa19180ea4016af8f506c90
+export GIT_REV=7be33769c2204a1d76af470327fe96fce755a320
 export GIT_BRANCH="hpsc"
 
 DEPLOY_DIR=sdk
