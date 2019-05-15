@@ -23,10 +23,9 @@ DEPLOY_ARTIFACTS_1=(
     bin/qmp-mem-wait
 )
 
-function do_fetch()
+function do_post_fetch()
 {
-    env_git_clone_fetch_checkout "$GIT_REPO" . "$GIT_REV"
-    make -C .. -f hpsc-sdk-tools/make/Makefile.sdk fetch
+    make -C .. -f "${REC_SRC_DIR}/make/Makefile.sdk" fetch
 }
 
 function do_undeploy()
