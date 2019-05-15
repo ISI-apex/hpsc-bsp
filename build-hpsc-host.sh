@@ -4,10 +4,10 @@
 set -e
 
 # The recipes managed by this script
-RECIPES=("sdk/rtems-tools"
-         "sdk/rtems-source-builder"
-         "ssw/rtps/r52/rtems"
-         "ssw/rtps/r52/hpsc-rtems")
+RECIPES=("sdk/qemu"
+         "sdk/qemu-devicetrees"
+         "sdk/hpsc-sdk-tools"
+         "sdk/hpsc-eclipse")
 
 for rec in "${RECIPES[@]}"; do
     ./build-recipe.sh -r "$rec" "$@"

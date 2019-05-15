@@ -4,14 +4,13 @@ HPSC Chiplet Board Support Package
 This repository includes:
 
 1. `build-hpsc-bsp.sh` - top-level build script.
-1. `build-hpsc-yocto.sh` - builds Yocto Linux SDK for the HPPS Cortex-A53 clusters, including the reference root filesystem.
+1. `build-hpsc-bare.sh` - builds components with the bare metal compiler, including the TRCH firmware for the Cortex-M4 and u-boot for the Cortex-R52s.
+1. `build-hpsc-host.sh` - builds components for the host development system, including QEMU and associated utilities, and developer tools like the HPSC Eclipse distribution.
 1. `build-hpsc-rtems.sh` - builds the RTEMS SDK, BSP, and reference software for the RTPS Cortex-R52s.
-1. `build-hpsc-other.sh` - builds additional artifacts.
-Uses the ARM bare metal toolchain to build the TRCH firmware for the Cortex-M4 and u-boot for the Cortex-R52s.
-Uses the Yocto SDK toolchain to build Linux test utilities.
-Uses the host compiler to build QEMU and HPSC SDK utilities.
+1. `build-hpsc-yocto.sh` - builds Yocto Linux SDK for the HPPS Cortex-A53 clusters, including the reference root filesystem and Linux test utilities.
 1. `build-recipe.sh` - build individual component recipes; wrapped by other build scripts.
 1. `run-qemu.sh` - runs QEMU using the output from the build scripts.
+1. `qemu-env.sh` - user-modifiable configuration for `run-qemu.sh`; do not execute directly.
 
 Scripts must be run from the same directory.
 Use the `-h` flag to print script usage help.
