@@ -47,19 +47,20 @@ fi
 BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && cd .. && pwd)"
 cd "$BSP_DIR"
 
+YOCTO_SUBDIR="ssw/hpps/yocto"
+
 IS_FETCH=${IS_FETCH:-1}
 # clone poky and the layers we configure
 if [ "$IS_FETCH" -ne 0 ]; then
-    ./build-recipe.sh -w "$WORKING_DIR" -a fetch -r ssw/hpps/yocto/poky \
-                                                 -r ssw/hpps/yocto/meta-openembedded \
-                                                 -r ssw/hpps/yocto/meta-hpsc \
+    ./build-recipe.sh -w "$WORKING_DIR" -a fetch -r ${YOCTO_SUBDIR}/poky \
+                                                 -r ${YOCTO_SUBDIR}/meta-openembedded \
+                                                 -r ${YOCTO_SUBDIR}/meta-hpsc \
                                                  || return $?
 fi
 
 # TODO: mimicks build-recipes/ssw/hpps/yocto.sh... could easily get out of sync
 
 FULL_WD="${PWD}/${WORKING_DIR}"
-YOCTO_SUBDIR="ssw/hpps/yocto"
 YOCTO_SRC_DIR="${FULL_WD}/src/${YOCTO_SUBDIR}"
 YOCTO_WORK_DIR="${FULL_WD}/work/${YOCTO_SUBDIR}"
 
