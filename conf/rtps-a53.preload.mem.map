@@ -1,0 +1,8 @@
+# Instructions for run-qemu for pre-loading data into memory
+
+# CPU IDs: TRC:H 0, RTPS R52: 1-2, RTPS A53: 3, HPPS: 4-12
+# ADDR='-' means do not pass an address (e.g. for ELF loading)
+
+# ID              (CPU:)ADDR            FILE
+rtps-a53-fw      3:0x70000000          BUILD/src/ssw/rtps/a53/arm-trusted-firmware/build/hpsc_rtps_a53/release/bl31.bin
+rtps-a53-bl      3:0x78000000          BUILD/src/ssw/rtps/a53/u-boot/u-boot.bin
