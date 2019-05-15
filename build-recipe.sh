@@ -160,7 +160,7 @@ function build_lifecycle()
         if [ ! -d "$REC_WORK_DIR" ]; then
             if [ "$DO_BUILD_OUT_OF_SOURCE" -eq 0 ]; then
                 echo "$recname: extract"
-                mkdir -p "$(dirname $REC_WORK_DIR)"
+                mkdir -p "$(dirname "$REC_WORK_DIR")"
                 cp -r "$REC_SRC_DIR" "$REC_WORK_DIR"
             else
                 mkdir -p "$REC_WORK_DIR"
