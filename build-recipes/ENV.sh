@@ -144,9 +144,7 @@ function make_parallel()
 function get_dependency_src()
 {
     # $1 = dependency
-    (
-        cd "${ENV_WORKING_DIR}/src/$1" && pwd
-    )
+    echo "${ENV_WORKING_DIR}/src/$1"
 }
 
 function deploy_artifacts()
