@@ -4,10 +4,7 @@ export WGET_URL="https://www.eclipse.org/downloads/download.php?file=/technology
 export WGET_OUTPUT="eclipse.tar.gz"
 export WGET_OUTPUT_MD5="6087e4def4382fd334de658f9bde190b"
 
-# to get variables YOCTO_VERSION and GCC_ARM_NONE_EABI_VERSION
-# Note: ideally, this recipe should reference only within sdk/, to accomplish
-# this, split yocto into SDK part (which provides the version) and SW part.
-export DEPENDS_ENVIRONMENT="ssw/hpps/yocto:sdk/gcc-arm-none-eabi"
+export DO_BUILD_OUT_OF_SOURCE=1
 
 # Eclipse update sites
 ECLIPSE_REPOSITORIES=("http://download.eclipse.org/releases/photon"
@@ -31,9 +28,6 @@ ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group/1.4.1.201804240009
                     org.eclipse.linuxtools.profiling.remote.feature.group/7.1.0.201812121718
                     org.eclipse.linuxtools.profiling.source.feature.group/7.1.0.201812121718
                     org.eclipse.linuxtools.profiling.remote.source.feature.group/7.1.0.201812121718)
-
-DEFAULT_POKY_ROOT=/opt/poky/${YOCTO_VERSION}
-DEFAULT_BM_BINDIR=/opt/gcc-arm-none-eabi-${GCC_ARM_NONE_EABI_VERSION}/bin
 
 ECLIPSE_DIR=eclipse
 ECLIPSE_HPSC=hpsc-eclipse.tar.gz
@@ -69,27 +63,9 @@ function do_undeploy()
 
 function do_build()
 {
-    echo "hpsc-eclipse: configuring plugins..."
-    # Create and populate the plugin customization file, then point the eclipse.ini file to it
-    cat > "${ECLIPSE_DIR}/plugin_customization.ini" << EOL
-ilg.gnumcueclipse.managedbuild.cross.arm/toolchain.path.962691777=${DEFAULT_BM_BINDIR}
-org.yocto.sdk.ide.1467355974/Sysroot=${DEFAULT_POKY_ROOT}/sysroots
-org.yocto.sdk.ide.1467355974/toolChainRoot=${DEFAULT_POKY_ROOT}
-org.yocto.sdk.ide.1467355974/SDKMode=true
-org.yocto.sdk.ide.1467355974/TargetMode=false
-org.yocto.sdk.ide.1467355974/toolchainTriplet=aarch64-poky-linux
-EOL
-    # if statement prevents inserting duplicate entries in subsequent builds
-    if [ "$(grep -c "\-pluginCustomization" "${ECLIPSE_DIR}/eclipse.ini")" -eq 0 ]; then
-        # TODO: relative path to plugin_customization.ini not respected if
-        # eclipse is launched from a working dir other than eclipse's root
-        sed -i "7i\-pluginCustomization\nplugin_customization.ini" \
-            "${ECLIPSE_DIR}/eclipse.ini"
-    fi
-
     # Create distribution archive
     echo "hpsc-eclipse: creating HPSC eclipse distribution: $ECLIPSE_HPSC"
-    tar czf "$ECLIPSE_HPSC" "$ECLIPSE_DIR"
+    tar -czf "$ECLIPSE_HPSC" -C "$REC_SRC_DIR" "$ECLIPSE_DIR"
 }
 
 function do_deploy()
