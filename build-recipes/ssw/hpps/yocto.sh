@@ -41,7 +41,8 @@ function yocto_maybe_init_env()
         source "${REC_UTIL_DIR}/configure-env.sh" -d "${DL_DIR}" \
                                                   -b "${BUILD_DIR}" \
                                                   -p "${POKY_DIR}" \
-                                                  "${LAYER_ARGS[@]}"
+                                                  "${LAYER_ARGS[@]}" \
+                                                  || return $?
         TEST_RECIPES=($("${REC_UTIL_DIR}/find-test-recipes.sh"))
         echo "Found test recipes: (${TEST_RECIPES[*]})"
         HPSC_YOCTO_INITIALIZED=1
@@ -59,7 +60,7 @@ function do_late_fetch()
 POKY_DEPLOY_DIR=poky_build/tmp/deploy
 POKY_IMAGE_DIR=${POKY_DEPLOY_DIR}/images/hpsc-chiplet
 
-export YOCTO_VERSION=2.6.1 # exported for other recipes
+export YOCTO_VERSION=2.6.2 # exported for other recipes
 export YOCTO_HPPS_SDK="${REC_ENV_DIR}/yocto-hpps-sdk" # exported for other recipes
 
 POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-${YOCTO_VERSION}.sh
@@ -89,7 +90,7 @@ function do_undeploy()
 
 function do_build()
 {
-    yocto_maybe_init_env
+    yocto_maybe_init_env || return $?
     if [ "$(basename "${PWD}")" != "poky_build" ]; then
         # if yocto env was already init'd then we're still in our work directory
         cd poky_build
@@ -98,8 +99,8 @@ function do_build()
     (
         echo "Building with BB_NO_NETWORK=1"
         export BB_NO_NETWORK=1
-        bitbake core-image-hpsc "${TEST_RECIPES[@]}"
-        bitbake core-image-hpsc -c populate_sdk
+        bitbake core-image-hpsc "${TEST_RECIPES[@]}" || return $?
+        bitbake core-image-hpsc -c populate_sdk || return $?
     )
     cd "$REC_WORK_DIR"
     chmod +x "$POKY_TC_INSTALLER"

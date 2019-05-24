@@ -121,7 +121,7 @@ To independently fetch and build the Yocto SDK and dependent artifacts:
 
 The build generates in `${WORKING_DIR}/deploy/sdk/toolchains`:
 
-1. `poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.1.sh` - the Yocto SDK installer
+1. `poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.2.sh` - the Yocto SDK installer
 
 and in `${WORKING_DIR}/deploy/ssw/hpps/`:
 
