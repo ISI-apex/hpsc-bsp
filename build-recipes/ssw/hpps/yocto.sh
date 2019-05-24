@@ -24,7 +24,6 @@ POKY_DIR=$(get_dependency_src "ssw/hpps/yocto/poky")
 META_OE_DIR=$(get_dependency_src "ssw/hpps/yocto/meta-openembedded")
 META_HPSC_DIR=$(get_dependency_src "ssw/hpps/yocto/meta-hpsc")
 LAYERS=("${META_OE_DIR}/meta-oe"
-        "${META_OE_DIR}/meta-python"
         "${META_HPSC_DIR}/meta-hpsc-bsp")
 
 # test-only recipes must be fetched/built independently of rootfs image
