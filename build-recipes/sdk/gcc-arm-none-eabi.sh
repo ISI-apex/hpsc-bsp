@@ -8,7 +8,7 @@ export WGET_OUTPUT_MD5="299ebd3f1c2c90930d28ab82e5d8d6c0"
 
 export DO_FETCH_ONLY=1
 
-INST_DIR="${REC_ENV_DIR}/gcc-arm-none-eabi-${GCC_ARM_NONE_EABI_VERSION}"
+INST_DIR="${REC_ENV_DIR}/gcc-arm-none-eabi/"
 export PATH="${INST_DIR}/bin:$PATH" # for other recipes
 
 DEPLOY_DIR=sdk/toolchains
@@ -16,8 +16,7 @@ DEPLOY_ARTIFACTS=("$WGET_OUTPUT")
 
 function do_toolchain_uninstall()
 {
-    # wildcard in case version was updated
-    rm -rf "${REC_ENV_DIR}"/gcc-arm-none-eabi-*
+    rm -rf "$INST_DIR"
 }
 
 function do_undeploy()
@@ -36,6 +35,7 @@ function do_toolchain_install()
         echo "Bare metal toolchain already installed: $INST_DIR"
     else
         echo "Installing bare metal toolchain..."
-        tar xjf "$WGET_OUTPUT" -C "$(dirname "$INST_DIR")"
+        mkdir -p "$INST_DIR" || return $?
+        tar xjf "$WGET_OUTPUT" -C "$INST_DIR" --strip-components=1
     fi
 }
