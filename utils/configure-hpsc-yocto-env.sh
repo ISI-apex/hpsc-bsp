@@ -73,7 +73,6 @@ POKY_DIR="${YOCTO_SRC_DIR}/poky"
 META_OE_DIR="${YOCTO_SRC_DIR}/meta-openembedded"
 META_HPSC_DIR="${YOCTO_SRC_DIR}/meta-hpsc"
 LAYERS=("${META_OE_DIR}/meta-oe"
-        "${META_OE_DIR}/meta-python"
         "${META_HPSC_DIR}/meta-hpsc-bsp")
 
 for l in "${LAYERS[@]}"; do
