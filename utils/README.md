@@ -15,17 +15,25 @@ Scripts support the `-h` option to see help/usage information.
 Development
 -----------
 
-These scripts setup build environments for developers.
+These scripts setup shell environments for developers.
 
 * `configure-hpsc-yocto-env.sh` - source this script to configure your shell
-environment with the Yocto/Poky SDK built and installed within the BSP working
+environment for modifying the BSP Yocto build configuration.
+This is typically only needed if you are using OpenEmbedded tools to manage
+layers and layer recipes.
+See `set-env-yocto.sh` for Yocto Linux application development.
+* `set-env-bare.sh` - source this script to configure your shell environment
+with the ARM bare-metal cross-compiler installed within the BSP working
 directory structure.
-This is typically only needed if you are cross-compiling for Poky or you are
-using OpenEmbedded tools to manage layer recipes.
+This is typically only needed if you are developing bare-metal applications.
 * `set-env-rtems-r52.sh` - source this script to configure your shell
 environment with the RTEMS `gen_r52_qemu` BSP environment built and installed
 within the BSP working directory structure.
 This is typically only needed if you are developing RTEMS applications for RTPS.
+* `set-env-yocto.sh` - source this script to configure your shell environment
+with the Yocto/Poky SDK built and installed within the BSP working directory
+structure.
+This is typically only needed if you are cross-compiling for Poky.
 
 
 OpenEmbedded (Yocto) Recipe Management
