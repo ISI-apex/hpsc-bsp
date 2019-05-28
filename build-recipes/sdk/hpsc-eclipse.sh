@@ -10,12 +10,12 @@ export DO_BUILD_OUT_OF_SOURCE=1
 ECLIPSE_REPOSITORIES=("http://download.eclipse.org/releases/photon"
                       "http://download.eclipse.org/tm/updates/4.0/"
                       "http://gnu-mcu-eclipse.netlify.com/v4-neon-updates/"
-                      "http://downloads.yoctoproject.org/releases/eclipse-plugin/2.5.0/oxygen"
+                      "http://downloads.yoctoproject.org/releases/eclipse-plugin/2.6.1/oxygen"
                       "http://download.eclipse.org/linuxtools/update")
 
 # Plugins to install
-ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group/1.4.1.201804240009
-                    org.yocto.sdk.feature.group/1.4.1.201804240009
+ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group/1.4.1.201901082310
+                    org.yocto.sdk.feature.group/1.4.1.201901082311
                     ilg.gnumcueclipse.core/4.5.1.201901011632
                     ilg.gnumcueclipse.managedbuild.cross.arm/2.6.4.201901011632
                     ilg.gnumcueclipse.debug.core/1.2.2.201901011632
