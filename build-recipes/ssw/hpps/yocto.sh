@@ -47,10 +47,10 @@ function yocto_maybe_init_env()
 
 function do_late_fetch()
 {
-    yocto_maybe_init_env
-    bitbake core-image-hpsc "${TEST_RECIPES[@]}" --runall="fetch"
-    bitbake core-image-hpsc -c populate_sdk --runall="fetch"
-    bitbake core-image-hpsc -c testimage --runall="fetch"
+    yocto_maybe_init_env || return $?
+    bitbake core-image-hpsc "${TEST_RECIPES[@]}" --runall="fetch" || return $?
+    bitbake core-image-hpsc -c populate_sdk --runall="fetch" || return $?
+    bitbake core-image-hpsc -c testimage --runall="fetch" || return $?
 }
 
 POKY_DEPLOY_DIR=poky_build/tmp/deploy
@@ -89,7 +89,7 @@ function do_build()
     yocto_maybe_init_env || return $?
     if [ "$(basename "${PWD}")" != "poky_build" ]; then
         # if yocto env was already init'd then we're still in our work directory
-        cd poky_build
+        cd poky_build || return $?
     fi
     # subshell is so BB_NO_NETWORK isn't remembered
     (
