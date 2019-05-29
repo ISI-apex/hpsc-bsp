@@ -89,7 +89,7 @@ REC_DIR="${PWD}/build-recipes"
 build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
 
-function build_set_recipe_env()
+function build_recipe_export_env_base()
 {
     local recname=$1
     # recipes extend the ENV script
@@ -104,19 +104,26 @@ function build_set_recipe_env()
     source "${REC_DIR}/${recname}.sh"
 }
 
-function build_lifecycle()
+function build_recipe_export_env_with_deps()
 {
     local recname=$1
     # we really just want DEPENDS_ENVIRONMENT to begin with
-    build_set_recipe_env "$recname"
+    build_recipe_export_env_base "$recname"
     # cache DEPENDS_ENVIRONMENT since it will be overridden by dependencies
     IFS=':' read -ra DEP_ENV_CACHE <<< "$DEPENDS_ENVIRONMENT"
     for de in "${DEP_ENV_CACHE[@]}"; do
         echo "$recname: depends: $de"
-        build_set_recipe_env "$de"
+        build_recipe_export_env_base "$de"
     done
     # now that we have exported from dependencies, we need our own environment
-    build_set_recipe_env "$recname"
+    build_recipe_export_env_base "$recname"
+}
+
+function build_lifecycle()
+{
+    local recname=$1
+
+    build_recipe_export_env_with_deps "$recname"
 
     # fetch is broken up to allow custom clean and extract
     if [ $IS_FETCH -ne 0 ]; then
