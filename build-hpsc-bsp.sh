@@ -83,70 +83,74 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_PACKAGE_SOURCES=1
 fi
 
-# not specifying a recipe just builds the working directory structure
-./build-recipe.sh -w "$WORKING_DIR"
+BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
-TOPDIR=${PWD}
+# not specifying a recipe just builds the working directory structure
+"${BSP_DIR}/build-recipe.sh" -w "$WORKING_DIR"
 
 if [ $IS_FETCH -ne 0 ]; then
     echo "Fetching sources..."
-    ./build-hpsc-host.sh -w "$WORKING_DIR" -a fetch
-    ./build-hpsc-bare.sh -w "$WORKING_DIR" -a fetch
-    ./build-hpsc-rtems.sh -w "$WORKING_DIR" -a fetch
-    ./build-hpsc-yocto.sh -w "$WORKING_DIR" -a fetch
+    "${BSP_DIR}/build-hpsc-host.sh" -w "$WORKING_DIR" -a fetch
+    "${BSP_DIR}/build-hpsc-bare.sh" -w "$WORKING_DIR" -a fetch
+    "${BSP_DIR}/build-hpsc-rtems.sh" -w "$WORKING_DIR" -a fetch
+    "${BSP_DIR}/build-hpsc-yocto.sh" -w "$WORKING_DIR" -a fetch
 fi
 
 if [ $IS_BUILD -ne 0 ]; then
     echo "Building..."
-    ./build-hpsc-host.sh -w "$WORKING_DIR" -a build
-    ./build-hpsc-bare.sh -w "$WORKING_DIR" -a build
-    ./build-hpsc-rtems.sh -w "$WORKING_DIR" -a build
-    ./build-hpsc-yocto.sh -w "$WORKING_DIR" -a build
+    "${BSP_DIR}/build-hpsc-host.sh" -w "$WORKING_DIR" -a build
+    "${BSP_DIR}/build-hpsc-bare.sh" -w "$WORKING_DIR" -a build
+    "${BSP_DIR}/build-hpsc-rtems.sh" -w "$WORKING_DIR" -a build
+    "${BSP_DIR}/build-hpsc-yocto.sh" -w "$WORKING_DIR" -a build
 fi
-
-cd "$WORKING_DIR"
 
 if [ $IS_STAGE -ne 0 ]; then
     echo "Staging..."
-    STAGE_DIR="stage/${PREFIX}"
+    STAGE_DIR="${WORKING_DIR}/stage/${PREFIX}"
     mkdir -p "$STAGE_DIR"
     # artifacts deployed by recipes
-    cp -r deploy/* "$STAGE_DIR"
+    cp -r "${WORKING_DIR}"/deploy/* "$STAGE_DIR"
     # remaining artifacts
-    cp -r "${BSP_ARTIFACTS_TOP[@]/#/${TOPDIR}/}" "${STAGE_DIR}/"
+    cp -r "${BSP_ARTIFACTS_TOP[@]/#/${BSP_DIR}/}" "${STAGE_DIR}/"
 fi
 
 if [ $IS_PACKAGE -ne 0 ]; then
-    RELEASE_BIN_TGZ=${PREFIX}_bin.tar.gz
+    RELEASE_BIN_TGZ=${WORKING_DIR}/${PREFIX}_bin.tar.gz
     echo "Packaging: $RELEASE_BIN_TGZ"
-    tar czf "$RELEASE_BIN_TGZ" -C "stage" "$PREFIX"
+    tar czf "$RELEASE_BIN_TGZ" -C "${WORKING_DIR}/stage" "$PREFIX"
     echo "md5: $RELEASE_BIN_TGZ"
-    md5sum "$RELEASE_BIN_TGZ" > "${RELEASE_BIN_TGZ}.md5"
+    md5sum "$RELEASE_BIN_TGZ" | sed "s,${WORKING_DIR}/,," \
+        > "${RELEASE_BIN_TGZ}.md5"
 fi
 
 if [ $IS_PACKAGE_SOURCES -ne 0 ]; then
-    RELEASE_SRC_TGZ=${PREFIX}_src.tar.gz
-    # This packaging is dirty and disgusting and makes me sick, but oh well
+    RELEASE_SRC_TAR=${WORKING_DIR}/${PREFIX}_src.tar
+    RELEASE_SRC_TGZ=${RELEASE_SRC_TAR}.gz
     echo "Packaging: $RELEASE_SRC_TGZ"
-
-    # get the build scripts
-    bsp_files=("../.git")
-    while read f; do
-        bsp_files+=("../${f}")
-    done< <(git ls-tree --name-only --full-tree HEAD)
-
-    srcdir="src"
 
     # Links to makefiles that transcend any individual component repo, but are
     # versioned controlled in some component repo (because where else); save
     # the user from having to specify -f for every make invocation. Needed to
     # build components in $srcdir not part of the binary release.
+    srcdir="${WORKING_DIR}/src"
     ln -sf "ssw/hpsc-utils/make/Makefile.hpsc" "${srcdir}/Makefile"
     ln -sf "hpsc-utils/make/Makefile.ssw" "${srcdir}/ssw/Makefile"
     ln -sf "hpsc-sdk-tools/make/Makefile.sdk" "${srcdir}/sdk/Makefile"
 
-    tar -czf "${RELEASE_SRC_TGZ}" --transform "s,^,${PREFIX}/,rS" \
-        "${bsp_files[@]}" "../${WORKING_DIR}/${srcdir}"
+    # Add build scripts, then append sources within the BSP directory structure
+    # while maintaining the base working directory name.
+    bsp_files=(".git")
+    while read f; do
+        bsp_files+=("$f")
+    done< <(git --git-dir="${BSP_DIR}/.git" ls-tree --name-only --full-tree HEAD)
+    tar -cf "${RELEASE_SRC_TAR}" -C "$BSP_DIR" \
+        --transform "s,^,${PREFIX}/,rS" "${bsp_files[@]}"
+    workdir_base=$(basename "$(cd "$WORKING_DIR" && pwd)")
+    tar -rf "${RELEASE_SRC_TAR}" -C "$WORKING_DIR" \
+        --transform "s,^,${PREFIX}/${workdir_base}/,rS" src
+    gzip -f "$RELEASE_SRC_TAR"
+
     echo "md5: $RELEASE_SRC_TGZ"
-    md5sum "$RELEASE_SRC_TGZ" > "${RELEASE_SRC_TGZ}.md5"
+    md5sum "$RELEASE_SRC_TGZ" | sed "s,${WORKING_DIR}/,," \
+        > "${RELEASE_SRC_TGZ}.md5"
 fi
