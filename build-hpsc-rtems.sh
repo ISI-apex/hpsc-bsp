@@ -9,6 +9,7 @@ RECIPES=("sdk/rtems-tools"
          "ssw/rtps/r52/rtems"
          "ssw/rtps/r52/hpsc-rtems")
 
+BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 for rec in "${RECIPES[@]}"; do
-    ./build-recipe.sh -r "$rec" "$@"
+    "${BSP_DIR}/build-recipe.sh" -r "$rec" "$@"
 done

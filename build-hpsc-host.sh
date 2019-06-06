@@ -9,6 +9,7 @@ RECIPES=("sdk/qemu"
          "sdk/hpsc-sdk-tools"
          "sdk/hpsc-eclipse")
 
+BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 for rec in "${RECIPES[@]}"; do
-    ./build-recipe.sh -r "$rec" "$@"
+    "${BSP_DIR}/build-recipe.sh" -r "$rec" "$@"
 done
