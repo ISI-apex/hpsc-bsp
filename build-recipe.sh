@@ -85,7 +85,8 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
     IS_TOOLCHAIN_INSTALL=1
 fi
 
-REC_DIR="${PWD}/build-recipes"
+THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+REC_DIR="${THIS_DIR}/build-recipes"
 build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
 
