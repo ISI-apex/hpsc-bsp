@@ -11,7 +11,8 @@ function build_work_dirs()
              "${wdir}/work" \
              "${wdir}/deploy" \
              "${wdir}/env" \
-             "${wdir}/stage"
+             "${wdir}/stage" \
+             "${wdir}/log"
 }
 
 function usage()
@@ -89,6 +90,7 @@ THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 REC_DIR="${THIS_DIR}/build-recipes"
 build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
+METRICS_CSV=${PWD}/log/build-recipe-metrics.csv
 
 function build_recipe_export_env_base()
 {
@@ -227,6 +229,22 @@ function build_step_toolchain_install()
     cd "$dir" && do_toolchain_install
 }
 
+function build_step_with_metrics()
+{
+    local start end elapsed
+    local rc=0
+    start=$(date +%s.%N)
+    "$@" || rc=$?
+    end=$(date +%s.%N)
+    elapsed=$(echo "$start $end" | awk '{printf "%f", $2 - $1}')
+    if [ ! -f "$METRICS_CSV" ]; then
+        echo "DATETIME,RECIPE,STEP,RC,ELAPSED" > "$METRICS_CSV"
+    fi
+    echo "$(date +'%F %T'),$2,${1/"build_step_"/},$rc,$elapsed" \
+        >> "$METRICS_CSV"
+    return $rc
+}
+
 function build_lifecycle()
 {
     local recname=$1
@@ -237,14 +255,14 @@ function build_lifecycle()
     # fetch is broken up to allow custom clean and extract
     if [ $IS_FETCH -ne 0 ]; then
         mkdir -p "$REC_SRC_DIR"
-        build_step_fetch "$recname"
-        build_step_post_fetch "$recname"
+        build_step_with_metrics build_step_fetch "$recname"
+        build_step_with_metrics build_step_post_fetch "$recname"
     fi
 
     # uninstall/undeploy on clean request or after fetch
     if [ $IS_CLEAN -ne 0 ] || [ $IS_FETCH -ne 0 ]; then
-        build_step_toolchain_uninstall "$recname"
-        build_step_undeploy "$recname"
+        build_step_with_metrics build_step_toolchain_uninstall "$recname"
+        build_step_with_metrics build_step_undeploy "$recname"
     fi
 
     # some recipes are source-only
@@ -252,13 +270,13 @@ function build_lifecycle()
         # clean if requested or clean-after-fetch not overridden by recipe
         if [ $IS_CLEAN -ne 0 ] || 
            [[ $IS_FETCH -ne 0 && "$DO_CLEAN_AFTER_FETCH" -eq 1 ]]; then
-            build_step_clean "$recname"
+            build_step_with_metrics build_step_clean "$recname"
         fi
 
         # extract to (or create) work dir
         if [ ! -d "$REC_WORK_DIR" ]; then
             if [ "$DO_BUILD_OUT_OF_SOURCE" -eq 0 ]; then
-                build_step_extract "$recname"
+                build_step_with_metrics build_step_extract "$recname"
             else
                 mkdir -p "$REC_WORK_DIR"
             fi
@@ -266,11 +284,11 @@ function build_lifecycle()
 
         # late fetch is for fetching that requires a work dir first
         if [ $IS_FETCH -ne 0 ]; then
-            build_step_late_fetch "$recname"
+            build_step_with_metrics build_step_late_fetch "$recname"
         fi
 
         if [ $IS_BUILD -ne 0 ]; then
-            build_step_build "$recname" && RC=0 || RC=$?
+            build_step_with_metrics build_step_build "$recname" && RC=0 || RC=$?
             if [ $RC -eq 0 ]; then
                 echo "$recname: build successful"
             else
@@ -280,16 +298,16 @@ function build_lifecycle()
         fi
 
         if [ $IS_TEST -ne 0 ]; then
-            build_step_test "$recname"
+            build_step_with_metrics build_step_test "$recname"
         fi
     fi
 
     if [ $IS_DEPLOY -ne 0 ]; then
-        build_step_deploy "$recname"
+        build_step_with_metrics build_step_deploy "$recname"
     fi
 
     if [ $IS_TOOLCHAIN_INSTALL -ne 0 ]; then
-        build_step_toolchain_install "$recname"
+        build_step_with_metrics build_step_toolchain_install "$recname"
     fi
 }
 
