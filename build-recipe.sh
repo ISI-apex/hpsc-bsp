@@ -311,9 +311,23 @@ function build_lifecycle()
     fi
 }
 
+function build_lifecycle_and_log()
+{
+    local recname=$1
+    local rec_log_dir=${PWD}/log/${recname}
+    local rec_log_file
+    mkdir -p "$rec_log_dir"
+    # wait for an available log file
+    while [ -z "$rec_log_file" ] || [ -e "$rec_log_file" ]; do
+        rec_log_file=${rec_log_dir}/build-recipe-$(date +'%F-%T').log
+    done
+    build_lifecycle "$recname" 2>&1 | tee "$rec_log_file"
+    echo "Build log saved to: $rec_log_file"
+}
+
 for recname in "${RECIPES[@]}"; do
     # subshell isolates recipes from each other
     (
-        build_lifecycle "$recname"
+        build_lifecycle_and_log "$recname"
     )
 done
