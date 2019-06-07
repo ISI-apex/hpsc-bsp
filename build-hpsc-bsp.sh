@@ -84,6 +84,7 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
 fi
 
 BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+METRICS_CSV=${WORKING_DIR}/log/build-bsp-metrics.csv
 
 function action_fetch()
 {
@@ -158,24 +159,40 @@ function action_package_sources()
         > "${RELEASE_SRC_TGZ}.md5"
 }
 
+function action_with_metrics()
+{
+    local start end elapsed
+    local rc=0
+    start=$(date +%s.%N)
+    "$@" || rc=$?
+    end=$(date +%s.%N)
+    elapsed=$(echo "$start $end" | awk '{printf "%f", $2 - $1}')
+    if [ ! -f "$METRICS_CSV" ]; then
+        echo "DATETIME,ACTION,RC,ELAPSED" > "$METRICS_CSV"
+    fi
+    echo "$(date +'%F %T'),${1/"action_"/},$rc,$elapsed" \
+        >> "$METRICS_CSV"
+    return $rc
+}
+
 function bsp_build_lifecycle()
 {
     # not specifying a recipe just builds the working directory structure
     "${BSP_DIR}/build-recipe.sh" -w "$WORKING_DIR"
     if [ $IS_FETCH -ne 0 ]; then
-        action_fetch
+        action_with_metrics action_fetch
     fi
     if [ $IS_BUILD -ne 0 ]; then
-        action_build
+        action_with_metrics action_build
     fi
     if [ $IS_STAGE -ne 0 ]; then
-        action_stage
+        action_with_metrics action_stage
     fi
     if [ $IS_PACKAGE -ne 0 ]; then
-        action_package
+        action_with_metrics action_package
     fi
     if [ $IS_PACKAGE_SOURCES -ne 0 ]; then
-        action_package_sources
+        action_with_metrics action_package_sources
     fi
 }
 
