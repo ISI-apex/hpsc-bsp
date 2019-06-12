@@ -17,17 +17,18 @@ function build_work_dirs()
 
 function usage()
 {
-    echo "Usage: $0 [-r RECIPE] [-a <all|fetch|clean|build|test>] [-w DIR] [-h]"
-    echo "    -r RECIPE: the recipe to use"
-    echo "    -a ACTION"
+    local rc=${1:-0}
+    echo "Usage: $0 [-a ACTION]... [-r RECIPE]... [-w DIR] [-h]"
+    echo "    -a ACTION: one of:"
     echo "       all: (default) fetch, build, and test"
     echo "       fetch: download/update sources"
     echo "       clean: force clean, even on recipes that don't autoclean"
     echo "       build: compile pre-downloaded sources"
     echo "       test: run tests"
+    echo "    -r RECIPE: a recipe to execute actions on"
     echo "    -w DIR: set the working directory (default=\"BUILD\")"
     echo "    -h: show this message and exit"
-    exit 1
+    exit "$rc"
 }
 
 # Script options
@@ -41,11 +42,8 @@ IS_TEST=0
 IS_DEPLOY=0
 IS_TOOLCHAIN_INSTALL=0
 WORKING_DIR="BUILD"
-while getopts "r:a:w:h?" o; do
+while getopts "a:r:w:h?" o; do
     case "$o" in
-        r)
-            RECIPES+=("${OPTARG}")
-            ;;
         a)
             HAS_ACTION=1
             if [ "${OPTARG}" == "fetch" ]; then
@@ -62,8 +60,11 @@ while getopts "r:a:w:h?" o; do
                 IS_ALL=1
             else
                 echo "Error: no such action: ${OPTARG}"
-                usage
+                usage 1
             fi
+            ;;
+        r)
+            RECIPES+=("${OPTARG}")
             ;;
         w)
             WORKING_DIR="${OPTARG}"
@@ -73,7 +74,7 @@ while getopts "r:a:w:h?" o; do
             ;;
         *)
             echo "Unknown option"
-            usage
+            usage 1
             ;;
     esac
 done
