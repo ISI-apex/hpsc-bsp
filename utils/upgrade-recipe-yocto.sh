@@ -11,7 +11,8 @@ set -e
 function find_srcuri()
 {
     local recfile=$1
-    local srcuri=$(grep SRC_URI "$recfile" | cut -d'=' -f2- | tr -d '"' | xargs)
+    local srcuri
+    srcuri=$(grep SRC_URI "$recfile" | cut -d'=' -f2- | tr -d '"' | xargs)
     if [ -z "$srcuri" ]; then
         echo "Failed to determine SRC_URI value from recipe" >&2
         return 1
@@ -24,7 +25,8 @@ function find_srcbranch()
     local recfile=$1
     local srcuri=$2
     # check if 'SRCBRANCH' is specified in recipe
-    local srcbranch=$(grep SRCBRANCH "$recfile" | cut -d'=' -f2 | tr -d '"' | xargs)
+    local srcbranch
+    srcbranch=$(grep SRCBRANCH "$recfile" | cut -d'=' -f2 | tr -d '"' | xargs)
     if [ -z "$srcbranch" ]; then
         # try to parse branch from 'SRC_URI'
         IFS=';' read -ra TMPARR <<< "$(echo "$srcuri" | cut -d';' -f2-)"
@@ -47,14 +49,17 @@ function find_srcrev()
     local srcuri=$1
     local srcbranch=$2
     # parse 'SRC_URI' for the git URI
-    local gituri=$(echo "$srcuri" | cut -d';' -f1)
+    local gituri
+    gituri=$(echo "$srcuri" | cut -d';' -f1)
     if [ -z "$gituri" ]; then
         echo "Failed to determine git URI" >&2
         return 1
     fi
     # query for the HEAD of the branch
-    local matches=$(git ls-remote -h "$gituri" "$srcbranch")
-    local srcrev=$(echo "$matches" | awk '{print $1}')
+    local matches
+    local srcrev
+    matches=$(git ls-remote -h "$gituri" "$srcbranch")
+    srcrev=$(echo "$matches" | awk '{print $1}')
     if [ -z "$srcrev" ]; then
         # branch doesn't exist?
         echo "Failed to get SRCREV from remote: $gituri" >&2

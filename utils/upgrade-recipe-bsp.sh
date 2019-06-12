@@ -22,7 +22,8 @@ function find_recipe()
 function find_srcbranch()
 {
     local recfile=$1
-    local srcbranch=$(grep GIT_BRANCH "$recfile" | cut -d'=' -f2 | tr -d '"')
+    local srcbranch
+    srcbranch=$(grep GIT_BRANCH "$recfile" | cut -d'=' -f2 | tr -d '"')
     if [ -z "$srcbranch" ]; then
         echo "Failed to get SRCBRANCH from recipe: $recfile" >&2
         return 1
@@ -35,14 +36,17 @@ function find_srcrev()
     local recfile=$1
     local srcbranch=$2
     # locate the git repository
-    local git_uri=$(grep GIT_REPO "$recfile" | cut -d'=' -f2 | tr -d '"')
+    local git_uri
+    git_uri=$(grep GIT_REPO "$recfile" | cut -d'=' -f2 | tr -d '"')
     if [ -z "$git_uri" ]; then
         echo "Failed to determine git URI" >&2
         return 1
     fi
     # query for the HEAD of the branch
-    local matches=$(git ls-remote -h "$git_uri" "$srcbranch")
-    local srcrev=$(echo "$matches" | awk '{print $1}')
+    local matches
+    local srcrev
+    matches=$(git ls-remote -h "$git_uri" "$srcbranch")
+    srcrev=$(echo "$matches" | awk '{print $1}')
     if [ -z "$srcrev" ]; then
         # branch doesn't exist?
         echo "Failed to get SRCREV from remote: $git_uri" >&2
