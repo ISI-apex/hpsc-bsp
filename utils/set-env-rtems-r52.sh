@@ -36,7 +36,8 @@ done
 function setup_rtems_env()
 {
     # verify that components exist
-    local BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && cd .. && pwd)"
+    local BSP_DIR
+    BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && cd .. && pwd)"
     local RSB_PREFIX="${BSP_DIR}/${WORKING_DIR#${BSP_DIR}}/env/RSB-5"
     local RTEMS_PREFIX="${BSP_DIR}/${WORKING_DIR#${BSP_DIR}}/env/RTEMS-5-RTPS-R52"
     if [ ! -d "$RSB_PREFIX" ]; then

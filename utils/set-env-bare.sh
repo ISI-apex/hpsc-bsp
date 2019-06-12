@@ -36,7 +36,8 @@ done
 function setup_bm_env()
 {
     # verify that components exist
-    local BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && cd .. && pwd)"
+    local BSP_DIR
+    BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && cd .. && pwd)"
     local BM_PATH="${BSP_DIR}/${WORKING_DIR#${BSP_DIR}}/env/gcc-arm-none-eabi"
     if [ ! -d "$BM_PATH" ]; then
         echo "Recipe not built: sdk/gcc-arm-none-eabi"
