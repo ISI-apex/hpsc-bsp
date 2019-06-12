@@ -10,11 +10,12 @@ function usage()
     echo "    -h: show this message and exit"
     echo ""
     echo "Source this script to setup the RTEMS application development environment"
-    return $?
 }
 
 WORKING_DIR="BUILD"
+RC=
 # parse options
+OPTIND=1 # reset since we're probably being sourced
 while getopts "w:h?" o; do
     case "$o" in
         w)
@@ -22,10 +23,12 @@ while getopts "w:h?" o; do
             ;;
         h)
             usage
+            RC=0
             ;;
         *)
             echo "Unknown option"
-            usage 1
+            usage
+            RC=1
             ;;
     esac
 done
@@ -49,4 +52,9 @@ function setup_rtems_env()
     export RTEMS_MAKEFILE_PATH="${RTEMS_PREFIX}/arm-rtems5/gen_r52_qemu"
 }
 
-setup_rtems_env
+if [ -z "$RC" ]; then
+    setup_rtems_env
+    RC=$?
+fi
+# subshell to set exit code (don't directly exit since this script is sourced)
+(exit $RC)

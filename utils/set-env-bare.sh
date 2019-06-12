@@ -3,8 +3,19 @@
 # Setup the environment to use the bare-metal compiler
 #
 
+function usage()
+{
+    echo "Usage: $0 [-w DIR] [-h]"
+    echo "    -w DIR: set the working directory (default=\"BUILD\")"
+    echo "    -h: show this message and exit"
+    echo ""
+    echo "Source this script to setup the bare-metal application development environment"
+}
+
 WORKING_DIR="BUILD"
+RC=
 # parse options
+OPTIND=1 # reset since we're probably being sourced
 while getopts "w:h?" o; do
     case "$o" in
         w)
@@ -12,10 +23,12 @@ while getopts "w:h?" o; do
             ;;
         h)
             usage
+            RC=0
             ;;
         *)
             echo "Unknown option"
-            usage 1
+            usage
+            RC=1
             ;;
     esac
 done
@@ -33,4 +46,9 @@ function setup_bm_env()
     export PATH=${BM_PATH}/bin:$PATH
 }
 
-setup_bm_env
+if [ -z "$RC" ]; then
+    setup_bm_env
+    RC=$?
+fi
+# subshell to set exit code (don't directly exit since this script is sourced)
+(exit $RC)
