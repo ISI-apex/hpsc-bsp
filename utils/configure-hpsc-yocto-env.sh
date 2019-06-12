@@ -21,6 +21,7 @@ function usage()
 
 # Script options
 WORKING_DIR=""
+RC=
 # parse options
 OPTIND=1 # reset since we're probably being sourced
 while getopts "w:h?" o; do
@@ -30,55 +31,70 @@ while getopts "w:h?" o; do
             ;;
         h)
             usage
-            return
+            RC=0
             ;;
         *)
             echo "Unknown option"
-            return 1
+            usage
+            RC=1
             ;;
     esac
 done
 shift $((OPTIND-1))
-if [ -z "$WORKING_DIR" ]; then
+if [ -z "$RC" ] && [ -z "$WORKING_DIR" ]; then
     usage
-    return 1
+    RC=1
 fi
 
-BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && cd .. && pwd)"
-cd "$BSP_DIR"
+function configure_env()
+{
+    local BSP_DIR
+    BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && cd .. && pwd)"
+    cd "$BSP_DIR"
 
-YOCTO_SUBDIR="ssw/hpps/yocto"
+    local YOCTO_SUBDIR="ssw/hpps/yocto"
 
-IS_FETCH=${IS_FETCH:-1}
-# clone poky and the layers we configure
-if [ "$IS_FETCH" -ne 0 ]; then
-    ./build-recipe.sh -w "$WORKING_DIR" -a fetch -r ${YOCTO_SUBDIR}/poky \
-                                                 -r ${YOCTO_SUBDIR}/meta-openembedded \
-                                                 -r ${YOCTO_SUBDIR}/meta-hpsc \
-                                                 || return $?
+    local IS_FETCH=${IS_FETCH:-1}
+    # clone poky and the layers we configure
+    if [ "$IS_FETCH" -ne 0 ]; then
+        ./build-recipe.sh -w "$WORKING_DIR" -a fetch \
+            -r "${YOCTO_SUBDIR}/poky" \
+            -r "${YOCTO_SUBDIR}/meta-openembedded" \
+            -r "${YOCTO_SUBDIR}/meta-hpsc" \
+            || return $?
+    fi
+
+    # TODO: mimicks build-recipes/ssw/hpps/yocto.sh... could get out of sync...
+
+    local FULL_WD="${PWD}/${WORKING_DIR}"
+    local YOCTO_SRC_DIR="${FULL_WD}/src/${YOCTO_SUBDIR}"
+    local YOCTO_WORK_DIR="${FULL_WD}/work/${YOCTO_SUBDIR}"
+
+    mkdir -p "${YOCTO_SRC_DIR}" "${YOCTO_WORK_DIR}"
+
+    local DL_DIR="${YOCTO_SRC_DIR}/poky_dl"
+    local BUILD_DIR="${YOCTO_WORK_DIR}/poky_build"
+
+    local POKY_DIR="${YOCTO_SRC_DIR}/poky"
+    local META_OE_DIR="${YOCTO_SRC_DIR}/meta-openembedded"
+    local META_HPSC_DIR="${YOCTO_SRC_DIR}/meta-hpsc"
+    local LAYERS=("${META_OE_DIR}/meta-oe"
+            "${META_HPSC_DIR}/meta-hpsc-bsp")
+
+    local LAYER_ARGS=()
+    for l in "${LAYERS[@]}"; do
+        LAYER_ARGS+=("-l" "$l")
+    done
+    source "build-recipes/${YOCTO_SUBDIR}/utils/configure-env.sh" \
+        -d "${DL_DIR}" \
+        -b "${BUILD_DIR}" \
+        -p "${POKY_DIR}" \
+        "${LAYER_ARGS[@]}"
+}
+
+if [ -z "$RC" ]; then
+    configure_env
+    RC=$?
 fi
-
-# TODO: mimicks build-recipes/ssw/hpps/yocto.sh... could easily get out of sync
-
-FULL_WD="${PWD}/${WORKING_DIR}"
-YOCTO_SRC_DIR="${FULL_WD}/src/${YOCTO_SUBDIR}"
-YOCTO_WORK_DIR="${FULL_WD}/work/${YOCTO_SUBDIR}"
-
-mkdir -p "${YOCTO_SRC_DIR}" "${YOCTO_WORK_DIR}"
-
-DL_DIR="${YOCTO_SRC_DIR}/poky_dl"
-BUILD_DIR="${YOCTO_WORK_DIR}/poky_build"
-
-POKY_DIR="${YOCTO_SRC_DIR}/poky"
-META_OE_DIR="${YOCTO_SRC_DIR}/meta-openembedded"
-META_HPSC_DIR="${YOCTO_SRC_DIR}/meta-hpsc"
-LAYERS=("${META_OE_DIR}/meta-oe"
-        "${META_HPSC_DIR}/meta-hpsc-bsp")
-
-for l in "${LAYERS[@]}"; do
-    LAYER_ARGS+=("-l" "$l")
-done
-source build-recipes/${YOCTO_SUBDIR}/utils/configure-env.sh -d "${DL_DIR}" \
-                                                            -b "${BUILD_DIR}" \
-                                                            -p "${POKY_DIR}" \
-                                                            "${LAYER_ARGS[@]}"
+# subshell to set exit code (don't directly exit since this script is sourced)
+(exit $RC)
