@@ -13,9 +13,10 @@ BSP_ARTIFACTS_TOP=("qemu-env.sh"
 
 function usage()
 {
-    echo "Usage: $0 [-a <all|fetch|build|stage|package|package-sources>] [-p PREFIX] [-w DIR] [-h]"
-    echo "    -a ACTION"
-    echo "       all: (default) fetch, build, stage, package, and package-sources"
+    local rc=${1:-0}
+    echo "Usage: $0 [-a ACTION]... [-p PREFIX] [-w DIR] [-h]"
+    echo "    -a ACTION: one of:"
+    echo "       all: (default) execute all actions"
     echo "       fetch: download toolchains and sources"
     echo "       build: compile pre-downloaded sources"
     echo "       stage: stage artifacts into a directory before packaging"
@@ -24,7 +25,7 @@ function usage()
     echo "    -p PREFIX: set the release stage/package prefix (default=\"SNAPSHOT\")"
     echo "    -w DIR: set the working directory (default=\"BUILD\")"
     echo "    -h: show this message and exit"
-    exit 1
+    exit "$rc"
 }
 
 # Script options
@@ -37,7 +38,7 @@ IS_PACKAGE=0
 IS_PACKAGE_SOURCES=0
 PREFIX="SNAPSHOT"
 WORKING_DIR="BUILD"
-while getopts "h?a:p:w:" o; do
+while getopts "a:p:w:h?" o; do
     case "$o" in
         a)
             HAS_ACTION=1
@@ -55,7 +56,7 @@ while getopts "h?a:p:w:" o; do
                 IS_ALL=1
             else
                 echo "Error: no such action: ${OPTARG}"
-                usage
+                usage 1
             fi
             ;;
         p)
@@ -69,7 +70,7 @@ while getopts "h?a:p:w:" o; do
             ;;
         *)
             echo "Unknown option"
-            usage
+            usage 1
             ;;
     esac
 done
