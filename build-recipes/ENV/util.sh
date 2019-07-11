@@ -17,26 +17,25 @@ function env_git_clone_fetch_checkout()
     assert_str "$repo"
     assert_str "$dir"
     assert_str "$checkout"
+    if [ ! -d "$dir" ] || [ -z "$(ls -A "$dir")" ]; then
+        echo "git clone: $repo $dir"
+        git clone "$repo" "$dir" || return $?
+    fi
     (
-        set -e
-        if [ ! -d "$dir" ] || [ -z "$(ls -A "$dir")" ]; then
-            echo "git clone: $repo $dir"
-            git clone "$repo" "$dir"
-        fi
-        cd "$dir"
+        cd "$dir" || return $?
         # in case remote URI changed
         echo "git set-url origin: $repo"
-        git remote set-url origin "$repo"
+        git remote set-url origin "$repo" || return $?
         echo "git fetch origin"
-        git fetch origin --prune --force
+        git fetch origin --prune --force || return $?
         echo "git checkout: $checkout"
-        git checkout "$checkout" --
+        git checkout "$checkout" -- || return $?
         # pull, if needed
         local is_detached
-        is_detached=$(git status | grep -c detached)
+        is_detached=$(git status | grep -c detached) || return $?
         if [ "$is_detached" -eq 0 ]; then
             echo "git pull: $repo"
-            git pull origin
+            git pull origin || return $?
         fi
     )
 }
