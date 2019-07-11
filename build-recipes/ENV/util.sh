@@ -46,8 +46,12 @@ function env_check_md5sum()
     local md5_expected=$2
     assert_str "$file"
     assert_str "$md5_expected"
+    # must check md5sum return code, which awk ignores if we pipe directly;
+    # can't rely on PIPESTATUS since code is lost due to "md5" var assignment
+    local md5sum_out
     local md5
-    md5=$(md5sum "$file" | awk '{print $1}') || return $?
+    md5sum_out=$(md5sum "$file") || return $?
+    md5=$(echo "$md5sum_out" | awk '{print $1}')
     if [ "$md5" != "$md5_expected" ]; then
         echo "md5sum mismatch for: $file"
         echo "  got: $md5"
