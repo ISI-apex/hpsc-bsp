@@ -317,13 +317,16 @@ function build_lifecycle_and_log()
     local recname=$1
     local rec_log_dir=${PWD}/log/${recname}
     local rec_log_file
+    local rc
     mkdir -p "$rec_log_dir"
     # wait for an available log file
     while [ -z "$rec_log_file" ] || [ -e "$rec_log_file" ]; do
         rec_log_file=${rec_log_dir}/build-recipe-$(date +'%Y%m%d_%H%M%S').log
     done
     build_lifecycle "$recname" 2>&1 | tee "$rec_log_file"
+    rc=${PIPESTATUS[0]}
     echo "Build log saved to: $rec_log_file"
+    return "$rc"
 }
 
 for recname in "${RECIPES[@]}"; do
