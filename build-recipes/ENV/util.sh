@@ -32,7 +32,8 @@ function env_git_clone_fetch_checkout()
         echo "git checkout: $checkout"
         git checkout "$checkout" --
         # pull, if needed
-        local is_detached=$(git status | grep -c detached)
+        local is_detached
+        is_detached=$(git status | grep -c detached)
         if [ "$is_detached" -eq 0 ]; then
             echo "git pull: $repo"
             git pull origin
@@ -46,7 +47,8 @@ function env_check_md5sum()
     local md5_expected=$2
     assert_str "$file"
     assert_str "$md5_expected"
-    local md5=$(md5sum "$file" | awk '{print $1}') || return $?
+    local md5
+    md5=$(md5sum "$file" | awk '{print $1}') || return $?
     if [ "$md5" != "$md5_expected" ]; then
         echo "md5sum mismatch for: $file"
         echo "  got: $md5"
@@ -63,7 +65,8 @@ function env_wget_and_md5()
     assert_str "$url"
     assert_str "$output"
     assert_str "$md5_expected"
-    local name=$(basename "$output")
+    local name
+    name=$(basename "$output")
     if [ ! -e "$output" ]; then
         echo "$name: downloading from: $url"
         wget -O "$output" "$url" || return $?
