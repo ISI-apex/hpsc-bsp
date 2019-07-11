@@ -27,8 +27,8 @@ function do_build()
     (
         echo "hpsc-utils: build"
         echo "hpsc-utils: source poky environment"
-        ENV_check_yocto_hpps_sdk
-        source "${YOCTO_HPPS_SDK}/environment-setup-aarch64-poky-linux"
+        ENV_check_yocto_hpps_sdk || return $?
+        source "${YOCTO_HPPS_SDK}/environment-setup-aarch64-poky-linux" || return $?
         unset LDFLAGS
         make_parallel -C "test/linux"
     )

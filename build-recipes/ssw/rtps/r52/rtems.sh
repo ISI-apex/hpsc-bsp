@@ -39,6 +39,7 @@ function exes_to_uboot_fmt()
 
 function do_build()
 {
+    ENV_check_rsb_toolchain || return $?
     local rsb_src=$(get_dependency_src "sdk/rtems-source-builder")
     echo "rtems: sb-bootstrap"
     "${rsb_src}/source-builder/sb-bootstrap" || return $?

@@ -32,8 +32,8 @@ function do_undeploy()
 
 function do_build()
 {
-    ENV_check_rsb_toolchain || return 1
-    ENV_check_rtems_r52_sdk || return 1
+    ENV_check_rsb_toolchain || return $?
+    ENV_check_rtems_r52_sdk || return $?
     make_parallel
 }
 

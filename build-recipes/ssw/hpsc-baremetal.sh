@@ -19,7 +19,7 @@ function do_undeploy()
 
 function do_build()
 {
-    ENV_check_bm_toolchain
+    ENV_check_bm_toolchain || return $?
     make_parallel CROSS_COMPILE=arm-none-eabi-
 }
 

@@ -16,8 +16,8 @@ function do_undeploy()
 
 function do_build()
 {
-    ENV_check_bm_toolchain
-    make hpsc_rtps_r52_defconfig
+    ENV_check_bm_toolchain || return $?
+    make hpsc_rtps_r52_defconfig || return $?
     make_parallel CROSS_COMPILE=arm-none-eabi-
 }
 
