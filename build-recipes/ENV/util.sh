@@ -66,7 +66,7 @@ function env_wget_and_md5()
     local name=$(basename "$output")
     if [ ! -e "$output" ]; then
         echo "$name: downloading from: $url"
-        wget -O "$output" "$url"
+        wget -O "$output" "$url" || return $?
         env_check_md5sum "$output" "$md5_expected"
     fi
 }
