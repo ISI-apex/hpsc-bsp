@@ -20,6 +20,7 @@ function usage()
     local rc=${1:-0}
     echo "Usage: $0 [-a ACTION]... [-r RECIPE]... [-w DIR] [-h]"
     echo "    -a ACTION: one of:"
+    echo "       clean-sources: clean pre-downloaded sources (implies 'clean')"
     echo "       all: (default) fetch, build, and test"
     echo "       fetch: download/update sources"
     echo "       clean: force clean, even on recipes that don't autoclean"
@@ -35,6 +36,7 @@ function usage()
 RECIPES=()
 HAS_ACTION=0
 IS_ALL=0
+IS_CLEAN_SOURCES=0
 IS_FETCH=0
 IS_CLEAN=0
 IS_BUILD=0
@@ -46,7 +48,10 @@ while getopts "a:r:w:h?" o; do
     case "$o" in
         a)
             HAS_ACTION=1
-            if [ "${OPTARG}" == "fetch" ]; then
+            if [ "${OPTARG}" == "clean-sources" ]; then
+                IS_CLEAN_SOURCES=1
+                IS_CLEAN=1 # implied
+            elif [ "${OPTARG}" == "fetch" ]; then
                 IS_FETCH=1
             elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
@@ -121,6 +126,12 @@ function build_recipe_export_env_with_deps()
     done
     # now that we have exported from dependencies, we need our own environment
     build_recipe_export_env_base "$recname"
+}
+
+function build_step_clean_sources()
+{
+    echo "$1: clean_sources"
+    cd "$ENV_WORKING_DIR" && rm -rf "$REC_SRC_DIR"
 }
 
 function build_step_fetch()
@@ -252,6 +263,10 @@ function build_lifecycle()
 
     # setup build environment
     build_recipe_export_env_with_deps "$recname"
+
+    if [ $IS_CLEAN_SOURCES -ne 0 ]; then
+        build_step_with_metrics build_step_clean_sources "$recname"
+    fi
 
     # fetch is broken up to allow custom clean and extract
     if [ $IS_FETCH -ne 0 ]; then
