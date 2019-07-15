@@ -38,11 +38,16 @@ DEPLOY_ARTIFACTS=("$ECLIPSE_HPSC")
 
 function do_post_fetch()
 {
+    # Always re-create the eclipse directory and re-fetch plugins.
+    # This avoids problems when plugins are incrementally upgraded or removed.
+    # We could handle the upgrade case, but there's a non-trivial likelihood of
+    # subtle/unforeseen issues, so just keep it simple and solve both problems.
+    echo "hpsc-eclipse: removing old eclipse directory..."
+    rm -rf "$ECLIPSE_DIR"
+
     # Extract eclipse
-    if [ ! -d "$ECLIPSE_DIR" ]; then
-        echo "hpsc-eclipse: extracting archive..."
-        tar xzf "$WGET_OUTPUT"
-    fi
+    echo "hpsc-eclipse: extracting archive..."
+    tar xzf "$WGET_OUTPUT"
 
     # Fetch additional plugins
     echo "hpsc-eclipse: fetching plugins..."
