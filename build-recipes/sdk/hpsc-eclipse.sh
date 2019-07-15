@@ -47,15 +47,17 @@ function do_post_fetch()
 
     # Extract eclipse
     echo "hpsc-eclipse: extracting archive..."
-    tar xzf "$WGET_OUTPUT"
+    tar -xzf "$WGET_OUTPUT" || return $?
 
     # Fetch additional plugins
     echo "hpsc-eclipse: fetching plugins..."
     # Get repos and IUs as comma-delimited lists
-    local ECLIPSE_REPOSITORY_LIST=$(printf ",%s" "${ECLIPSE_REPOSITORIES[@]}")
-    local ECLIPSE_REPOSITORY_LIST=${ECLIPSE_REPOSITORY_LIST:1}
-    local ECLIPSE_PLUGIN_IU_LIST=$(printf ",%s" "${ECLIPSE_PLUGIN_IUS[@]}")
-    local ECLIPSE_PLUGIN_IU_LIST=${ECLIPSE_PLUGIN_IU_LIST:1}
+    local ECLIPSE_REPOSITORY_LIST
+    ECLIPSE_REPOSITORY_LIST=$(printf ",%s" "${ECLIPSE_REPOSITORIES[@]}")
+    ECLIPSE_REPOSITORY_LIST=${ECLIPSE_REPOSITORY_LIST:1}
+    local ECLIPSE_PLUGIN_IU_LIST
+    ECLIPSE_PLUGIN_IU_LIST=$(printf ",%s" "${ECLIPSE_PLUGIN_IUS[@]}")
+    ECLIPSE_PLUGIN_IU_LIST=${ECLIPSE_PLUGIN_IU_LIST:1}
     "$ECLIPSE_DIR/eclipse" -application org.eclipse.equinox.p2.director \
                            -nosplash \
                            -repository "$ECLIPSE_REPOSITORY_LIST" \
