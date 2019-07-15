@@ -1,7 +1,8 @@
 #!/bin/bash
 
-export WGET_URL="https://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/2018-09/R/eclipse-cpp-2018-09-linux-gtk-x86_64.tar.gz&r=1"
-export WGET_OUTPUT="eclipse.tar.gz"
+ECLIPSE_VERSION=2018-09
+export WGET_OUTPUT="eclipse-cpp-${ECLIPSE_VERSION}-linux-gtk-x86_64.tar.gz"
+export WGET_URL="https://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/${ECLIPSE_VERSION}/R/${WGET_OUTPUT}&r=1"
 export WGET_OUTPUT_MD5="6087e4def4382fd334de658f9bde190b"
 
 export DO_BUILD_OUT_OF_SOURCE=1
@@ -31,7 +32,7 @@ ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group/1.4.1.201901082310
 )
 
 ECLIPSE_DIR=eclipse
-ECLIPSE_HPSC=hpsc-eclipse.tar.gz
+ECLIPSE_HPSC=hpsc-${WGET_OUTPUT}
 
 DEPLOY_DIR=sdk
 DEPLOY_ARTIFACTS=("$ECLIPSE_HPSC")

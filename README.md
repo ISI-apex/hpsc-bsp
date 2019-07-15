@@ -67,7 +67,7 @@ The build generates in `${WORKING_DIR}/deploy/sdk`:
 1. `hpsc-arch.dtb` - QEMU device tree
 1. `qemu-bridge-helper` - QEMU utility for creating TAP devices
 1. `qemu-system-aarch64` - QEMU binary
-1. `hpsc-eclipse.tar.gz` - HPSC Eclipse installer
+1. `hpsc-eclipse-cpp-2018-09-linux-gtk-x86_64.tar.gz` - HPSC Eclipse installer
 1. `tools` - a directory with host utility scripts and binaries
 
 
