@@ -31,6 +31,8 @@ The `meta-hpsc` project revision is then configured with a local recipe in `buil
 If you need to add new build recipes, read `build-recipes/README.md` and walk through `build-recipe.sh` and `build-recipes/ENV.sh`.
 See existing recipes for examples.
 
+BSP QEMU configuration files and scripts are managed by the `bsp` build recipe and are source-controlled in `build-recipes/bsp/utils/`.
+
 
 BSP Build
 ---------
@@ -142,4 +144,12 @@ The Yocto SDK is also installed locally at `${WORKING_DIR}/env/yocto-hpps-sdk`.
 Booting QEMU
 ------------
 
-After the builds complete, the user can run the `run-qemu.sh` script to launch QEMU.
+After the builds complete, developers can execute the top-level `run-qemu.sh` script to launch QEMU.
+This approach uses the artifacts in the working `deploy` directory, avoiding the need to always create and extract the BSP release tarball during development.
+
+***WARNING: Do not edit files in the working directory `${WORKING_DIR}` (such as `deploy/qemu-env.sh`)!***
+`${WORKING_DIR}` is managed exclusively by the build scripts.
+To override the default QEMU configuration, create and use a custom environment file outside the working directory.
+For example:
+
+	./run-qemu.sh -- -e /path/to/qemu-env-override.sh
