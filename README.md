@@ -51,7 +51,6 @@ To perform a build:
 
 All files are downloaded and built in a working directory, which defaults to `BUILD`.
 You may optionally specify a different working directory using `-w`.
-Use the `-p` flag to set the stage/release name, otherwise the default name is "SNAPSHOT".
 
 
 Host Build

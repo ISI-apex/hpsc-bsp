@@ -9,7 +9,7 @@ set -e
 function usage()
 {
     local rc=${1:-0}
-    echo "Usage: $0 [-a ACTION]... [-p PREFIX] [-w DIR] [-h]"
+    echo "Usage: $0 [-a ACTION]... [-w DIR] [-h]"
     echo "    -a ACTION: one of:"
     echo "       all: (default) execute all actions"
     echo "       fetch: download toolchains and sources"
@@ -17,7 +17,6 @@ function usage()
     echo "       stage: stage artifacts into a directory before packaging"
     echo "       package: create binary BSP archive from staged artifacts"
     echo "       package-sources: create source BSP archive"
-    echo "    -p PREFIX: set the release stage/package prefix (default=\"SNAPSHOT\")"
     echo "    -w DIR: set the working directory (default=\"BUILD\")"
     echo "    -h: show this message and exit"
     exit "$rc"
@@ -31,9 +30,8 @@ IS_BUILD=0
 IS_STAGE=0
 IS_PACKAGE=0
 IS_PACKAGE_SOURCES=0
-PREFIX="SNAPSHOT"
 WORKING_DIR="BUILD"
-while getopts "a:p:w:h?" o; do
+while getopts "a:w:h?" o; do
     case "$o" in
         a)
             HAS_ACTION=1
@@ -53,9 +51,6 @@ while getopts "a:p:w:h?" o; do
                 echo "Error: no such action: ${OPTARG}"
                 usage 1
             fi
-            ;;
-        p)
-            PREFIX="${OPTARG}"
             ;;
         w)
             WORKING_DIR="${OPTARG}"
@@ -81,6 +76,8 @@ fi
 
 BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 METRICS_CSV=${WORKING_DIR}/log/build-bsp-metrics.csv
+PREFIX="hpsc-bsp"
+PREFIX_SRC="${PREFIX}-src"
 
 function action_fetch()
 {
@@ -110,9 +107,9 @@ function action_stage()
 
 function action_package()
 {
-    local RELEASE_BIN_TGZ=${WORKING_DIR}/${PREFIX}_bin.tar.gz
+    local RELEASE_BIN_TGZ=${WORKING_DIR}/${PREFIX}.tar.gz
     echo "Packaging: $RELEASE_BIN_TGZ"
-    tar czf "$RELEASE_BIN_TGZ" -C "${WORKING_DIR}/stage" "$PREFIX"
+    tar -czf "$RELEASE_BIN_TGZ" -C "${WORKING_DIR}/stage" "$PREFIX"
     echo "md5: $RELEASE_BIN_TGZ"
     md5sum "$RELEASE_BIN_TGZ" | sed "s,${WORKING_DIR}/,," \
         > "${RELEASE_BIN_TGZ}.md5"
@@ -120,7 +117,7 @@ function action_package()
 
 function action_package_sources()
 {
-    local RELEASE_SRC_TAR=${WORKING_DIR}/${PREFIX}_src.tar
+    local RELEASE_SRC_TAR=${WORKING_DIR}/${PREFIX_SRC}.tar
     local RELEASE_SRC_TGZ=${RELEASE_SRC_TAR}.gz
     echo "Packaging: $RELEASE_SRC_TGZ"
 
@@ -140,11 +137,11 @@ function action_package_sources()
         bsp_files+=("$f")
     done< <(git --git-dir="${BSP_DIR}/.git" ls-tree --name-only --full-tree HEAD)
     tar -cf "${RELEASE_SRC_TAR}" -C "$BSP_DIR" \
-        --transform "s,^,${PREFIX}/,rS" "${bsp_files[@]}"
+        --transform "s,^,${PREFIX_SRC}/,rS" "${bsp_files[@]}"
     local workdir_base
     workdir_base=$(basename "$(cd "$WORKING_DIR" && pwd)")
     tar -rf "${RELEASE_SRC_TAR}" -C "$WORKING_DIR" \
-        --transform "s,^,${PREFIX}/${workdir_base}/,rS" src
+        --transform "s,^,${PREFIX_SRC}/${workdir_base}/,rS" src
     gzip -f "$RELEASE_SRC_TAR"
 
     echo "md5: $RELEASE_SRC_TGZ"
