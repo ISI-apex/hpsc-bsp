@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # The recipes managed by this script
-RECIPES=("sdk/qemu"
+RECIPES=("bsp"
+         "sdk/qemu"
          "sdk/qemu-devicetrees"
          "sdk/hpsc-sdk-tools"
          "sdk/hpsc-eclipse")

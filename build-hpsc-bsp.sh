@@ -6,11 +6,6 @@
 # Fail-fast
 set -e
 
-# Additional artifacts for BSP directory
-BSP_ARTIFACTS_TOP=("qemu-env.sh"
-                   "run-qemu.sh"
-                   "conf/")
-
 function usage()
 {
     local rc=${1:-0}
@@ -107,13 +102,10 @@ function action_build()
 
 function action_stage()
 {
-    echo "Staging..."
     local STAGE_DIR="${WORKING_DIR}/stage/${PREFIX}"
+    echo "Staging..."
     mkdir -p "$STAGE_DIR"
-    # artifacts deployed by recipes
     cp -r "${WORKING_DIR}"/deploy/* "$STAGE_DIR"
-    # remaining artifacts
-    cp -r "${BSP_ARTIFACTS_TOP[@]/#/${BSP_DIR}/}" "${STAGE_DIR}/"
 }
 
 function action_package()

@@ -2,16 +2,7 @@
 # Paths to target binaries run-qemu.sh.
 # Relative paths are relative to directory from where run-qemu.sh is invoked.
 
-THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-DEPLOY_DIR="${THIS_DIR}/BUILD/deploy"
-if [ -d "${DEPLOY_DIR}" ]
-then
-    # development configuration
-    BSP_DIR="${DEPLOY_DIR}"
-else
-    # release configuration
-    BSP_DIR=.
-fi
+BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 SDK=${BSP_DIR}/sdk
 SSW=${BSP_DIR}/ssw
@@ -19,14 +10,14 @@ SSW=${BSP_DIR}/ssw
 # ID affects port assignments and screen session names
 : "${ID:=0}"
 
-: "${RUN_DIR:=${THIS_DIR}/run}"
+: "${RUN_DIR:=run}"
 : "${LOG_FILE:=${RUN_DIR}/qemu.log}"
 
 : "${QEMU_DT:=${SDK}/hpsc-arch.dtb}"
 : "${SDK_TOOLS:=${SDK}/tools}"
 
 # System configuration interpreted by TRCH
-: "${CONF_DIR:=${THIS_DIR}/conf}"
+: "${CONF_DIR:=${BSP_DIR}/conf}"
 : "${SYSCFG:=${CONF_DIR}/syscfg.ini}"
 : "${SYSCFG_SCHEMA:=${SSW}/trch/syscfg-schema.json}"
 : "${SYSCFG_BIN:=${RUN_DIR}/syscfg.bin}"

@@ -9,8 +9,7 @@ This repository includes:
 1. `build-hpsc-rtems.sh` - builds the RTEMS SDK, BSP, and reference software for the RTPS Cortex-R52s.
 1. `build-hpsc-yocto.sh` - builds Yocto Linux SDK for the HPPS Cortex-A53 clusters, including the reference root filesystem and Linux test utilities.
 1. `build-recipe.sh` - build individual component recipes; wrapped by other build scripts.
-1. `run-qemu.sh` - runs QEMU using the output from the build scripts.
-1. `qemu-env.sh` - user-modifiable configuration for `run-qemu.sh`; do not execute directly.
+1. `run-qemu.sh` - runs QEMU using artifacts deployed by the build scripts (prior to packaging).
 
 Scripts must be run from the same directory.
 Use the `-h` flag to print script usage help.
@@ -62,7 +61,12 @@ To independently fetch and build host development system artifacts:
 
 	./build-hpsc-host.sh
 
-The build generates in `${WORKING_DIR}/deploy/sdk`:
+The build generates in `${WORKING_DIR}/deploy`:
+1. `conf` - QEMU configuration directory
+1. `qemu-env.sh` - QEMU configuration parameters
+1. `run-qemu.sh` - QEMU launch script
+
+and in `${WORKING_DIR}/deploy/sdk`:
 
 1. `hpsc-arch.dtb` - QEMU device tree
 1. `qemu-bridge-helper` - QEMU utility for creating TAP devices
