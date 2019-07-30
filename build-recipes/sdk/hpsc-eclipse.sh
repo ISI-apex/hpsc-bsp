@@ -12,7 +12,7 @@ ECLIPSE_REPOSITORIES=("http://download.eclipse.org/releases/photon"
                       "http://download.eclipse.org/tm/updates/4.0/"
                       "http://gnu-mcu-eclipse.netlify.com/v4-neon-updates/"
                       "http://downloads.yoctoproject.org/releases/eclipse-plugin/2.6.1/oxygen"
-                      "http://download.eclipse.org/linuxtools/update")
+                      "http://download.eclipse.org/linuxtools/update-7.1.0")
 
 # Plugins to install
 ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group/1.4.1.201901082310
@@ -21,14 +21,14 @@ ECLIPSE_PLUGIN_IUS=(org.yocto.doc.feature.group/1.4.1.201901082310
                     ilg.gnumcueclipse.managedbuild.cross.arm/2.6.4.201901011632
                     ilg.gnumcueclipse.debug.core/1.2.2.201901011632
                     ilg.gnumcueclipse.templates.cortexm.feature.feature.group/1.4.4.201901011632
-                    # org.eclipse.linuxtools.perf.feature.feature.group/7.1.0.201812121718
-                    # org.eclipse.linuxtools.perf.remote.feature.feature.group/7.1.0.201812121718
-                    # org.eclipse.linuxtools.perf.feature.source.feature.group/7.1.0.201812121718
-                    # org.eclipse.linuxtools.perf.remote.feature.source.feature.group/7.1.0.201812121718
-                    # org.eclipse.linuxtools.profiling.feature.group/7.1.0.201812121718
-                    # org.eclipse.linuxtools.profiling.remote.feature.group/7.1.0.201812121718
-                    # org.eclipse.linuxtools.profiling.source.feature.group/7.1.0.201812121718
-                    # org.eclipse.linuxtools.profiling.remote.source.feature.group/7.1.0.201812121718
+                    org.eclipse.linuxtools.perf.feature.feature.group/7.1.0.201812121718
+                    org.eclipse.linuxtools.perf.remote.feature.feature.group/7.1.0.201812121718
+                    org.eclipse.linuxtools.perf.feature.source.feature.group/7.1.0.201812121718
+                    org.eclipse.linuxtools.perf.remote.feature.source.feature.group/7.1.0.201812121718
+                    org.eclipse.linuxtools.profiling.feature.group/7.1.0.201812121718
+                    org.eclipse.linuxtools.profiling.remote.feature.group/7.1.0.201812121718
+                    org.eclipse.linuxtools.profiling.source.feature.group/7.1.0.201812121718
+                    org.eclipse.linuxtools.profiling.remote.source.feature.group/7.1.0.201812121718
 )
 
 ECLIPSE_DIR=eclipse
