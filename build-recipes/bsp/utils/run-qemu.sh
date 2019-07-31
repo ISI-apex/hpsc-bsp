@@ -101,7 +101,7 @@ create_syscfg_image
 echo "Creating TRCH SMC SRAM image and adding boot images..."
 SRAM_IMG_TOOL=${SDK_TOOLS}/sram-image-utils
 run "${SRAM_IMG_TOOL}" create "${TRCH_SMC_SRAM}" "${LSIO_SRAM_SIZE}"
-run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${SYSCFG_BIN}"   "syscfg"  "${SYSCFG_ADDR}"
+run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${SYSCFG_BIN}"   "syscfg"  "${SYSCFG_ADDR}" 0x0
 
 # These config choices are not command-line switches, in order to eliminate the
 # possibility of syscfg.ini being inconsistent with the command-line switch.

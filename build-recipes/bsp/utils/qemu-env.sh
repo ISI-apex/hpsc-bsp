@@ -21,6 +21,7 @@ SSW=${BSP_DIR}/ssw
 : "${SYSCFG:=${CONF_DIR}/syscfg.ini}"
 : "${SYSCFG_SCHEMA:=${SSW}/trch/syscfg-schema.json}"
 : "${SYSCFG_BIN:=${RUN_DIR}/syscfg.bin}"
+: "${TRCH_BM:=/home/dkang/WORK/hpsc-baremetal/trch/bld/trch.bin}"
 
 : "${TRCH_SMC_SRAM:=${RUN_DIR}/trch_sram.bin}"
 : "${TRCH_SMC_SRAM_OVERWRITE:=1}"
@@ -49,7 +50,7 @@ SSW=${BSP_DIR}/ssw
 # HPPS_INITRAMFS=${SSW}/hpps/initramfs.uimg
 
 SYSCFG_ADDR=0x000ff000
-
+TRCHBM_ADDR=0x00
 RTPS_BL_ADDR=0x60000000       # load address for R52 u-boot
 RTPS_APP_ADDR=0x68000000      # address of baremetal app binary file
 
