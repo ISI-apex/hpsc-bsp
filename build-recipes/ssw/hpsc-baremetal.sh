@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/hpsc-baremetal.git"
-export GIT_REV=f1e30b3b2d7179588922b64ca99abf7133603d66
+export GIT_REV=3d82e8e85dea36e4f3a12ed029cac73f279426b6
 export GIT_BRANCH="hpsc"
 
 export DEPENDS_ENVIRONMENT="sdk/gcc-arm-none-eabi"
