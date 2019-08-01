@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/hpsc-sdk-tools"
-export GIT_REV=fb84b15849a9b528b01d8e78c1f636912f68052d
+export GIT_REV=9e836bdca782b09109a6212463a7750e4f0b1c42
 export GIT_BRANCH="hpsc"
 
 DEPLOY_DIR_1=sdk/tools
