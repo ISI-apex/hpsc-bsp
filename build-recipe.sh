@@ -93,40 +93,9 @@ if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
 fi
 
 THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-REC_DIR="${THIS_DIR}/build-recipes"
 build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
 METRICS_CSV=${PWD}/log/build-recipe-metrics.csv
-
-function build_recipe_export_env_base()
-{
-    local recname=$1
-    # recipes extend the ENV script
-    source "${REC_DIR}/ENV.sh" || return $?
-    # variables for recipes
-    export ENV_WORKING_DIR="${PWD}"
-    export ENV_DEPLOY_DIR="${ENV_WORKING_DIR}/deploy"
-    export REC_UTIL_DIR="${REC_DIR}/${recname}/utils"
-    export REC_SRC_DIR="${ENV_WORKING_DIR}/src/${recname}"
-    export REC_WORK_DIR="${ENV_WORKING_DIR}/work/${recname}"
-    export REC_ENV_DIR="${ENV_WORKING_DIR}/env" # shared b/w recipes, shhh... ;)
-    source "${REC_DIR}/${recname}.sh"
-}
-
-function build_recipe_export_env_with_deps()
-{
-    local recname=$1
-    # we really just want DEPENDS_ENVIRONMENT to begin with
-    build_recipe_export_env_base "$recname" || return $?
-    # cache DEPENDS_ENVIRONMENT since it will be overridden by dependencies
-    IFS=':' read -ra DEP_ENV_CACHE <<< "$DEPENDS_ENVIRONMENT"
-    for de in "${DEP_ENV_CACHE[@]}"; do
-        echo "$recname: depends: $de"
-        build_recipe_export_env_base "$de" || return $?
-    done
-    # now that we have exported from dependencies, we need our own environment
-    build_recipe_export_env_base "$recname"
-}
 
 function build_step_clean_sources()
 {
@@ -262,7 +231,7 @@ function build_lifecycle()
     local recname=$1
 
     # setup build environment
-    build_recipe_export_env_with_deps "$recname"
+    source "${THIS_DIR}/build-recipes/build-recipe-env.sh" -r "$recname" -w .
 
     if [ $IS_CLEAN_SOURCES -ne 0 ]; then
         build_step_with_metrics build_step_clean_sources "$recname"
