@@ -73,7 +73,8 @@ function conf_replace_or_append()
 {
     local line=$1
     local file="conf/local.conf"
-    local key=$(echo "$line" | awk '{print $1}')
+    local key
+    key=$(echo "$line" | awk '{print $1}')
     # support assignment types: ?=, +=, or =
     # Using '@' instead of '/' in sed so paths can be values
     grep -q "^$key ?*+*=" "$file" && sed -i "s@^${key} .*@${line}@" "$file" || \
