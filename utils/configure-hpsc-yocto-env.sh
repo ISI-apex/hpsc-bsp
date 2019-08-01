@@ -50,46 +50,37 @@ function configure_env()
 {
     local BSP_DIR
     BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && cd .. && pwd)"
-    cd "$BSP_DIR"
 
+    # Note: The BSP recipe build system doesn't handle dependencies for us, so
+    #       we must have explicit knowledge of the yocto recipe dependencies.
+    #       These could change in the future and thus need to be kept in sync.
+    #       Fortunately, these dependencies don't change as often as the recipe.
     local YOCTO_SUBDIR="ssw/hpps/yocto"
-
     local IS_FETCH=${IS_FETCH:-1}
     # clone poky and the layers we configure
     if [ "$IS_FETCH" -ne 0 ]; then
-        ./build-recipe.sh -w "$WORKING_DIR" -a fetch \
+        "${BSP_DIR}/build-recipe.sh" -w "$WORKING_DIR" -a fetch \
             -r "${YOCTO_SUBDIR}/poky" \
             -r "${YOCTO_SUBDIR}/meta-openembedded" \
             -r "${YOCTO_SUBDIR}/meta-hpsc" \
             || return $?
     fi
 
-    # TODO: mimicks build-recipes/ssw/hpps/yocto.sh... could get out of sync...
-
-    local FULL_WD="${PWD}/${WORKING_DIR}"
-    local YOCTO_SRC_DIR="${FULL_WD}/src/${YOCTO_SUBDIR}"
-    local YOCTO_WORK_DIR="${FULL_WD}/work/${YOCTO_SUBDIR}"
-
-    mkdir -p "${YOCTO_SRC_DIR}" "${YOCTO_WORK_DIR}"
-
-    local DL_DIR="${YOCTO_SRC_DIR}/poky_dl"
-    local BUILD_DIR="${YOCTO_WORK_DIR}/poky_build"
-
-    local POKY_DIR="${YOCTO_SRC_DIR}/poky"
-    local META_OE_DIR="${YOCTO_SRC_DIR}/meta-openembedded"
-    local META_HPSC_DIR="${YOCTO_SRC_DIR}/meta-hpsc"
-    local LAYERS=("${META_OE_DIR}/meta-oe"
-            "${META_HPSC_DIR}/meta-hpsc-bsp")
-
-    local LAYER_ARGS=()
-    for l in "${LAYERS[@]}"; do
-        LAYER_ARGS+=("-l" "$l")
-    done
-    source "build-recipes/${YOCTO_SUBDIR}/utils/configure-env.sh" \
-        -d "${DL_DIR}" \
-        -b "${BUILD_DIR}" \
-        -p "${POKY_DIR}" \
-        "${LAYER_ARGS[@]}"
+    # Note: This has the side effect of also exporting the recipe environment to
+    #       the user, but that's preferable to duplicating the recipe behavior
+    #       here, which too easily gets out of sync as the recipe evolves.
+    # use the build recipe to configure the environment
+    source "${BSP_DIR}/build-recipes/build-recipe-env.sh" \
+        -r ssw/hpps/yocto -w "$WORKING_DIR" || return $?
+    # recipe functions (rightfully) expect the working directory to be either
+    # "$REC_SRC_DIR" or "$REC_WORK_DIR" (see ENV.sh)
+    # check REC_WORK_DIR b/c `cd ""` may succeed, but would not do what we want
+    if [ -z "$REC_WORK_DIR" ]; then
+        echo "REC_WORK_DIR not set! This is a bug."
+        return 1
+    fi
+    cd "$REC_WORK_DIR" || return $?
+    yocto_maybe_init_env # function in the yocto build recipe
 }
 
 if [ -z "$RC" ]; then
