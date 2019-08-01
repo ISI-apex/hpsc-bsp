@@ -56,6 +56,7 @@ done
 shift $((OPTIND-1))
 if [ -z "$DL_DIR" ] || [ -z "$BUILD_DIR" ] || [ -z "$POKY_DIR" ]; then
     usage
+    return 1
 fi
 
 # poky's sanity checker tries to reach example.com unless we force it offline
