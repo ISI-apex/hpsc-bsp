@@ -25,9 +25,12 @@ function yocto_maybe_init_env()
     if [ $HPSC_YOCTO_INITIALIZED -eq 0 ]; then
         local DL_DIR="${REC_SRC_DIR}/poky_dl"
         local BUILD_DIR="${REC_WORK_DIR}/poky_build"
-        local POKY_DIR=$(get_dependency_src "ssw/hpps/yocto/poky")
-        local META_OE_DIR=$(get_dependency_src "ssw/hpps/yocto/meta-openembedded")
-        local META_HPSC_DIR=$(get_dependency_src "ssw/hpps/yocto/meta-hpsc")
+        local POKY_DIR
+        POKY_DIR=$(get_dependency_src "ssw/hpps/yocto/poky")
+        local META_OE_DIR
+        META_OE_DIR=$(get_dependency_src "ssw/hpps/yocto/meta-openembedded")
+        local META_HPSC_DIR
+        META_HPSC_DIR=$(get_dependency_src "ssw/hpps/yocto/meta-hpsc")
         local LAYERS=("${META_OE_DIR}/meta-oe"
                       "${META_HPSC_DIR}/meta-hpsc-bsp")
         local LAYER_ARGS=()
@@ -56,7 +59,7 @@ function do_late_fetch()
 POKY_DEPLOY_DIR=poky_build/tmp/deploy
 POKY_IMAGE_DIR=${POKY_DEPLOY_DIR}/images/hpsc-chiplet
 
-export YOCTO_VERSION=2.6.2 # exported for other recipes
+export YOCTO_VERSION=2.6.3 # exported for other recipes
 export YOCTO_HPPS_SDK="${REC_ENV_DIR}/yocto-hpps-sdk" # exported for other recipes
 
 POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-${YOCTO_VERSION}.sh
@@ -97,7 +100,7 @@ function do_build()
         export BB_NO_NETWORK=1
         bitbake core-image-hpsc "${TEST_RECIPES[@]}" || return $?
         bitbake core-image-hpsc -c populate_sdk || return $?
-    )
+    ) || return $?
     cd "$REC_WORK_DIR"
     chmod +x "$POKY_TC_INSTALLER"
 }
