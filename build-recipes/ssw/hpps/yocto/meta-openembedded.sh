@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/openembedded/meta-openembedded.git"
-export GIT_REV=4cd3a39f22a2712bfa8fc657d09fe2c7765a4005
+export GIT_REV=9b3b907f30b0d5b92d58c7e68289184fda733d3e
 export GIT_BRANCH="thud"
 
 # Yocto layers aren't built
