@@ -131,6 +131,15 @@ if [ "$ACTION" == "find-recipe" ]; then
     exit 0
 fi
 
+# perform some simple verification of recipe content
+for var in "GIT_REPO" "GIT_REV" "GIT_BRANCH"; do
+    if [ "$(grep -c "$var=" "$REC_FILE")" -ne 1 ]; then
+        echo "Exactly one instance of $var should exist in recipe"
+        echo "Failed to upgrade recipe"
+        exit 1
+    fi
+done
+
 # we need SRCBRANCH if it was requested or if SRCREV wasn't provided
 if [ -z "$SRCBRANCH" ]; then
     SRCBRANCH=$(find_srcbranch "$REC_FILE")
@@ -157,12 +166,8 @@ fi
 echo "Using SRCREV: $SRCREV"
 
 # update revision
-if [ "$(grep -c "GIT_REV=" "$REC_FILE")" -ne 1 ]; then
-    echo "Exactly one instance of GIT_REV should exist in recipe"
-    echo "Failed to upgrade recipe"
-    exit 1
-fi
 sed -i "s/GIT_REV=.*/GIT_REV=${SRCREV}/" "$REC_FILE"
+sed -i "s/GIT_BRANCH=.*/GIT_BRANCH=${SRCBRANCH}/" "$REC_FILE"
 
 # Sometimes have problems with `git diff-index --quiet HEAD -- "$REC_FILE"`
 # returning bad exit code when $REC_FILE uncached? So add first, then check
