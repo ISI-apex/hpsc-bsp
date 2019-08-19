@@ -1,8 +1,8 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/rtems-tools.git"
-export GIT_REV=cdfafce46499283b5c9bc9348021d23359387dc0
-export GIT_BRANCH="hpsc-1.1"
+export GIT_REV=c55786b47c854f9330c1c8b96d50b96f1994596c
+export GIT_BRANCH=hpsc-1.2
 
 export RT_PATH="${REC_ENV_DIR}/RT-5" # exported for other recipes
 
