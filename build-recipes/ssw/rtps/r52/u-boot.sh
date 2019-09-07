@@ -1,8 +1,8 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/u-boot.git"
-export GIT_REV=cf81e64bcb5d4815c3cecc45c2f91d9c20cf956b
-export GIT_BRANCH="hpsc"
+export GIT_REV=79df69589d9049872485d68c194fc7c0baeabd6d
+export GIT_BRANCH=hpsc
 
 export DEPENDS_ENVIRONMENT="sdk/gcc-arm-none-eabi"
 
