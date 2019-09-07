@@ -121,7 +121,7 @@ function usage()
     exit 1
 }
 
-RECIPE=""
+UP_RECIPE=""
 SRCREV=""
 SRCBRANCH=""
 LAYBRANCH=""
@@ -132,7 +132,7 @@ WORKING_DIR="DEVEL"
 while getopts "r:s:b:B:a:c:w:h?" o; do
     case "$o" in
         r)
-            RECIPE="${OPTARG}"
+            UP_RECIPE="${OPTARG}"
             ;;
         s)
             SRCREV="${OPTARG}"
@@ -170,7 +170,7 @@ while getopts "r:s:b:B:a:c:w:h?" o; do
     esac
 done
 shift $((OPTIND-1))
-if [ -z "$RECIPE" ]; then
+if [ -z "$UP_RECIPE" ]; then
     usage
 fi
 
@@ -181,7 +181,7 @@ source "${THIS_DIR}/configure-hpsc-yocto-env.sh" -w "$WORKING_DIR"
 # devtool doesn't appear able to determine the latest revision on its own, so
 # we have to parse the recipe to get the git remote, then query it
 echo "Running 'find-recipe'..."
-FIND_REC_OUT=$(devtool find-recipe "$RECIPE") || (
+FIND_REC_OUT=$(devtool find-recipe "$UP_RECIPE") || (
     echo "$FIND_REC_OUT"
     exit 1
 )
@@ -211,7 +211,7 @@ echo "Using SRCREV: $SRCREV"
 
 # now we can do the real work...
 
-WORKSPACE="workspace/sources/${RECIPE}" # to be created by devtool
+WORKSPACE="workspace/sources/${UP_RECIPE}" # to be created by devtool
 function cleanup {
     # remove the recipe's workspace source tree to avoid error on next upgrade
     if [ -d "$WORKSPACE" ]; then
@@ -228,23 +228,23 @@ function reset_cleanup {
     # If reset fails, it probably means the workspace wasn't created, so perform
     # cleanup anyway (don't let function abort).
     echo "Running 'reset'..."
-    devtool reset -n "$RECIPE" || true
+    devtool reset -n "$UP_RECIPE" || true
     cleanup
 }
 
 trap reset_cleanup EXIT
 # 'upgrade' creates a workspace entry for the recipe and tries to upgrade it
 echo "Running 'upgrade'..."
-devtool upgrade "$RECIPE" -S "$SRCREV" -B "$SRCBRANCH"
+devtool upgrade "$UP_RECIPE" -S "$SRCREV" -B "$SRCBRANCH"
 if [ $IS_BUILD -ne 0 ]; then
     # 'build' has a lot of dependencies, like building cross-compilers
     echo "Running 'build'..."
-    devtool build "$RECIPE"
+    devtool build "$UP_RECIPE"
 fi
 # 'finish' copies changes to the original layer and removes the workspace entry
 # it doesn't actually delete the source files in the workspace though
 echo "Running 'finish'..."
-devtool finish "$RECIPE" "$(dirname "$REC_FILE")"
+devtool finish "$UP_RECIPE" "$(dirname "$REC_FILE")"
 # can't allow 'reset' anymore, just cleanup the old workspace source tree
 trap - EXIT
 cleanup
@@ -260,7 +260,7 @@ cleanup
         if [ "$IS_COMMIT" -ne 0 ]; then
             echo "Committing changes to recipe"
             shortrev=$(git rev-parse --short "$SRCREV")
-            git commit -m "$RECIPE: upgrade to rev: $shortrev"
+            git commit -m "$UP_RECIPE: upgrade to rev: $shortrev"
             # TODO: optional push?
         else
             echo "You may now commit changes"
