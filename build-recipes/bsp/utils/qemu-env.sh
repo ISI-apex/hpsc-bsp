@@ -22,10 +22,15 @@ SSW=${BSP_DIR}/ssw
 : "${SYSCFG_SCHEMA:=${SSW}/trch/syscfg-schema.json}"
 : "${SYSCFG_BIN:=${RUN_DIR}/syscfg.bin}"
 
-: "${TRCH_SMC_SRAM:=${RUN_DIR}/trch_sram.bin}"
+: "${TRCH_SMC_SRAM0:=${RUN_DIR}/trch_sram0.bin}"
+: "${TRCH_SMC_SRAM1:=${RUN_DIR}/trch_sram1.bin}"
+: "${TRCH_SMC_SRAM2:=${RUN_DIR}/trch_sram2.bin}"
+: "${TRCH_SMC_SRAM3:=${RUN_DIR}/trch_sram3.bin}"
 : "${TRCH_SMC_SRAM_OVERWRITE:=1}"
 
 : "${TRCH_APP:=${SSW}/trch/trch.elf}"
+: "${TRCH_APP_BIN:=${SSW}/trch/trch.bin}"
+: "${TRCH_BL0:=${SSW}/trch/trch-bl0.elf}"
 
 : "${RTPS_APP:=${SSW}/rtps/r52/rtps-r52.img}"
 : "${RTPS_BL:=${SSW}/rtps/r52/u-boot.bin}"
@@ -49,17 +54,18 @@ SSW=${BSP_DIR}/ssw
 # HPPS_INITRAMFS=${SSW}/hpps/initramfs.uimg
 
 SYSCFG_ADDR=0x000ff000
-
+TRCH_APP_ADDR=0x00
+TRCH_APP_ENTRY_ADDR=0x400
 RTPS_BL_ADDR=0x60000000       # load address for R52 u-boot
 RTPS_APP_ADDR=0x68000000      # address of baremetal app binary file
 
-HPPS_FW_ADDR=0x80000000       # must match HPPS CPU0 reset vector (RVBAR)
-HPPS_BL_ADDR=0x80020000       # must match addr hardcoded in ATF source
-HPPS_BL_DT_ADDR=0x8005d000    # must match hardcoded addr in u-boot *early* env
-HPPS_KERN_ADDR=0x80064000
-HPPS_KERN_LOAD_ADDR=0x80680000
-HPPS_DT_ADDR=0x80060000
+HPPS_FW_ADDR=0xC0000000       # must match HPPS CPU0 reset vector (RVBAR)
+HPPS_BL_ADDR=0xC0020000       # must match addr hardcoded in ATF source
+HPPS_BL_DT_ADDR=0xC005d000    # must match hardcoded addr in u-boot *early* env
+HPPS_KERN_ADDR=0xC0064000
+HPPS_KERN_LOAD_ADDR=0xC0680000
+HPPS_DT_ADDR=0xC0060000
 
 # Not included (see comment above)
-# HPPS_BL_ENV_ADDR=0x8005_f000
-# HPPS_INITRAMFS_ADDR=0x8050_0000
+# HPPS_BL_ENV_ADDR=0xC005_f000
+# HPPS_INITRAMFS_ADDR=0xC050_0000

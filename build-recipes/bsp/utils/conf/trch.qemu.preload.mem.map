@@ -6,3 +6,4 @@
 # ID              (CPU:)ADDR            FILE
 
 trch-os           0:-                   $TRCH_APP
+#trch-os           0:-                   $TRCH_BL0

@@ -30,7 +30,8 @@ THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 # Size of off-chip memory connected to TRCH SMC SRAM port,
 # this size is here because this script creates the image.
-LSIO_SRAM_SIZE=0x04000000           #  64MB
+LSIO_SRAM_SIZE0=0x02000000           #  32MB
+LSIO_SRAM_SIZE2=0x02000000           #  32MB
 
 run() {
     echo "$@"
@@ -100,23 +101,38 @@ create_syscfg_image
 
 echo "Creating TRCH SMC SRAM image and adding boot images..."
 SRAM_IMG_TOOL=${SDK_TOOLS}/sram-image-utils
-run "${SRAM_IMG_TOOL}" create "${TRCH_SMC_SRAM}" "${LSIO_SRAM_SIZE}"
-run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${SYSCFG_BIN}"   "syscfg"  "${SYSCFG_ADDR}" 0x0
+run "${SRAM_IMG_TOOL}" create "${TRCH_SMC_SRAM0}" "${LSIO_SRAM_SIZE0}"
+run "${SRAM_IMG_TOOL}" b "${TRCH_SMC_SRAM0}" "${TRCH_APP_BIN}" "${TRCH_APP_ADDR}" "${TRCH_APP_ENTRY_ADDR}"
+run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM0}" "${SYSCFG_BIN}"   "syscfg"  "${SYSCFG_ADDR}" 0x0
+
+run "${SRAM_IMG_TOOL}" create "${TRCH_SMC_SRAM2}" "${LSIO_SRAM_SIZE2}"
+run "${SRAM_IMG_TOOL}" b "${TRCH_SMC_SRAM2}" "${TRCH_APP_BIN}" "${TRCH_APP_ADDR}" "${TRCH_APP_ENTRY_ADDR}"
+run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM2}" "${SYSCFG_BIN}"   "syscfg"  "${SYSCFG_ADDR}" 0x0
 
 # These config choices are not command-line switches, in order to eliminate the
 # possibility of syscfg.ini being inconsistent with the command-line switch.
 if [ "$(syscfg_get boot bin_loc)" = "DRAM" ]
 then
+    echo "System configured to load SW images from DRAM..." 
     ARGS+=(-m "${CONF_DIR}/sw-images.qemu.preload.mem.map")
 else
     echo "System configured to load SW images from TRCH SMC SRAM. Adding images..."
-    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${RTPS_BL}"      "rtps-bl" "${RTPS_BL_ADDR}"
-    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${RTPS_APP}"     "rtps-os" "${RTPS_APP_ADDR}"
-    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_BL}"      "hpps-bl" "${HPPS_BL_ADDR}"
-    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_BL_DT}"   "hpps-bl" "${HPPS_BL_DT_ADDR}"
-    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_FW}"      "hpps-fw" "${HPPS_FW_ADDR}"
-    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_DT}"      "hpps-dt" "${HPPS_DT_ADDR}"
-    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM}" "${HPPS_KERN}"    "hpps-os" "${HPPS_KERN_ADDR}"
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM0}" "${RTPS_BL}"      "rtps-bl" "${RTPS_BL_ADDR}"	0x0
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM0}" "${RTPS_APP}"     "rtps-os" "${RTPS_APP_ADDR}" 0x0
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM0}" "${HPPS_BL}"      "hpps-bl" "${HPPS_BL_ADDR}"	0x0
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM0}" "${HPPS_BL_DT}"   "hpps-bl-dt" "${HPPS_BL_DT_ADDR}" 0x0
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM0}" "${HPPS_FW}"      "hpps-fw" "${HPPS_FW_ADDR}"	0x0
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM0}" "${HPPS_DT}"      "hpps-dt" "${HPPS_DT_ADDR}"	0x0
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM0}" "${HPPS_KERN}"    "hpps-os" "${HPPS_KERN_ADDR}" 0x0
+    run "cp" "${TRCH_SMC_SRAM0}" "${TRCH_SMC_SRAM1}"
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM2}" "${RTPS_BL}"      "rtps-bl" "${RTPS_BL_ADDR}"	0x0
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM2}" "${RTPS_APP}"     "rtps-os" "${RTPS_APP_ADDR}" 0x0
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM2}" "${HPPS_BL}"      "hpps-bl" "${HPPS_BL_ADDR}"	0x0
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM2}" "${HPPS_BL_DT}"   "hpps-bl-dt" "${HPPS_BL_DT_ADDR}" 0x0
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM2}" "${HPPS_FW}"      "hpps-fw" "${HPPS_FW_ADDR}"	0x0
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM2}" "${HPPS_DT}"      "hpps-dt" "${HPPS_DT_ADDR}"	0x0
+    run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM2}" "${HPPS_KERN}"    "hpps-os" "${HPPS_KERN_ADDR}" 0x0
+    run "cp" "${TRCH_SMC_SRAM2}" "${TRCH_SMC_SRAM3}"
 fi
 
 if [ "$(syscfg_get HPPS rootfs_loc)" = "HPPS_DRAM" ]
@@ -126,7 +142,8 @@ fi
 
 ARGS+=(-m "${CONF_DIR}/trch.qemu.preload.mem.map")
 
-run "${SRAM_IMG_TOOL}" show "${TRCH_SMC_SRAM}"
+run "${SRAM_IMG_TOOL}" show "${TRCH_SMC_SRAM0}"
+run "${SRAM_IMG_TOOL}" show "${TRCH_SMC_SRAM1}"
 
 # Networking: userspace mode, forward ports
 ARGS+=(-n user -p 22 -p 2345)

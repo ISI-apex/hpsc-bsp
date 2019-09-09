@@ -8,7 +8,9 @@ export DEPENDS_ENVIRONMENT="sdk/gcc-arm-none-eabi"
 
 DEPLOY_DIR=ssw/trch
 DEPLOY_ARTIFACTS=(
+    trch/bld/trch.bin
     trch/bld/trch.elf
+    trch-bl0/bld/trch-bl0.elf
     trch/syscfg-schema.json
 )
 

@@ -7,4 +7,4 @@
 # ADDR='-' means do not pass an address (e.g. for ELF loading)
 
 # ID              (CPU:)ADDR            FILE
-hpps-ramdisk      4:0x84000000          $HPPS_RAMDISK
+hpps-ramdisk      4:0xC4000000          $HPPS_RAMDISK
