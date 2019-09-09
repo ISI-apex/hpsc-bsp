@@ -104,10 +104,12 @@ SRAM_IMG_TOOL=${SDK_TOOLS}/sram-image-utils
 run "${SRAM_IMG_TOOL}" create "${TRCH_SMC_SRAM0}" "${LSIO_SRAM_SIZE0}"
 run "${SRAM_IMG_TOOL}" b "${TRCH_SMC_SRAM0}" "${TRCH_APP_BIN}" "${TRCH_APP_ADDR}" "${TRCH_APP_ENTRY_ADDR}"
 run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM0}" "${SYSCFG_BIN}"   "syscfg"  "${SYSCFG_ADDR}" 0x0
+run "cp" "${TRCH_SMC_SRAM0}" "${TRCH_SMC_SRAM1}"
 
 run "${SRAM_IMG_TOOL}" create "${TRCH_SMC_SRAM2}" "${LSIO_SRAM_SIZE2}"
 run "${SRAM_IMG_TOOL}" b "${TRCH_SMC_SRAM2}" "${TRCH_APP_BIN}" "${TRCH_APP_ADDR}" "${TRCH_APP_ENTRY_ADDR}"
 run "${SRAM_IMG_TOOL}" add "${TRCH_SMC_SRAM2}" "${SYSCFG_BIN}"   "syscfg"  "${SYSCFG_ADDR}" 0x0
+run "cp" "${TRCH_SMC_SRAM2}" "${TRCH_SMC_SRAM3}"
 
 # These config choices are not command-line switches, in order to eliminate the
 # possibility of syscfg.ini being inconsistent with the command-line switch.
