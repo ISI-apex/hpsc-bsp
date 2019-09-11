@@ -5,7 +5,7 @@
 #
 
 export GIT_REPO="https://github.com/ISI-apex/rtems.git"
-export GIT_REV=5fa70011dd0b9a7a72eaab30f07063733be627cf
+export GIT_REV=152dd52192343785fb28cd902b84a3f6ae1924d2
 export GIT_BRANCH=hpsc-1.2
 
 export DEPENDS_ENVIRONMENT="sdk/rtems-source-builder" # exports PATH
