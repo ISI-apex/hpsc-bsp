@@ -3,9 +3,6 @@
 # Parent build script
 #
 
-# Fail-fast
-set -e
-
 function usage()
 {
     local rc=${1:-0}
@@ -82,18 +79,18 @@ PREFIX_SRC="${PREFIX}-src"
 function action_fetch()
 {
     echo "Fetching sources..."
-    "${BSP_DIR}/build-hpsc-host.sh" -w "$WORKING_DIR" -a fetch
-    "${BSP_DIR}/build-hpsc-bare.sh" -w "$WORKING_DIR" -a fetch
-    "${BSP_DIR}/build-hpsc-rtems.sh" -w "$WORKING_DIR" -a fetch
+    "${BSP_DIR}/build-hpsc-host.sh" -w "$WORKING_DIR" -a fetch && \
+    "${BSP_DIR}/build-hpsc-bare.sh" -w "$WORKING_DIR" -a fetch && \
+    "${BSP_DIR}/build-hpsc-rtems.sh" -w "$WORKING_DIR" -a fetch && \
     "${BSP_DIR}/build-hpsc-yocto.sh" -w "$WORKING_DIR" -a fetch
 }
 
 function action_build()
 {
     echo "Building..."
-    "${BSP_DIR}/build-hpsc-host.sh" -w "$WORKING_DIR" -a build
-    "${BSP_DIR}/build-hpsc-bare.sh" -w "$WORKING_DIR" -a build
-    "${BSP_DIR}/build-hpsc-rtems.sh" -w "$WORKING_DIR" -a build
+    "${BSP_DIR}/build-hpsc-host.sh" -w "$WORKING_DIR" -a build && \
+    "${BSP_DIR}/build-hpsc-bare.sh" -w "$WORKING_DIR" -a build && \
+    "${BSP_DIR}/build-hpsc-rtems.sh" -w "$WORKING_DIR" -a build && \
     "${BSP_DIR}/build-hpsc-yocto.sh" -w "$WORKING_DIR" -a build
 }
 
@@ -101,7 +98,7 @@ function action_stage()
 {
     local STAGE_DIR="${WORKING_DIR}/stage/${PREFIX}"
     echo "Staging..."
-    mkdir -p "$STAGE_DIR"
+    mkdir -p "$STAGE_DIR" && \
     cp -r "${WORKING_DIR}"/deploy/* "$STAGE_DIR"
 }
 
@@ -109,7 +106,7 @@ function action_package()
 {
     local RELEASE_BIN_TGZ=${WORKING_DIR}/${PREFIX}.tar.gz
     echo "Packaging: $RELEASE_BIN_TGZ"
-    tar -czf "$RELEASE_BIN_TGZ" -C "${WORKING_DIR}/stage" "$PREFIX"
+    tar -czf "$RELEASE_BIN_TGZ" -C "${WORKING_DIR}/stage" "$PREFIX" || return $?
     echo "md5: $RELEASE_BIN_TGZ"
     md5sum "$RELEASE_BIN_TGZ" | sed "s,${WORKING_DIR}/,," \
         > "${RELEASE_BIN_TGZ}.md5"
@@ -126,24 +123,26 @@ function action_package_sources()
     # the user from having to specify -f for every make invocation. Needed to
     # build components in $srcdir not part of the binary release.
     local srcdir="${WORKING_DIR}/src"
-    ln -sf "ssw/hpsc-utils/make/Makefile.hpsc" "${srcdir}/Makefile"
-    ln -sf "hpsc-utils/make/Makefile.ssw" "${srcdir}/ssw/Makefile"
-    ln -sf "hpsc-sdk-tools/make/Makefile.sdk" "${srcdir}/sdk/Makefile"
+    ln -sf "ssw/hpsc-utils/make/Makefile.hpsc" "${srcdir}/Makefile" && \
+    ln -sf "hpsc-utils/make/Makefile.ssw" "${srcdir}/ssw/Makefile" && \
+    ln -sf "hpsc-sdk-tools/make/Makefile.sdk" "${srcdir}/sdk/Makefile" \
+        || return $?
 
     # Add build scripts, then append sources within the BSP directory structure
     # while maintaining the base working directory name.
     local bsp_files=(".git")
-    # capture git-tracked files, then parse into array
+    # capture git-tracked files (or fail gracefully), then parse into array
     local lstree
-    lstree="$(git --git-dir=".git" ls-tree -r --name-only --full-tree HEAD)"
+    lstree="$(git --git-dir=".git" ls-tree -r --name-only --full-tree HEAD)" \
+        || return $?
     IFS=$'\n' bsp_files+=($lstree)
     tar -cf "${RELEASE_SRC_TAR}" -C "$BSP_DIR" \
-        --transform "s,^,${PREFIX_SRC}/,rS" "${bsp_files[@]}"
+        --transform "s,^,${PREFIX_SRC}/,rS" "${bsp_files[@]}" || return $?
     local workdir_base
     workdir_base=$(basename "$(cd "$WORKING_DIR" && pwd)")
     tar -rf "${RELEASE_SRC_TAR}" -C "$WORKING_DIR" \
-        --transform "s,^,${PREFIX_SRC}/${workdir_base}/,rS" src
-    gzip -f "$RELEASE_SRC_TAR"
+        --transform "s,^,${PREFIX_SRC}/${workdir_base}/,rS" src || return $?
+    gzip -f "$RELEASE_SRC_TAR" || return $?
 
     echo "md5: $RELEASE_SRC_TGZ"
     md5sum "$RELEASE_SRC_TGZ" | sed "s,${WORKING_DIR}/,," \
@@ -154,15 +153,15 @@ function action_with_metrics()
 {
     local start end elapsed
     local rc=0
-    start=$(date +%s.%N)
+    start=$(date +%s.%N) || return $?
     "$@" || rc=$?
-    end=$(date +%s.%N)
-    elapsed=$(echo "$start $end" | awk '{printf "%f", $2 - $1}')
+    end=$(date +%s.%N) || return $?
+    elapsed=$(echo "$start $end" | awk '{printf "%f", $2 - $1}') || return $?
     if [ ! -f "$METRICS_CSV" ]; then
-        echo "DATETIME,ACTION,RC,ELAPSED" > "$METRICS_CSV"
+        echo "DATETIME,ACTION,RC,ELAPSED" > "$METRICS_CSV" || return $?
     fi
     echo "$(date +'%F %T'),${1/"action_"/},$rc,$elapsed" \
-        >> "$METRICS_CSV"
+        >> "$METRICS_CSV" || return $?
     return $rc
 }
 
@@ -171,19 +170,19 @@ function bsp_build_lifecycle()
     # not specifying a recipe just builds the working directory structure
     "${BSP_DIR}/build-recipe.sh" -w "$WORKING_DIR"
     if [ $IS_FETCH -ne 0 ]; then
-        action_with_metrics action_fetch
+        action_with_metrics action_fetch || return $?
     fi
     if [ $IS_BUILD -ne 0 ]; then
-        action_with_metrics action_build
+        action_with_metrics action_build || return $?
     fi
     if [ $IS_STAGE -ne 0 ]; then
-        action_with_metrics action_stage
+        action_with_metrics action_stage || return $?
     fi
     if [ $IS_PACKAGE -ne 0 ]; then
-        action_with_metrics action_package
+        action_with_metrics action_package || return $?
     fi
     if [ $IS_PACKAGE_SOURCES -ne 0 ]; then
-        action_with_metrics action_package_sources
+        action_with_metrics action_package_sources || return $?
     fi
 }
 
