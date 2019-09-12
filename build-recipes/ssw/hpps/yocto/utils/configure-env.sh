@@ -21,54 +21,6 @@ function usage()
     echo "    -h: show this message and exit"
 }
 
-# Script options
-DL_DIR=""
-BUILD_DIR=""
-POKY_DIR=""
-LAYER_DIRS=()
-# parse options
-OPTIND=1 # reset since we're probably being sourced
-while getopts "d:b:p:l:h?" o; do
-    case "$o" in
-        d)
-            DL_DIR="${OPTARG}"
-            ;;
-        b)
-            BUILD_DIR="${OPTARG}"
-            ;;
-        p)
-            POKY_DIR="${OPTARG}"
-            ;;
-        l)
-            LAYER_DIRS+=("${OPTARG}")
-            ;;
-        h)
-            usage
-            return
-            ;;
-        *)
-            echo "Unknown option"
-            usage
-            return 1
-            ;;
-    esac
-done
-shift $((OPTIND-1))
-if [ -z "$DL_DIR" ] || [ -z "$BUILD_DIR" ] || [ -z "$POKY_DIR" ]; then
-    usage
-    return 1
-fi
-
-# poky's sanity checker tries to reach example.com unless we force it offline
-export BB_NO_NETWORK=1
-# create build directory and cd to it
-source "${POKY_DIR}/oe-init-build-env" "$BUILD_DIR" || return $?
-# configure layers
-for layer in "${LAYER_DIRS[@]}"; do
-    bitbake-layers add-layer "$layer" || return $?
-done
-unset BB_NO_NETWORK
-
 # configure local.conf
 function conf_replace_or_append()
 {
@@ -81,13 +33,67 @@ function conf_replace_or_append()
     grep -q "^$key ?*+*=" "$file" && sed -i "s@^${key} .*@${line}@" "$file" || \
         echo "$line" >> "$file"
 }
-conf_replace_or_append "MACHINE ?= \"hpsc-chiplet\""
-conf_replace_or_append "DL_DIR ?= \"${DL_DIR}\""
-conf_replace_or_append "FORTRAN_forcevariable = \",fortran\""
-# the following commands are needed for enabling runtime tests
-conf_replace_or_append "INHERIT_append += \" testimage\""
-conf_replace_or_append "TEST_TARGET = \"simpleremote\""
-conf_replace_or_append "TEST_SERVER_IP = \"$(hostname -I | cut -d ' ' -f 1)\""
-conf_replace_or_append "TEST_TARGET_IP = \"127.0.0.1:3088\""
-conf_replace_or_append "IMAGE_FSTYPES_append += \" cpio.gz\""
-conf_replace_or_append "TEST_SUITES += \"${TEST_MODULES[*]}\""
+
+function configure_env()
+{
+    # Script options
+    local DL_DIR=""
+    local BUILD_DIR=""
+    local POKY_DIR=""
+    local LAYER_DIRS=()
+    # parse options
+    while getopts "d:b:p:l:h?" o; do
+        case "$o" in
+            d)
+                DL_DIR="${OPTARG}"
+                ;;
+            b)
+                BUILD_DIR="${OPTARG}"
+                ;;
+            p)
+                POKY_DIR="${OPTARG}"
+                ;;
+            l)
+                LAYER_DIRS+=("${OPTARG}")
+                ;;
+            h)
+                usage
+                return
+                ;;
+            *)
+                echo "Unknown option"
+                usage
+                return 1
+                ;;
+        esac
+    done
+    shift $((OPTIND-1))
+    if [ -z "$DL_DIR" ] || [ -z "$BUILD_DIR" ] || [ -z "$POKY_DIR" ]; then
+        usage
+        return 1
+    fi
+
+    # poky's sanity checker tries to reach example.com unless we force it offline
+    export BB_NO_NETWORK=1
+    # create build directory and cd to it
+    source "${POKY_DIR}/oe-init-build-env" "$BUILD_DIR" || return $?
+    # configure layers
+    for layer in "${LAYER_DIRS[@]}"; do
+        bitbake-layers add-layer "$layer" || return $?
+    done
+    unset BB_NO_NETWORK
+
+    conf_replace_or_append "MACHINE ?= \"hpsc-chiplet\""
+    conf_replace_or_append "DL_DIR ?= \"${DL_DIR}\""
+    conf_replace_or_append "FORTRAN_forcevariable = \",fortran\""
+    # the following commands are needed for enabling runtime tests
+    conf_replace_or_append "INHERIT_append += \" testimage\""
+    conf_replace_or_append "TEST_TARGET = \"simpleremote\""
+    conf_replace_or_append "TEST_SERVER_IP = \"$(hostname -I | cut -d ' ' -f 1)\""
+    conf_replace_or_append "TEST_TARGET_IP = \"127.0.0.1:3088\""
+    conf_replace_or_append "IMAGE_FSTYPES_append += \" cpio.gz\""
+    conf_replace_or_append "TEST_SUITES += \"${TEST_MODULES[*]}\""
+}
+
+OPTIND=1 # reset since we're probably being sourced
+configure_env "$@"
