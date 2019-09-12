@@ -133,9 +133,10 @@ function action_package_sources()
     # Add build scripts, then append sources within the BSP directory structure
     # while maintaining the base working directory name.
     local bsp_files=(".git")
-    while read f; do
-        bsp_files+=("$f")
-    done< <(git --git-dir="${BSP_DIR}/.git" ls-tree -r --name-only --full-tree HEAD)
+    # capture git-tracked files, then parse into array
+    local lstree
+    lstree="$(git --git-dir=".git" ls-tree -r --name-only --full-tree HEAD)"
+    IFS=$'\n' bsp_files+=($lstree)
     tar -cf "${RELEASE_SRC_TAR}" -C "$BSP_DIR" \
         --transform "s,^,${PREFIX_SRC}/,rS" "${bsp_files[@]}"
     local workdir_base
