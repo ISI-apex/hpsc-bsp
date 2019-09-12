@@ -135,7 +135,7 @@ function action_package_sources()
     local bsp_files=(".git")
     while read f; do
         bsp_files+=("$f")
-    done< <(git --git-dir="${BSP_DIR}/.git" ls-tree --name-only --full-tree HEAD)
+    done< <(git --git-dir="${BSP_DIR}/.git" ls-tree -r --name-only --full-tree HEAD)
     tar -cf "${RELEASE_SRC_TAR}" -C "$BSP_DIR" \
         --transform "s,^,${PREFIX_SRC}/,rS" "${bsp_files[@]}"
     local workdir_base
