@@ -9,6 +9,7 @@
 # This script is sourced, it must not set -e
 # set -e
 
+LANG_DEFAULT=en_US.UTF-8
 TEST_MODULES=(perl ping scp ssh date mpi openmp pthreads shm_standalone)
 
 function usage()
@@ -71,6 +72,13 @@ function configure_env()
     if [ -z "$DL_DIR" ] || [ -z "$BUILD_DIR" ] || [ -z "$POKY_DIR" ]; then
         usage
         return 1
+    fi
+
+    # at least one of the following environment variables is required
+    if [ -z "$LC_ALL" ] && [ -z "$LANG" ] && [ -z "$LANGUAGE" ]; then
+        echo "Environment variables not set: LC_ALL, LANG, LANGUAGE"
+        echo "Default to: LANG=$LANG_DEFAULT"
+        export LANG=$LANG_DEFAULT
     fi
 
     # poky's sanity checker tries to reach example.com unless we force it offline
