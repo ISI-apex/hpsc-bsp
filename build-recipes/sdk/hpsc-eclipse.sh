@@ -8,6 +8,10 @@ export WGET_OUTPUT_MD5="6087e4def4382fd334de658f9bde190b"
 export DO_BUILD_OUT_OF_SOURCE=1
 
 # Eclipse update sites
+# Use version-specific repos to prevent breakage when newer plugin versions are
+# released to the main update sites (the ones usually documented for users).
+# This obviously requires providers to make version-specific sites available.
+# You may have to dig around a bit to find the correct URLs.
 ECLIPSE_REPOSITORIES=(
     "http://download.eclipse.org/tm/updates/4.5.0/repository/"
     # "http://gnu-mcu-eclipse.netlify.com/v4-neon-updates/"
