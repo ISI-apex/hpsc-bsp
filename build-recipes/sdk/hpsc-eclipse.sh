@@ -9,7 +9,6 @@ export DO_BUILD_OUT_OF_SOURCE=1
 
 # Eclipse update sites
 ECLIPSE_REPOSITORIES=(
-    "http://download.eclipse.org/releases/photon"
     "http://download.eclipse.org/tm/updates/4.0/"
     # "http://gnu-mcu-eclipse.netlify.com/v4-neon-updates/"
     "http://downloads.yoctoproject.org/releases/eclipse-plugin/2.6.1/oxygen"
