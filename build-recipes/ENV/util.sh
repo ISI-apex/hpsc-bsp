@@ -61,6 +61,27 @@ function env_check_md5sum()
     fi
 }
 
+function env_check_sha256sum()
+{
+    local file=$1
+    local sha256_expected=$2
+    assert_str "$file"
+    assert_str "$sha256_expected"
+    # must check sha256sum return code, which awk ignores if we pipe directly;
+    # can't rely on PIPESTATUS since code is lost due to "sha256" var assignment
+    local sha256sum_out
+    local sha256
+    echo "checking sha256sum: $file"
+    sha256sum_out=$(sha256sum "$file") || return $?
+    sha256=$(echo "$sha256sum_out" | awk '{print $1}')
+    if [ "$sha256" != "$sha256_expected" ]; then
+        echo "sha256sum mismatch for: $file"
+        echo "  got: $sha256"
+        echo "  expected: $sha256_expected"
+        return 1
+    fi
+}
+
 function env_maybe_wget()
 {
     local url=$1
