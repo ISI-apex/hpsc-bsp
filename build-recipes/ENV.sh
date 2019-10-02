@@ -72,7 +72,8 @@ function do_fetch()
     if [ -n "$GIT_REPO" ]; then
         env_git_clone_fetch_checkout "$GIT_REPO" . "$GIT_REV"
     elif [ -n "$WGET_URL" ]; then
-        env_wget_and_md5 "$WGET_URL" "$WGET_OUTPUT" "$WGET_OUTPUT_MD5"
+        env_maybe_wget "$WGET_URL" "$WGET_OUTPUT"
+        env_check_md5sum "$WGET_OUTPUT" "$WGET_OUTPUT_MD5"
     else
         echo "do_fetch: nothing to fetch"
     fi

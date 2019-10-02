@@ -50,6 +50,7 @@ function env_check_md5sum()
     # can't rely on PIPESTATUS since code is lost due to "md5" var assignment
     local md5sum_out
     local md5
+    echo "checking md5sum: $file"
     md5sum_out=$(md5sum "$file") || return $?
     md5=$(echo "$md5sum_out" | awk '{print $1}')
     if [ "$md5" != "$md5_expected" ]; then
@@ -60,20 +61,14 @@ function env_check_md5sum()
     fi
 }
 
-function env_wget_and_md5()
+function env_maybe_wget()
 {
     local url=$1
     local output=$2
-    local md5_expected=$3
     assert_str "$url"
     assert_str "$output"
-    assert_str "$md5_expected"
-    local name
-    name=$(basename "$output")
     if [ ! -e "$output" ]; then
-        echo "$name: downloading from: $url"
+        echo "wget from: $url"
         wget --progress=dot:mega -O "$output" "$url" || return $?
     fi
-    echo "$name: checking md5sum"
-    env_check_md5sum "$output" "$md5_expected"
 }
