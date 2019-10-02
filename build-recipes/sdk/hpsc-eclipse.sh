@@ -43,6 +43,21 @@ ECLIPSE_HPSC=hpsc-${WGET_OUTPUT}
 DEPLOY_DIR=sdk
 DEPLOY_ARTIFACTS=("$ECLIPSE_HPSC")
 
+function eclipse_p2_install_ius()
+{
+    # Get repos and IUs as comma-delimited lists
+    local ECLIPSE_REPOSITORY_LIST
+    ECLIPSE_REPOSITORY_LIST=$(printf ",%s" "${ECLIPSE_REPOSITORIES[@]}")
+    ECLIPSE_REPOSITORY_LIST=${ECLIPSE_REPOSITORY_LIST:1}
+    local ECLIPSE_PLUGIN_IU_LIST
+    ECLIPSE_PLUGIN_IU_LIST=$(printf ",%s" "${ECLIPSE_PLUGIN_IUS[@]}")
+    ECLIPSE_PLUGIN_IU_LIST=${ECLIPSE_PLUGIN_IU_LIST:1}
+    "$ECLIPSE_DIR/eclipse" -application org.eclipse.equinox.p2.director \
+                           -nosplash \
+                           -repository "$ECLIPSE_REPOSITORY_LIST" \
+                           -installIUs "$ECLIPSE_PLUGIN_IU_LIST"
+}
+
 function do_post_fetch()
 {
     # Always re-create the eclipse directory and re-fetch plugins.
@@ -58,17 +73,7 @@ function do_post_fetch()
 
     # Fetch additional plugins
     echo "hpsc-eclipse: fetching plugins..."
-    # Get repos and IUs as comma-delimited lists
-    local ECLIPSE_REPOSITORY_LIST
-    ECLIPSE_REPOSITORY_LIST=$(printf ",%s" "${ECLIPSE_REPOSITORIES[@]}")
-    ECLIPSE_REPOSITORY_LIST=${ECLIPSE_REPOSITORY_LIST:1}
-    local ECLIPSE_PLUGIN_IU_LIST
-    ECLIPSE_PLUGIN_IU_LIST=$(printf ",%s" "${ECLIPSE_PLUGIN_IUS[@]}")
-    ECLIPSE_PLUGIN_IU_LIST=${ECLIPSE_PLUGIN_IU_LIST:1}
-    "$ECLIPSE_DIR/eclipse" -application org.eclipse.equinox.p2.director \
-                           -nosplash \
-                           -repository "$ECLIPSE_REPOSITORY_LIST" \
-                           -installIUs "$ECLIPSE_PLUGIN_IU_LIST"
+    eclipse_p2_install_ius
 }
 
 function do_undeploy()
