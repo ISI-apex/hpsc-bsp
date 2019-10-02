@@ -73,6 +73,7 @@ function env_wget_and_md5()
     if [ ! -e "$output" ]; then
         echo "$name: downloading from: $url"
         wget --progress=dot:mega -O "$output" "$url" || return $?
-        env_check_md5sum "$output" "$md5_expected"
     fi
+    echo "$name: checking md5sum"
+    env_check_md5sum "$output" "$md5_expected"
 }
