@@ -2,7 +2,6 @@
 #
 # Upgrade all managed BSP recipes
 #
-set -e
 
 RECIPES=(
     # ENV # parent recipe
@@ -40,5 +39,5 @@ fi
 for rec in "${RECIPES[@]}"; do
     echo "Upgrading BSP recipe: $rec"
     # -r may not be overriden in $@
-    "${THIS_DIR}/upgrade-recipe-bsp.sh" "$@" -r "$rec"
+    "${THIS_DIR}/upgrade-recipe-bsp.sh" "$@" -r "$rec" || exit $?
 done
