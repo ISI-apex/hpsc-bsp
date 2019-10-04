@@ -70,15 +70,15 @@ function build_recipe_env()
                 return
                 ;;
             *)
-                echo "Unknown option"
-                usage
+                >&2 echo "Unknown option"
+                >&2 usage
                 return 1
                 ;;
         esac
     done
     shift $((OPTIND-1))
     if [ -z "$RECIPE" ] || [ -z "$WORKING_DIR" ]; then
-        usage
+        >&2 usage
         return 1
     fi
     cd "$WORKING_DIR" || return $?
