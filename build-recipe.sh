@@ -122,30 +122,6 @@ function verify_dir_prereq()
     fi
 }
 
-function build_step_clean_sources()
-{
-    echo "$1: clean_sources"
-    cd "$ENV_WORKING_DIR" && rm -rf "$REC_SRC_DIR"
-}
-
-function build_step_fetch()
-{
-    echo "$1: fetch"
-    mkdir -p "$REC_SRC_DIR" && cd "$REC_SRC_DIR" && do_fetch
-}
-
-function build_step_post_fetch()
-{
-    echo "$1: post_fetch"
-    cd "$REC_SRC_DIR" && do_post_fetch
-}
-
-function build_step_late_fetch()
-{
-    echo "$1: late_fetch"
-    cd "$REC_WORK_DIR" && do_late_fetch
-}
-
 function build_step_toolchain_uninstall()
 {
     local dir
@@ -166,6 +142,24 @@ function build_step_undeploy()
     fi
 }
 
+function build_step_clean_sources()
+{
+    echo "$1: clean_sources"
+    cd "$ENV_WORKING_DIR" && rm -rf "$REC_SRC_DIR"
+}
+
+function build_step_fetch()
+{
+    echo "$1: fetch"
+    mkdir -p "$REC_SRC_DIR" && cd "$REC_SRC_DIR" && do_fetch
+}
+
+function build_step_post_fetch()
+{
+    echo "$1: post_fetch"
+    cd "$REC_SRC_DIR" && do_post_fetch
+}
+
 # TODO: Not a real build step
 function build_step_clean()
 {
@@ -184,6 +178,12 @@ function build_step_extract()
     else
         mkdir -p "$REC_WORK_DIR"
     fi
+}
+
+function build_step_late_fetch()
+{
+    echo "$1: late_fetch"
+    cd "$REC_WORK_DIR" && do_late_fetch
 }
 
 function build_step_build()
