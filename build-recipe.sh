@@ -64,8 +64,8 @@ while getopts "a:r:w:h?" o; do
             elif [ "${OPTARG}" == "all" ]; then
                 IS_ALL=1
             else
-                echo "Error: no such action: ${OPTARG}"
-                usage 1
+                >&2 echo "Error: no such action: ${OPTARG}"
+                >&2 usage 1
             fi
             ;;
         r)
@@ -78,8 +78,8 @@ while getopts "a:r:w:h?" o; do
             usage
             ;;
         *)
-            echo "Unknown option"
-            usage 1
+            >&2 echo "Unknown option"
+            >&2 usage 1
             ;;
     esac
 done
@@ -165,7 +165,7 @@ function build_step_extract()
 function build_step_build()
 {
     if [ ! -d "$REC_WORK_DIR" ]; then
-        echo "$1: Error: must 'fetch' before 'build'"
+        >&2 echo "$1: Error: must 'fetch' before 'build'"
         return 1
     fi
     echo "$1: build"
@@ -175,7 +175,7 @@ function build_step_build()
 function build_step_test()
 {
     if [ ! -d "$REC_WORK_DIR" ]; then
-        echo "$1: Error: must 'fetch' before 'test'"
+        >&2 echo "$1: Error: must 'fetch' before 'test'"
         return 1
     fi
     echo "$1: test"
@@ -189,7 +189,7 @@ function build_step_deploy()
         dir="$REC_SRC_DIR"
     else
         if [ ! -d "$REC_WORK_DIR" ]; then
-            echo "$1: Error: must 'fetch' before 'deploy'"
+            >&2 echo "$1: Error: must 'fetch' before 'deploy'"
             return 1
         fi
         dir="$REC_WORK_DIR"
@@ -205,7 +205,7 @@ function build_step_toolchain_install()
         dir="$REC_SRC_DIR"
     else
         if [ ! -d "$REC_WORK_DIR" ]; then
-            echo "$1: Error: must 'fetch' before 'toolchain_install'"
+            >&2 echo "$1: Error: must 'fetch' before 'toolchain_install'"
             return 1
         fi
         dir="$REC_WORK_DIR"
@@ -281,7 +281,7 @@ function build_lifecycle()
             if [ $RC -eq 0 ]; then
                 echo "$recname: build successful"
             else
-                echo "$recname: Error: build failed with exit code: $RC"
+                >&2 echo "$recname: Error: build failed with exit code: $RC"
                 return $RC
             fi
         fi
