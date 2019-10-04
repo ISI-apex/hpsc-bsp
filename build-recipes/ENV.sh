@@ -113,6 +113,8 @@ function do_build()
 # run any unit tests
 function do_test()
 {
+    # operates in REC_WORK_DIR
+    # however, if DO_FETCH_ONLY is set, operates in REC_SRC_DIR
     :
 }
 

@@ -36,6 +36,8 @@ function usage()
 RECIPES=()
 HAS_ACTION=0
 IS_ALL=0
+IS_TOOLCHAIN_UNINSTALL=0
+IS_UNDEPLOY=0
 IS_CLEAN_SOURCES=0
 IS_FETCH=0
 IS_CLEAN=0
@@ -49,16 +51,22 @@ while getopts "a:r:w:h?" o; do
         a)
             HAS_ACTION=1
             if [ "${OPTARG}" == "clean-sources" ]; then
+                IS_TOOLCHAIN_UNINSTALL=1 # implied
+                IS_UNDEPLOY=1 # implied
                 IS_CLEAN_SOURCES=1
                 IS_CLEAN=1 # implied
             elif [ "${OPTARG}" == "fetch" ]; then
+                IS_TOOLCHAIN_UNINSTALL=1 # implied
+                IS_UNDEPLOY=1 # implied
                 IS_FETCH=1
+            elif [ "${OPTARG}" == "clean" ]; then
+                IS_TOOLCHAIN_UNINSTALL=1 # implied
+                IS_UNDEPLOY=1 # implied
+                IS_CLEAN=1
             elif [ "${OPTARG}" == "build" ]; then
                 IS_BUILD=1
                 IS_DEPLOY=1 # currently implied by build
                 IS_TOOLCHAIN_INSTALL=1 # currently implied by build
-            elif [ "${OPTARG}" == "clean" ]; then
-                IS_CLEAN=1
             elif [ "${OPTARG}" == "test" ]; then
                 IS_TEST=1
             elif [ "${OPTARG}" == "all" ]; then
@@ -85,6 +93,8 @@ while getopts "a:r:w:h?" o; do
 done
 shift $((OPTIND-1))
 if [ $HAS_ACTION -eq 0 ] || [ $IS_ALL -ne 0 ]; then
+    IS_TOOLCHAIN_UNINSTALL=1
+    IS_UNDEPLOY=1
     IS_FETCH=1
     IS_BUILD=1
     IS_TEST=1
@@ -97,6 +107,21 @@ build_work_dirs "$WORKING_DIR"
 cd "$WORKING_DIR"
 METRICS_CSV=${PWD}/log/build-recipe-metrics.csv
 
+# Choose REC_SRC_DIR or REC_WORK_DIR depending on recipe's DO_FETCH_ONLY config
+function get_action_dir()
+{
+    [ "$DO_FETCH_ONLY" -ne 0 ] && echo "$REC_SRC_DIR" || echo "$REC_WORK_DIR"
+}
+
+function verify_dir_prereq()
+{
+    if [ ! -d "$1" ]; then
+        >&2 echo "Error: missing required directory: $1"
+        >&2 echo "Hint: probably need to execute prerequisite action(s) first"
+        return 1
+    fi
+}
+
 function build_step_clean_sources()
 {
     echo "$1: clean_sources"
@@ -106,7 +131,7 @@ function build_step_clean_sources()
 function build_step_fetch()
 {
     echo "$1: fetch"
-    cd "$REC_SRC_DIR" && do_fetch
+    mkdir -p "$REC_SRC_DIR" && cd "$REC_SRC_DIR" && do_fetch
 }
 
 function build_step_post_fetch()
@@ -123,28 +148,22 @@ function build_step_late_fetch()
 
 function build_step_toolchain_uninstall()
 {
-    if [ "$DO_FETCH_ONLY" -ne 0 ]; then
-        if [ -d "$REC_SRC_DIR" ]; then
-            echo "$1: toolchain_uninstall"
-            cd "$REC_SRC_DIR" && do_toolchain_uninstall
-        fi
-    elif [ -d "$REC_WORK_DIR" ]; then
+    local dir
+    dir=$(get_action_dir)
+    if [ -d "$dir" ]; then
         echo "$1: toolchain_uninstall"
-        cd "$REC_WORK_DIR" && do_toolchain_uninstall
-    fi # else nowhere to run uninstall from
+        cd "$dir" && do_toolchain_uninstall
+    fi
 }
 
 function build_step_undeploy()
 {
-    if [ "$DO_FETCH_ONLY" -ne 0 ]; then
-        if [ -d "$REC_SRC_DIR" ]; then
-            echo "$1: undeploy"
-            cd "$REC_SRC_DIR" && do_undeploy
-        fi
-    elif [ -d "$REC_WORK_DIR" ]; then
+    local dir
+    dir=$(get_action_dir)
+    if [ -d "$dir" ]; then
         echo "$1: undeploy"
-        cd "$REC_WORK_DIR" && do_undeploy
-    fi # else nowhere to run undeploy from
+        cd "$dir" && do_undeploy
+    fi
 }
 
 # TODO: Not a real build step
@@ -158,59 +177,46 @@ function build_step_clean()
 function build_step_extract()
 {
     echo "$1: extract"
-    mkdir -p "$(dirname "$REC_WORK_DIR")" && \
-    cp -r "$REC_SRC_DIR" "$REC_WORK_DIR"
+    verify_dir_prereq "$REC_SRC_DIR" || return $?
+    if [ "$DO_BUILD_OUT_OF_SOURCE" -eq 0 ]; then
+        mkdir -p "$(dirname "$REC_WORK_DIR")" && \
+        cp -r "$REC_SRC_DIR" "$REC_WORK_DIR"
+    else
+        mkdir -p "$REC_WORK_DIR"
+    fi
 }
 
 function build_step_build()
 {
-    if [ ! -d "$REC_WORK_DIR" ]; then
-        >&2 echo "$1: Error: must 'fetch' before 'build'"
-        return 1
-    fi
     echo "$1: build"
+    verify_dir_prereq "$REC_WORK_DIR" || return $?
     cd "$REC_WORK_DIR" && do_build
 }
 
 function build_step_test()
 {
-    if [ ! -d "$REC_WORK_DIR" ]; then
-        >&2 echo "$1: Error: must 'fetch' before 'test'"
-        return 1
-    fi
+    local dir
+    dir=$(get_action_dir "$1")
     echo "$1: test"
-    cd "$REC_WORK_DIR" && do_test
+    verify_dir_prereq "$dir" || return $?
+    cd "$dir" && do_test
 }
 
 function build_step_deploy()
 {
     local dir
-    if [ "$DO_FETCH_ONLY" -ne 0 ]; then
-        dir="$REC_SRC_DIR"
-    else
-        if [ ! -d "$REC_WORK_DIR" ]; then
-            >&2 echo "$1: Error: must 'fetch' before 'deploy'"
-            return 1
-        fi
-        dir="$REC_WORK_DIR"
-    fi
+    dir=$(get_action_dir "$1")
     echo "$1: deploy"
+    verify_dir_prereq "$dir" || return $?
     cd "$dir" && do_deploy
 }
 
 function build_step_toolchain_install()
 {
     local dir
-    if [ "$DO_FETCH_ONLY" -ne 0 ]; then
-        dir="$REC_SRC_DIR"
-    else
-        if [ ! -d "$REC_WORK_DIR" ]; then
-            >&2 echo "$1: Error: must 'fetch' before 'toolchain_install'"
-            return 1
-        fi
-        dir="$REC_WORK_DIR"
-    fi
+    dir=$(get_action_dir "$1")
     echo "$1: toolchain_install"
+    verify_dir_prereq "$dir" || return $?
     cd "$dir" && do_toolchain_install
 }
 
@@ -237,9 +243,11 @@ function build_lifecycle()
     # setup build environment
     source "${THIS_DIR}/build-recipes/build-recipe-env.sh" -r "$recname" -w .
 
-    # uninstall/undeploy on clean request or before fetch
-    if [ $IS_CLEAN -ne 0 ] || [ $IS_FETCH -ne 0 ]; then
+    if [ $IS_TOOLCHAIN_UNINSTALL -ne 0 ]; then
         build_step_with_metrics build_step_toolchain_uninstall "$recname"
+    fi
+
+    if [ $IS_UNDEPLOY -ne 0 ]; then
         build_step_with_metrics build_step_undeploy "$recname"
     fi
 
@@ -249,7 +257,6 @@ function build_lifecycle()
 
     # fetch is broken up to allow custom clean and extract
     if [ $IS_FETCH -ne 0 ]; then
-        mkdir -p "$REC_SRC_DIR"
         build_step_with_metrics build_step_fetch "$recname"
         build_step_with_metrics build_step_post_fetch "$recname"
     fi
@@ -263,12 +270,9 @@ function build_lifecycle()
         fi
 
         # extract to (or create) work dir
-        if [ ! -d "$REC_WORK_DIR" ]; then
-            if [ "$DO_BUILD_OUT_OF_SOURCE" -eq 0 ]; then
-                build_step_with_metrics build_step_extract "$recname"
-            else
-                mkdir -p "$REC_WORK_DIR"
-            fi
+        if [[ $IS_FETCH -ne 0 || $IS_BUILD -ne 0 ]] &&
+           [ ! -d "$REC_WORK_DIR" ]; then
+            build_step_with_metrics build_step_extract "$recname"
         fi
 
         # late fetch is for fetching that requires a work dir first
@@ -285,10 +289,10 @@ function build_lifecycle()
                 return $RC
             fi
         fi
+    fi
 
-        if [ $IS_TEST -ne 0 ]; then
-            build_step_with_metrics build_step_test "$recname"
-        fi
+    if [ $IS_TEST -ne 0 ]; then
+        build_step_with_metrics build_step_test "$recname"
     fi
 
     if [ $IS_DEPLOY -ne 0 ]; then
