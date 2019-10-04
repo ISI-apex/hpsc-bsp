@@ -69,3 +69,8 @@ HPPS_DT_ADDR=0xC0060000
 # Not included (see comment above)
 # HPPS_BL_ENV_ADDR=0xC005_f000
 # HPPS_INITRAMFS_ADDR=0xC050_0000
+
+# Rename serial ports to correspond to how they are used by the software stack
+SERIAL_PORT_NAMES[serial0]="trch"
+SERIAL_PORT_NAMES[serial1]="rtps-r52"
+SERIAL_PORT_NAMES[serial2]="hpps"
