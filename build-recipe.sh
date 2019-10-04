@@ -124,8 +124,10 @@ function build_step_late_fetch()
 function build_step_toolchain_uninstall()
 {
     if [ "$DO_FETCH_ONLY" -ne 0 ]; then
-        echo "$1: toolchain_uninstall"
-        cd "$REC_SRC_DIR" && do_toolchain_uninstall
+        if [ -d "$REC_SRC_DIR" ]; then
+            echo "$1: toolchain_uninstall"
+            cd "$REC_SRC_DIR" && do_toolchain_uninstall
+        fi
     elif [ -d "$REC_WORK_DIR" ]; then
         echo "$1: toolchain_uninstall"
         cd "$REC_WORK_DIR" && do_toolchain_uninstall
@@ -135,8 +137,10 @@ function build_step_toolchain_uninstall()
 function build_step_undeploy()
 {
     if [ "$DO_FETCH_ONLY" -ne 0 ]; then
-        echo "$1: undeploy"
-        cd "$REC_SRC_DIR" && do_undeploy
+        if [ -d "$REC_SRC_DIR" ]; then
+            echo "$1: undeploy"
+            cd "$REC_SRC_DIR" && do_undeploy
+        fi
     elif [ -d "$REC_WORK_DIR" ]; then
         echo "$1: undeploy"
         cd "$REC_WORK_DIR" && do_undeploy
@@ -233,6 +237,12 @@ function build_lifecycle()
     # setup build environment
     source "${THIS_DIR}/build-recipes/build-recipe-env.sh" -r "$recname" -w .
 
+    # uninstall/undeploy on clean request or before fetch
+    if [ $IS_CLEAN -ne 0 ] || [ $IS_FETCH -ne 0 ]; then
+        build_step_with_metrics build_step_toolchain_uninstall "$recname"
+        build_step_with_metrics build_step_undeploy "$recname"
+    fi
+
     if [ $IS_CLEAN_SOURCES -ne 0 ]; then
         build_step_with_metrics build_step_clean_sources "$recname"
     fi
@@ -242,12 +252,6 @@ function build_lifecycle()
         mkdir -p "$REC_SRC_DIR"
         build_step_with_metrics build_step_fetch "$recname"
         build_step_with_metrics build_step_post_fetch "$recname"
-    fi
-
-    # uninstall/undeploy on clean request or after fetch
-    if [ $IS_CLEAN -ne 0 ] || [ $IS_FETCH -ne 0 ]; then
-        build_step_with_metrics build_step_toolchain_uninstall "$recname"
-        build_step_with_metrics build_step_undeploy "$recname"
     fi
 
     # some recipes are source-only
