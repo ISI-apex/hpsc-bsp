@@ -8,9 +8,9 @@ set -e
 # Parse test module JSON file to get its recipe dependencies
 function get_json_dependent_recipes()
 {
-    python -c "import sys, json
+    python3 -c "import sys, json
 json = json.load(sys.stdin)
-print '\n'.join([json[j]['pkg'] for j in json])" < "$1"
+print('\n'.join([json[j]['pkg'] for j in json]))" < "$1"
 }
 
 # Search layer for test module JSON files
