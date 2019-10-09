@@ -185,16 +185,16 @@ else
     # commit change, if requested
     if [ "$IS_COMMIT" -ne 0 ]; then
         echo "Committing changes to recipe"
-        shortrev=$(git rev-parse --short "$SRCREV") || (
+        shortrev=$(git rev-parse --short "$SRCREV") || {
             rc=$?
             echo "Failed to get short revision for commit message" >&2
             exit $rc
-        )
-        git commit -m "$RECIPE: upgrade to rev: $shortrev" || (
+        }
+        git commit -m "$RECIPE: upgrade to rev: $shortrev" || {
             rc=$?
             echo "Commit failed" >&2
             exit $rc
-        )
+        }
         # TODO: optional push?
     else
         echo "You may now commit changes"
