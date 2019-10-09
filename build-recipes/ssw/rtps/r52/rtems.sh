@@ -10,8 +10,6 @@ export GIT_BRANCH=hpsc-1.2
 
 export DEPENDS_ENVIRONMENT="sdk/rtems-source-builder" # exports PATH
 
-# TODO: Why is set -e being ignored here?
-
 # for other recipes
 export RTEMS_RTPS_R52_BSP=${REC_ENV_DIR}/RTEMS-5-RTPS-R52
 export RTEMS_MAKEFILE_PATH=${RTEMS_RTPS_R52_BSP}/arm-rtems5/gen_r52_qemu
@@ -40,12 +38,13 @@ function exes_to_uboot_fmt()
 function do_build()
 {
     ENV_check_rsb_toolchain || return $?
-    local rsb_src=$(get_dependency_src "sdk/rtems-source-builder")
+    local rsb_src
+    rsb_src=$(get_dependency_src "sdk/rtems-source-builder")
     echo "rtems: sb-bootstrap"
     "${rsb_src}/source-builder/sb-bootstrap" || return $?
 
     mkdir -p b-gen_r52_qemu
-    cd b-gen_r52_qemu
+    cd b-gen_r52_qemu || return $?
     echo "rtems: gen_r52_qemu: configure"
     # required for sleep functions to work when running in QEMU
     export CLOCK_DRIVER_USE_FAST_IDLE=0
@@ -65,7 +64,7 @@ function do_build()
 function do_toolchain_install()
 {
     do_toolchain_uninstall # always clean prefix
-    cd b-gen_r52_qemu
+    cd b-gen_r52_qemu || return $?
     echo "rtems: gen_r52_qemu: make install"
     make install
 }
