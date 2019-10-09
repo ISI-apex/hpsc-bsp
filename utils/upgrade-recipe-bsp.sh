@@ -60,6 +60,10 @@ function verify_recipe_git_status()
         echo "Repository has staged changes - commit or reset before proceeding" >&2
         return 1
     fi
+    if ! git symbolic-ref --short -q HEAD > /dev/null; then
+        echo "Repository is in detached HEAD state - switch to a branch HEAD before proceeding" >&2
+        return 1
+    fi
 }
 
 function usage()
