@@ -2,12 +2,11 @@
 #
 # Upgrade GIT_REV for a BSP build recipe
 #
-set -e
 
 # Ensure we're in BSP directory structure so git always operates on BSP repo,
 # since we don't know where the script was actually executed from
 BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && cd .. && pwd)"
-cd "$BSP_DIR"
+cd "$BSP_DIR" || exit $?
 
 function find_recipe()
 {
@@ -45,7 +44,7 @@ function find_srcrev()
     # query for the HEAD of the branch
     local matches
     local srcrev
-    matches=$(git ls-remote -h "$git_uri" "$srcbranch")
+    matches=$(git ls-remote -h "$git_uri" "$srcbranch") || return $?
     srcrev=$(echo "$matches" | awk '{print $1}')
     if [ -z "$srcrev" ]; then
         # branch doesn't exist?
@@ -58,7 +57,7 @@ function find_srcrev()
 function verify_recipe_git_status()
 {
     if ! git diff-index --cached --quiet HEAD --; then
-        echo "Repository has staged changes - commit or reset before proceeding"
+        echo "Repository has staged changes - commit or reset before proceeding" >&2
         return 1
     fi
 }
@@ -78,7 +77,6 @@ function usage()
     echo "       find-srcrev: query for and print the HEAD revision and exit"
     echo "    -c 1|0: whether to commit changes (1), or not (0); default = 0"
     echo "    -h: show this message and exit"
-    exit 1
 }
 
 RECIPE=""
@@ -104,7 +102,8 @@ while getopts "r:s:b:a:c:p:h?" o; do
                [ "$ACTION" != "find-srcbranch" ] &&
                [ "$ACTION" != "find-srcrev" ]; then
                 echo "Error: no such action: ${OPTARG}"
-                usage
+                usage >&2
+                exit 1
             fi
             ;;
         c)
@@ -112,20 +111,23 @@ while getopts "r:s:b:a:c:p:h?" o; do
             ;;
         h)
             usage
+            exit 0
             ;;
         *)
             echo "Unknown option"
-            usage
+            usage >&2
+            exit 1
             ;;
     esac
 done
 shift $((OPTIND-1))
 if [ -z "$RECIPE" ]; then
-    usage
+    usage >&2
+    exit 1
 fi
 
 # we always need the recipe file
-REC_FILE=$(find_recipe "$RECIPE")
+REC_FILE=$(find_recipe "$RECIPE") || exit $?
 if [ "$ACTION" == "find-recipe" ]; then
     echo "$REC_FILE"
     exit 0
@@ -134,34 +136,34 @@ fi
 # perform some simple verification of recipe content
 for var in "GIT_REPO" "GIT_REV" "GIT_BRANCH"; do
     if [ "$(grep -c "$var=" "$REC_FILE")" -ne 1 ]; then
-        echo "Exactly one instance of $var should exist in recipe"
-        echo "Failed to upgrade recipe"
+        echo "Exactly one instance of $var should exist in recipe" >&2
+        echo "Failed to upgrade recipe" >&2
         exit 1
     fi
 done
 
 # we need SRCBRANCH if it was requested or if SRCREV wasn't provided
 if [ -z "$SRCBRANCH" ]; then
-    SRCBRANCH=$(find_srcbranch "$REC_FILE")
+    SRCBRANCH=$(find_srcbranch "$REC_FILE") || exit $?
 fi
 if [ "$ACTION" == "find-srcbranch" ]; then
     find_srcbranch "$REC_FILE"
-    exit 0
+    exit $?
 elif [ "$ACTION" == "find-srcrev" ]; then
     find_srcrev "$REC_FILE" "$SRCBRANCH"
-    exit 0
+    exit $?
 fi
 # else upgrade
 echo "Using recipe file: $REC_FILE"
 
 # verify current git status before we start making changes to files
 if [ "$IS_COMMIT" -ne 0 ]; then
-    verify_recipe_git_status
+    verify_recipe_git_status || exit $?
 fi
 
 # if not given SRCREV, we have to query the remote
 if [ -z "$SRCREV" ]; then
-    SRCREV="$(find_srcrev "$REC_FILE" "$SRCBRANCH")"
+    SRCREV=$(find_srcrev "$REC_FILE" "$SRCBRANCH") || exit $?
 fi
 echo "Using SRCREV: $SRCREV"
 
@@ -171,7 +173,7 @@ sed -i "s/GIT_BRANCH=.*/GIT_BRANCH=${SRCBRANCH}/" "$REC_FILE"
 
 # Sometimes have problems with `git diff-index --quiet HEAD -- "$REC_FILE"`
 # returning bad exit code when $REC_FILE uncached? So add first, then check
-git add "$REC_FILE"
+git add "$REC_FILE" || exit $?
 if git diff-index --cached --quiet HEAD -- "$REC_FILE"; then
     echo "No changes to recipe file: $REC_FILE"
 else
@@ -179,8 +181,16 @@ else
     # commit change, if requested
     if [ "$IS_COMMIT" -ne 0 ]; then
         echo "Committing changes to recipe"
-        shortrev=$(git rev-parse --short "$SRCREV")
-        git commit -m "$RECIPE: upgrade to rev: $shortrev"
+        shortrev=$(git rev-parse --short "$SRCREV") || (
+            rc=$?
+            echo "Failed to get short revision for commit message" >&2
+            exit $rc
+        )
+        git commit -m "$RECIPE: upgrade to rev: $shortrev" || (
+            rc=$?
+            echo "Commit failed" >&2
+            exit $rc
+        )
         # TODO: optional push?
     else
         echo "You may now commit changes"
