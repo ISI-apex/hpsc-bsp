@@ -67,11 +67,55 @@ function find_srcrev()
     echo "$srcrev"
 }
 
+function git_fetch_checkout_latest_head()
+{
+    local branch=$1 # required
+    local remote=$2 # optional
+    local is_local=0
+    local is_remote=0
+
+    # update from remote
+    if [ -n "$remote" ]; then
+        echo "Fetching from layer remote: $remote"
+        git fetch "$remote" || return $?
+    fi
+
+    # verify branch exists and isn't a commit or tree-ish
+    if git show-ref --verify --quiet "refs/heads/${branch}"; then
+        is_local=1
+    fi
+    if [ -n "$remote" ] && \
+       git show-ref --verify --quiet "refs/remotes/${remote}/${branch}"; then
+        is_remote=1
+    fi
+    if [ $is_local -eq 0 ] && [ $is_remote -eq 0 ]; then
+        echo "Layer branch not found: $branch" >&2
+        return 1
+    fi
+
+    echo "Checking out layer branch: $branch"
+    if [ $is_local -eq 1 ]; then
+        # move off of detached HEAD (but still might be behind remote)
+        git checkout "$branch" -- || return $?
+        local upstream
+        upstream=$(git rev-parse --abbrev-ref --verify --quiet "${branch}@{u}" \
+                   2>/dev/null)
+        if [ $? -eq 0 ]; then
+            # fast-forward to upstream's HEAD
+            echo "Merging layer branch from upstream: $upstream"
+            git merge --ff-only @{u} || return $?
+        fi
+    else
+        git checkout -b "$branch" --track "${remote}/${branch}" -- || return $?
+    fi
+}
+
 function verify_recipe_git_status()
 {
     local recfile=$1
     local laybranch=$2
     local layremote=$3
+    local branch
     (
         # must be in the recipe's git repo directory structure
         cd "$(dirname "$recfile")" || return $?
@@ -90,23 +134,19 @@ function verify_recipe_git_status()
             fi
         fi
         if [ -n "$laybranch" ]; then
-            # check that value is actually a branch, not a commit or tree-ish
-            if ! git show-ref --verify --quiet "refs/heads/$laybranch"; then
-                echo "Layer branch not found: $laybranch" >&2
-                return 1
-            fi
-            echo "Checking out layer branch: $laybranch"
-            git checkout "$laybranch" -- || return $?
+            branch=$laybranch
+        else
+            # use current branch
+            branch=$(git rev-parse --abbrev-ref HEAD) || return $?
         fi
-        echo "Pulling from layer remote: $layremote"
-        git pull --ff-only "$layremote" || return $?
+        git_fetch_checkout_latest_head "$branch" "$layremote"
     )
 }
 
 function usage()
 {
     echo "Usage: $0 -r RECIPE [-s SRCREV] [-b SRCBRANCH] [-B LAYBRANCH]" \
-         "[-B LAYREMOTE] [-a <build>] [-c 1|0] [-w DIR] [-h]"
+         "[-O LAYREMOTE] [-a <build>] [-c 1|0] [-w DIR] [-h]"
     echo "    -r RECIPE: the name of the recipe to upgrade"
     echo "               e.g.: arm-trusted-firmware, linux-hpsc, u-boot-hpps"
     echo "    -s SRCREV: the git revision hash to upgrade to"
@@ -116,7 +156,7 @@ function usage()
     echo "                  if that cannot be determined, 'master' is assumed"
     echo "    -B LAYBRANCH: the layer branch"
     echo "                  (avoids working on detached HEAD from layer's BSP recipe)"
-    echo "    -O LAYREMOTE: the layer remote to pull from, defaults to 'origin'"
+    echo "    -O LAYREMOTE: the layer remote to pull from (if set)"
     echo "    -a ACTION: additional actions to run:"
     echo "       build: test building the upgraded recipe (can be slow);"
     echo "              requires building cross-compiler, sysroot, and dependencies"
@@ -130,11 +170,11 @@ UP_RECIPE=""
 SRCREV=""
 SRCBRANCH=""
 LAYBRANCH=""
-LAYREMOTE="origin"
+LAYREMOTE=""
 IS_BUILD=0
 IS_COMMIT=0
 WORKING_DIR="DEVEL"
-while getopts "r:s:b:B:a:c:w:h?" o; do
+while getopts "r:s:b:B:O:a:c:w:h?" o; do
     case "$o" in
         r)
             UP_RECIPE="${OPTARG}"
