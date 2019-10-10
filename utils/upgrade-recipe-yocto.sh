@@ -90,6 +90,11 @@ function verify_recipe_git_status()
             fi
         fi
         if [ -n "$laybranch" ]; then
+            # check that value is actually a branch, not a commit or tree-ish
+            if ! git show-ref --verify --quiet "refs/heads/$laybranch"; then
+                echo "Layer branch not found: $laybranch" >&2
+                return 1
+            fi
             echo "Checking out layer branch: $laybranch"
             git checkout "$laybranch" -- || return $?
         fi
