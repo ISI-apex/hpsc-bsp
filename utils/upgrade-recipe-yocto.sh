@@ -6,7 +6,6 @@
 # Instead, we use the lower-level devtool (which AUH also wraps) and assume the
 # recipe uses git for its SRC_URI.
 #
-set -e
 
 function find_srcuri()
 {
@@ -58,7 +57,7 @@ function find_srcrev()
     # query for the HEAD of the branch
     local matches
     local srcrev
-    matches=$(git ls-remote -h "$gituri" "$srcbranch")
+    matches=$(git ls-remote -h "$gituri" "$srcbranch") || return $?
     srcrev=$(echo "$matches" | awk '{print $1}')
     if [ -z "$srcrev" ]; then
         # branch doesn't exist?
@@ -75,10 +74,10 @@ function verify_recipe_git_status()
     local layremote=$3
     (
         # must be in the recipe's git repo directory structure
-        cd "$(dirname "$recfile")"
+        cd "$(dirname "$recfile")" || return $?
         if ! git diff-index --cached --quiet HEAD --; then
             echo "Recipe's repository has staged changes -" \
-                 "commit or reset before proceeding"
+                 "commit or reset before proceeding" >&2
             return 1
         fi
         # the configure script likely checks out a detached HEAD, but we should
@@ -86,20 +85,20 @@ function verify_recipe_git_status()
         if ! git symbolic-ref --short -q HEAD > /dev/null; then
             echo "Recipe's repository has detached HEAD"
             if [ -z "$laybranch" ]; then
-                echo "Need '-B LAYBRANCH' when layer is in detached HEAD state"
+                echo "Need '-B LAYBRANCH' when layer is in detached HEAD state" >&2
                 return 1
             fi
             echo "Checking out layer branch: $laybranch"
-            git checkout "$laybranch" --
+            git checkout "$laybranch" -- || return $?
         fi
         echo "Pulling from layer remote: $layremote"
-        git pull --ff-only "$layremote"
+        git pull --ff-only "$layremote" || return $?
     )
 }
 
 function usage()
 {
-    echo "Usage: $0 -r RECIPE [-s SRCREV] [-b SRCBRANCH] [-B LAYBRANCH] " \
+    echo "Usage: $0 -r RECIPE [-s SRCREV] [-b SRCBRANCH] [-B LAYBRANCH]" \
          "[-B LAYREMOTE] [-a <build>] [-c 1|0] [-w DIR] [-h]"
     echo "    -r RECIPE: the name of the recipe to upgrade"
     echo "               e.g.: arm-trusted-firmware, linux-hpsc, u-boot-hpps"
@@ -118,7 +117,6 @@ function usage()
     echo "    -w DIR: set the working directory (default=\"DEVEL\")"
     echo "            (should be different than the normal BSP build directory)"
     echo "    -h: show this message and exit"
-    exit 1
 }
 
 UP_RECIPE=""
@@ -151,7 +149,8 @@ while getopts "r:s:b:B:a:c:w:h?" o; do
                 IS_BUILD=1
             else
                 echo "Error: no such action: ${OPTARG}"
-                usage
+                usage >&2
+                exit 1
             fi
             ;;
         c)
@@ -162,50 +161,53 @@ while getopts "r:s:b:B:a:c:w:h?" o; do
             ;;
         h)
             usage
+            exit
             ;;
         *)
             echo "Unknown option"
-            usage
+            usage >&2
+            exit 1
             ;;
     esac
 done
 shift $((OPTIND-1))
 if [ -z "$UP_RECIPE" ]; then
-    usage
+    usage >&2
+    exit 1
 fi
 
 # initialize the environment for devtool
 THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-source "${THIS_DIR}/configure-hpsc-yocto-env.sh" -w "$WORKING_DIR"
+source "${THIS_DIR}/configure-hpsc-yocto-env.sh" -w "$WORKING_DIR" || exit $?
 
 # devtool doesn't appear able to determine the latest revision on its own, so
 # we have to parse the recipe to get the git remote, then query it
 echo "Running 'find-recipe'..."
-FIND_REC_OUT=$(devtool find-recipe "$UP_RECIPE") || (
+FIND_REC_OUT=$(devtool find-recipe "$UP_RECIPE") || {
     echo "$FIND_REC_OUT"
     exit 1
-)
+}
 REC_FILE=$(echo "$FIND_REC_OUT" | tail -n 1)
 echo "Using recipe file: $REC_FILE"
 
 # verify current git status before we start making changes to files
-verify_recipe_git_status "$REC_FILE" "$LAYBRANCH" "$LAYREMOTE"
+verify_recipe_git_status "$REC_FILE" "$LAYBRANCH" "$LAYREMOTE" || exit $?
 
 # get the 'SRC_URI' value from the recipe
-SRC_URI=$(find_srcuri "$REC_FILE")
+SRC_URI=$(find_srcuri "$REC_FILE") || exit $?
 echo "Using SRC_URI: $SRC_URI"
 
 # a branch must be known if we have to query the remote for the latest HEAD
 # also, devtool fails if it finds multiple branches with SRCREV
 if [ -z "$SRCBRANCH" ]; then
     # check if 'SRCBRANCH' is specified in recipe
-    SRCBRANCH=$(find_srcbranch "$REC_FILE" "$SRC_URI")
+    SRCBRANCH=$(find_srcbranch "$REC_FILE" "$SRC_URI") || exit $?
 fi
 echo "Using SRCBRANCH: $SRCBRANCH"
 
 # if not given SRCREV, we have to query the remote
 if [ -z "$SRCREV" ]; then
-    SRCREV=$(find_srcrev "$SRC_URI" "$SRCBRANCH")
+    SRCREV=$(find_srcrev "$SRC_URI" "$SRCBRANCH") || exit $?
 fi
 echo "Using SRCREV: $SRCREV"
 
@@ -218,8 +220,8 @@ function cleanup {
         echo "Cleaning up workspace: $WORKSPACE"
         rm -rf "$WORKSPACE"
     else
-        echo "Workspace not found in expected location: $WORKSPACE"
-        echo "  Please clean up manually"
+        echo "Workspace not found in expected location: $WORKSPACE" >&2
+        echo "  Please clean up manually" >&2
     fi
 }
 function reset_cleanup {
@@ -228,30 +230,30 @@ function reset_cleanup {
     # If reset fails, it probably means the workspace wasn't created, so perform
     # cleanup anyway (don't let function abort).
     echo "Running 'reset'..."
-    devtool reset -n "$UP_RECIPE" || true
+    devtool reset -n "$UP_RECIPE" # ignore return code
     cleanup
 }
 
 trap reset_cleanup EXIT
 # 'upgrade' creates a workspace entry for the recipe and tries to upgrade it
 echo "Running 'upgrade'..."
-devtool upgrade "$UP_RECIPE" -S "$SRCREV" -B "$SRCBRANCH"
+devtool upgrade "$UP_RECIPE" -S "$SRCREV" -B "$SRCBRANCH" || exit $?
 if [ $IS_BUILD -ne 0 ]; then
     # 'build' has a lot of dependencies, like building cross-compilers
     echo "Running 'build'..."
-    devtool build "$UP_RECIPE"
+    devtool build "$UP_RECIPE" || exit $?
 fi
 # 'finish' copies changes to the original layer and removes the workspace entry
 # it doesn't actually delete the source files in the workspace though
 echo "Running 'finish'..."
-devtool finish "$UP_RECIPE" "$(dirname "$REC_FILE")"
+devtool finish "$UP_RECIPE" "$(dirname "$REC_FILE")" || exit $?
 # can't allow 'reset' anymore, just cleanup the old workspace source tree
 trap - EXIT
 cleanup
 
 (
-    cd "$(dirname "$REC_FILE")"
-    git add "$REC_FILE"
+    cd "$(dirname "$REC_FILE")" || exit $?
+    git add "$REC_FILE" || exit $?
     if git diff-index --cached --quiet HEAD -- "$REC_FILE"; then
         echo "No changes to recipe file: $REC_FILE"
     else
@@ -259,8 +261,16 @@ cleanup
         # commit change, if requested
         if [ "$IS_COMMIT" -ne 0 ]; then
             echo "Committing changes to recipe"
-            shortrev=$(git rev-parse --short "$SRCREV")
-            git commit -m "$UP_RECIPE: upgrade to rev: $shortrev"
+            shortrev=$(git rev-parse --short "$SRCREV") || {
+                rc=$?
+                echo "Failed to get short revision for commit message" >&2
+                exit $rc
+            }
+            git commit -m "$UP_RECIPE: upgrade to rev: $shortrev" || {
+                rc=$?
+                echo "Commit failed" >&2
+                exit $rc
+            }
             # TODO: optional push?
         else
             echo "You may now commit changes"
