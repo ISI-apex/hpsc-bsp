@@ -88,6 +88,8 @@ function verify_recipe_git_status()
                 echo "Need '-B LAYBRANCH' when layer is in detached HEAD state" >&2
                 return 1
             fi
+        fi
+        if [ -n "$laybranch" ]; then
             echo "Checking out layer branch: $laybranch"
             git checkout "$laybranch" -- || return $?
         fi
