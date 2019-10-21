@@ -88,7 +88,7 @@ you're using a fork or another layer, change the path and URL accordingly):
 	cd /path/to/hpsc-bsp/DEVEL/src/meta-hpsc
 	git status      # to verify you're ahead of the remote
 	git log	        # to see the upgrade commit log
-	git remote set-url git@github.com:ISI-apex/meta-hpsc.git
+	git remote set-url origin git@github.com:ISI-apex/meta-hpsc.git
 	git push
 
 If you didn't specify `-c 1` in the script command, you won't see the output
