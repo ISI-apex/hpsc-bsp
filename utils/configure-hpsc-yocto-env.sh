@@ -63,6 +63,7 @@ function configure_env()
             -r "${YOCTO_SUBDIR}/poky" \
             -r "${YOCTO_SUBDIR}/meta-openembedded" \
             -r "${YOCTO_SUBDIR}/meta-hpsc" \
+            -r "${YOCTO_SUBDIR}" \
             || return $?
     fi
 
