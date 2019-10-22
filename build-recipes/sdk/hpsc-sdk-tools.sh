@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/hpsc-sdk-tools"
-export GIT_REV=97ade98e35fe2653deec7412f11789f48af9e722
+export GIT_REV=9271dd54120ffd308907732e3878a0f58c31fafd 
 export GIT_BRANCH=hpsc
 
 DEPLOY_DIR_1=sdk/tools
@@ -21,6 +21,7 @@ DEPLOY_ARTIFACTS_1=(
     bin/miniconfig.sh
     bin/qemu-chardev-ptys
     bin/qmp-mem-wait
+    bin/qmp-cmd
 )
 
 function do_post_fetch()
