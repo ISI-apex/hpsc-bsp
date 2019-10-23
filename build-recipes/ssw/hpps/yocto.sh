@@ -59,10 +59,10 @@ function do_late_fetch()
 POKY_DEPLOY_DIR=poky_build/tmp/deploy
 POKY_IMAGE_DIR=${POKY_DEPLOY_DIR}/images/hpsc-chiplet
 
-export YOCTO_VERSION=2.6.3 # exported for other recipes
+export YOCTO_VERSION=2.7.1 # exported for other recipes
 export YOCTO_HPPS_SDK="${REC_ENV_DIR}/yocto-hpps-sdk" # exported for other recipes
 
-POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-${YOCTO_VERSION}.sh
+POKY_TC_INSTALLER=${POKY_DEPLOY_DIR}/sdk/poky-glibc-x86_64-core-image-hpsc-aarch64-hpsc-chiplet-toolchain-${YOCTO_VERSION}.sh
 
 DEPLOY_DIR_1=ssw/hpps
 DEPLOY_ARTIFACTS_1=(
