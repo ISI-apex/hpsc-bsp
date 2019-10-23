@@ -99,7 +99,6 @@ function configure_env()
     conf_replace_or_append "TEST_TARGET = \"simpleremote\""
     conf_replace_or_append "TEST_SERVER_IP = \"$(hostname -I | cut -d ' ' -f 1)\""
     conf_replace_or_append "TEST_TARGET_IP = \"127.0.0.1:3088\""
-    conf_replace_or_append "IMAGE_FSTYPES_append += \" cpio.gz\""
     conf_replace_or_append "TEST_SUITES += \"${TEST_MODULES[*]}\""
 }
 
