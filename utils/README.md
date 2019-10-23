@@ -69,13 +69,13 @@ changes to the `hpsc` branch of `meta-hpsc`:
 The script may take a few minutes to run, depending on the recipe -- be patient.
 If you see output at the end like:
 
-	No changes to recipe file: /path/to/hpsc-bsp/DEVEL/src/meta-hpsc/meta-hpsc-bsp/recipes-bsp/arm-trusted-firmware/arm-trusted-firmware_1.3.bb
+	No changes to recipe file: /path/to/hpsc-bsp/DEVEL/src/ssw/hpps/yocto/meta-hpsc/meta-hpsc-bsp/recipes-bsp/arm-trusted-firmware/arm-trusted-firmware_1.3.bb
 
 then the recipe already specifies the latest revision and there is nothing more
 to do.
 If you see output at the end like:
 
-	Recipe file upgraded: /path/to/hpsc-bsp/DEVEL/src/meta-hpsc/meta-hpsc-bsp/recipes-bsp/arm-trusted-firmware/arm-trusted-firmware_1.3.bb
+	Recipe file upgraded: /path/to/hpsc-bsp/DEVEL/src/ssw/hpps/yocto/meta-hpsc/meta-hpsc-bsp/recipes-bsp/arm-trusted-firmware/arm-trusted-firmware_1.3.bb
 	Committing changes to recipe
 	[hpsc 1234567] arm-trusted-firmware: upgrade to rev: 890abcd
 
@@ -85,7 +85,7 @@ Because the build scripts checkout repositories using `https` instead of `ssh`,
 you probably need to change the repository's remote URL before pushing (if
 you're using a fork or another layer, change the path and URL accordingly):
 
-	cd /path/to/hpsc-bsp/DEVEL/src/meta-hpsc
+	cd /path/to/hpsc-bsp/DEVEL/src/ssw/hpps/yocto/meta-hpsc
 	git status      # to verify you're ahead of the remote
 	git log	        # to see the upgrade commit log
 	git remote set-url origin git@github.com:ISI-apex/meta-hpsc.git
