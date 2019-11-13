@@ -153,4 +153,4 @@ ARGS+=(-n user -p 22 -p 2345)
 # launch-qemu SDK tool assumes the SDK has been loaded into env
 export PATH="${SDK}:${SDK_TOOLS}:$PATH"
 
-exec "${SDK_TOOLS}/launch-qemu" "${ARGS[@]}" "$@"
+run exec "${SDK_TOOLS}/launch-qemu" "${ARGS[@]}" "$@"
