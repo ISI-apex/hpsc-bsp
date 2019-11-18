@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/hpsc-utils.git"
-export GIT_REV=d02c086500fb34b6294a87bf4b65c618724c3ba9
+export GIT_REV=a5a27fffd1335f061419ed45d0c4c6bcbba27dde
 export GIT_BRANCH=hpsc
 
 # Note: this should be a reference to sdk/; need to split yocto build into
