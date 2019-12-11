@@ -136,7 +136,10 @@ and in `${WORKING_DIR}/deploy/ssw/hpps/`:
 1. `Image.gz` - the Linux kernel binary image
 1. `u-boot.dtb` - the U-boot device tree
 1. `u-boot-nodtb.bin` - the U-boot bootloader for the dual A53 cluster
-1. `tests` - a directory with tests that can be run on HPPS
+
+and in `${WORKING_DIR}/deploy/ssw/`:
+
+1. `tests` - a directory with the pytest test infrastructure
 
 The Yocto SDK is also installed locally at `${WORKING_DIR}/env/yocto-hpps-sdk`.
 
