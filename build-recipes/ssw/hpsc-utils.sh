@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/hpsc-utils.git"
-export GIT_REV=4dbc0a91e3433ea051d96b276697212b963b5018
+export GIT_REV=775a3b6a9978edc48b6ccc6bdca4fd9df7649a01
 export GIT_BRANCH=hpsc
 
 DEPLOY_DIR_1=ssw/tests
