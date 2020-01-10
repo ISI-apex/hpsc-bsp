@@ -1,12 +1,13 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/hpsc-utils.git"
-export GIT_REV=775a3b6a9978edc48b6ccc6bdca4fd9df7649a01
+export GIT_REV=a74d67c47f03bd78a6a9abe36ea943299e0f844f
 export GIT_BRANCH=hpsc
 
 DEPLOY_DIR_1=ssw/tests
 DEPLOY_ARTIFACTS_1=(
     test/pytest/README.md
+    test/pytest/buildspec.yml
     test/pytest/conftest.py
     test/pytest/measure_load.py
     test/pytest/test_dma.py
