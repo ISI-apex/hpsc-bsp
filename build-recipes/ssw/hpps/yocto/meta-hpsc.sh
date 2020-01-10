@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/meta-hpsc.git"
-export GIT_REV=734ead4148d6765e44aebb3c85e779468e62da1b
+export GIT_REV=058652085b46cfa876f9a4c66a18af407fc07bf1
 export GIT_BRANCH=hpsc
 
 # Yocto layers aren't built
