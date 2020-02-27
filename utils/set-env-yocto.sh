@@ -40,7 +40,7 @@ function setup_yocto_env()
     BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && cd .. && pwd)"
     local YOCTO_ENV="${BSP_DIR}/${WORKING_DIR#${BSP_DIR}}/env/yocto-hpps-sdk/environment-setup-aarch64-poky-linux"
     if [ ! -e "$YOCTO_ENV" ]; then
-        echo "Recipe not built: sdk/gcc-arm-none-eabi"
+        echo "Recipe not built: ssw/hpps/yocto"
         return 1
     fi
     # source environment setup script
