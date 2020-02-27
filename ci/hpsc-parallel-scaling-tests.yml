@@ -1,0 +1,40 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - yum -y install https://centos7.iuscommunity.org/ius-release.rpm
+      - yum -y update
+      - yum -y group install "Development Tools"
+      - yum -y install uboot-tools pixman-devel libfdt-devel python36-pip
+      - pip3 install --upgrade pip
+      - pip3 install pyserial pexpect pytest pytest-timeout
+  
+  pre_build:
+    commands:
+      # create a config file for the HPPS hpscqemu host
+      - mkdir -p ~/.ssh/
+      - printf "Host hpscqemu\n     HostName localhost\n     User root\n     Port 2088\n     StrictHostKeyChecking no\n     UserKnownHostsFile=/dev/null\n" > ~/.ssh/config
+      
+  build:
+    commands:
+#      - cd $CODEBUILD_SRC_DIR_npb/NPB3.3.1/NPB3.3-OMP/bin
+#      - for th in {1..8}; do for tr in {1..3}; do export OMP_NUM_THREADS=${th}; export OMP_PROC_BIND=TRUE; ./ep.A.x; done; done
+#      - cd $CODEBUILD_SRC_DIR_hpsc_utils/hpsc-utils/test/pytest
+      - cd $CODEBUILD_SRC_DIR/hpsc-bsp/ssw/tests
+      - export TZ=America/New_York date
+      - now=$(date +"%Y_%m_%d_%H_%M_%S")
+#      - pytest -v --host hpscqemu --durations=0 &> results_${now}.txt
+#      - pytest -sv --host hpscqemu --durations=0 test_dma.py test_interrupt_affinity.py test_mbox.py test_parallel_scaling.py test_shm.py test_timer_interrupt.py 2>&1 | tee scaling_results_${now}.txt
+#      - pytest -sv --host hpscqemu --durations=0 test_parallel_scaling.py measure_load.py &> scaling_results_${now}.txt
+      - pytest -sv --host hpscqemu --durations=0 test_parallel_scaling.py 2>&1 | tee scaling_results_${now}.txt
+
+#  post_build:
+#    commands:
+#      - cat scaling_results_${now}.txt
+      
+artifacts:
+  files:
+     # capture the test results files
+     - scaling_results_${now}.txt
+  base-directory: $CODEBUILD_SRC_DIR_hpsc_utils/test/pytest

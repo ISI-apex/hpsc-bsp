@@ -1,0 +1,44 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - yum -y install https://centos7.iuscommunity.org/ius-release.rpm
+      - yum -y update
+      - yum -y group install "Development Tools"
+      - yum -y install java screen uboot-tools python3 python3-libs qemu-common chrpath texinfo pax wget which glib2-devel libfdt-devel pixman-devel zlib-devel ncurses-devel openssl-devel python3-devel python3-pip python-devel
+
+  pre_build:
+    commands:
+      - env
+      # Create "hpsc" user to perform builds
+      - useradd -N -G users hpsc
+      - chown -R hpsc:users .
+
+  build:
+    # Bitbake (Yocto build) complains if you try to build as root
+    run-as: hpsc
+    commands:
+       - env
+       # "HOME=/root" even when running as "hpsc", which breaks rtems-source-builder (Permission denied: '/root')
+       - export HOME=/home/hpsc
+       - env
+       - ./build-hpsc-bsp.sh
+
+  post_build:
+    run-as: hpsc
+    commands:
+      # capturing logs as a single artifact greatly simplifies managing/pruning in S3
+      - tar -czvf BUILD/build-logs.tar.gz -C BUILD log
+      # create a hpsc-bsp.zip file for testing within AWS CodeBuild;
+      # zip doesn't have a flag to change directories, so we do it manually
+      - cd BUILD
+      - tar -xzf hpsc-bsp.tar.gz
+      - zip -r hpsc-bsp.zip hpsc-bsp
+artifacts:
+  files:
+    # Capture tar.gz, md5, and zip files, as well as build logs
+    - hpsc-bsp*
+    - build-logs.tar.gz
+    # - log/**/*
+  base-directory: BUILD
