@@ -30,6 +30,10 @@ This is typically only needed if you are developing bare-metal applications.
 environment with the RTEMS `gen_r52_qemu` BSP environment built and installed
 within the BSP working directory structure.
 This is typically only needed if you are developing RTEMS applications for RTPS.
+* `set-env-rtems-trch.sh` - source this script to configure your shell
+environment with the RTEMS `hpsc_trch_qemu` BSP environment built and installed
+within the BSP working directory structure.
+This is typically only needed if you are developing RTEMS applications for TRCH.
 * `set-env-yocto.sh` - source this script to configure your shell environment
 with the Yocto/Poky SDK built and installed within the BSP working directory
 structure.
