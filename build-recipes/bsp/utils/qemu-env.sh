@@ -10,7 +10,6 @@ SSW=${BSP_DIR}/ssw
 : "${ID:=0}"
 
 : "${RUN_DIR:=run}"
-: "${LOG_FILE:=${RUN_DIR}/qemu.log}"
 
 : "${QEMU_DT_DIR:=${SDK}/qemu-devicetrees}"
 : "${SDK_TOOLS:=${SDK}/tools}"

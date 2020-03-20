@@ -75,6 +75,8 @@ for env in "${QEMU_ENV[@]}"; do
     source "$env"
 done
 
+run mkdir -p "${RUN_DIR}"
+
 # The following steps should be part of the building, not running. But, in the
 # context of this binary release, there's no other place for them than here
 # (see comment at top for more).
