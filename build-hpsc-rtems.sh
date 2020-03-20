@@ -1,9 +1,7 @@
 #!/bin/bash
 
 # The recipes managed by this script
-RECIPES=("sdk/rtems-tools"
-         "sdk/rtems-source-builder"
-         "ssw/rtps/r52/rtems"
+RECIPES=("ssw/rtps/r52/rtems"
          "ssw/rtps/r52/hpsc-rtems")
 
 BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"

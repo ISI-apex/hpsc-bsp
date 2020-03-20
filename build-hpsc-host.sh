@@ -4,6 +4,8 @@
 RECIPES=("bsp"
          "sdk/qemu"
          "sdk/qemu-devicetrees"
+         "sdk/rtems-tools"
+         "sdk/rtems-source-builder"
          "sdk/hpsc-sdk-tools"
          "sdk/hpsc-eclipse")
 
