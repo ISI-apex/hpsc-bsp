@@ -1,0 +1,2 @@
+# dummy data for RTEMS test
+-       test-data           0x4003f000      $CONF_DIR/test-data.txt

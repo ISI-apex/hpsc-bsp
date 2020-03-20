@@ -1,5 +1,6 @@
 BUILD
 DEVEL
+run/
 *.bin
 uImage
 .*.swp

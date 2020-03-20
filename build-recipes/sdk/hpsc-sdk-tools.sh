@@ -1,27 +1,27 @@
 #!/bin/bash
 
 export GIT_REPO="https://github.com/ISI-apex/hpsc-sdk-tools"
-export GIT_REV=3b40dbea7ea2e26f1a7b5e85ced6cf98f6bcde34
+export GIT_REV=9f4eb8e29c5f9f6d5c1fd8c6a2a54f480285bd96
 export GIT_BRANCH=hpsc
 
 DEPLOY_DIR_1=sdk/tools
 DEPLOY_ARTIFACTS_1=(
-    bin/qemu-ifup.sh
-    bin/qmp.py
     bin/cfgc
+    bin/expandvars
+    bin/inicfg.py
+    bin/launch-qemu
+    bin/memmap.py
     bin/mkmemimg
-    bin/qemu-nand-creator
-    bin/sram-image-utils
     bin/merge-env
     bin/merge-map
     bin/merge-ini
-    bin/launch-qemu
-    bin/hpsc-objcopy
-    bin/memstripe
-    bin/miniconfig.sh
+    bin/mksfs
+    bin/numparse.py
     bin/qemu-chardev-ptys
-    bin/qmp-mem-wait
+    bin/qemu-ifup.sh
+    bin/qemu-preload-mem
     bin/qmp-cmd
+    bin/qmp.py
 )
 
 function do_post_fetch()

@@ -1,6 +1,21 @@
 HPSC Chiplet Board Support Package
 ==================================
 
+This provides scripts to build a distributable binary release of the BSP for
+the HPSC Chiplet shipped alongside the source release tarball. The binary
+release supports one configuration of the HW emulator and the SSW software
+stack out of many possible configurations supported by the source release, e.g.
+the source release (but not the binary release) supports building images to
+boot from non-volatile memory, boot from preloaded binaries, boot with BL0
+bootloader or without, boot with or without power-on test suite, boot into
+Yocto Linux or into bare Busybox, boot only a subset of subsystems, boot
+on ZeBu and HAPS emulators, etc. To develop, build, run, and test BSP
+components in place with dependency tracking for incremental builds that build
+only components needed for a given configuration, in all supported
+configurations (and to build on other distributions, or build without root),
+build from source in `BUILD/src` directory according to instructions in
+`BUILD/src/ssw/hpsc-utils/doc/README.md`.
+
 This repository includes:
 
 1. `build-hpsc-bsp.sh` - top-level build script.

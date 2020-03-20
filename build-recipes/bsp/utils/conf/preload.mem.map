@@ -1,0 +1,25 @@
+# Instructions for run-qemu for pre-loading data into memory
+
+# The binary release is configured for "fast" boot mode, in which Qemu loads
+# the images directly into DRAM upon startup of the machine (not possible on
+# real HW). For other configurations (e.g. load binaries from non-volatile
+# memory), build from source according to instructions in:
+# BUILD/src/ssw/hpsc-utils/doc/README.md.
+
+# CPU IDs: TRC:H 0, RTPS R52: 1-2, RTPS A53: 3, HPPS: 4-12
+# ADDR='-' means do not pass an address (e.g. for ELF loading)
+
+trch.sram  trch-os           0x0000_0000 $PROF_BLD/trch/trch.bin
+trch.sram  syscfg            0x000f_f000 syscfg.bin               0x0
+rtps.dram  rtps-bl           0x0000_0000 $PROF_BLD/rtps/r52/u-boot.bin
+rtps.dram  rtps-os           0x0004_0000 $PROF_BLD/rtps/r52/rtps-r52.img
+hpps.dram  hpps-fw           0x0000_0000 $PROF_BLD/hpps/arm-trusted-firmware.bin
+hpps.dram  hpps-bl           0x0002_0000 $PROF_BLD/hpps/u-boot-nodtb.bin
+hpps.dram  hpps-bl-dt        0x0005_d000 $PROF_BLD/hpps/u-boot.dtb
+hpps.dram  hpps-bl-env       0x0005_f000 hpps-u-boot.env.bin
+hpps.dram  hpps-dt           0x0006_0000 $PROF_BLD/hpps/hpsc.dtb
+hpps.dram  hpps-os           0x0006_4000 uImage
+hpps.dram  hpps-initramfs    0x0050_0000 $PROF_BLD/hpps/core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot
+
+# Only used for a test data file for a test in RTEMS
+lsio.smc.sram.0  test-sfs    0x0002_0100 run/test.sfs.mem.bin
