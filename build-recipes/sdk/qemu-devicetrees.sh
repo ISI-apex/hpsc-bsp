@@ -5,7 +5,7 @@ export GIT_REV=4e8a9bf4d9f4af34caeb3e017dc994bbb96d075b
 export GIT_BRANCH=hpsc
 
 DEPLOY_DIR=sdk/qemu-devicetrees
-DEPLOY_ARTIFACTS=(LATEST/SINGLE_ARCH/hpsc-arch.dts
+DEPLOY_ARTIFACTS=(hpsc-arch.dts
                   hpsc-busids.dtsh
                   hpsc-irqs.dtsh)
 
