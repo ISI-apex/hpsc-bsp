@@ -81,14 +81,20 @@ The build generates in `${WORKING_DIR}/deploy`:
 1. `conf` - QEMU configuration directory
 1. `qemu-env.sh` - QEMU configuration parameters
 1. `run-qemu.sh` - QEMU launch script
+1. `test.sh` - Pytest launch script
 
 and in `${WORKING_DIR}/deploy/sdk`:
 
-1. `hpsc-arch.dtb` - QEMU device tree
+1. `qemu-devicetrees` - QEMU device tree directory
 1. `qemu-bridge-helper` - QEMU utility for creating TAP devices
 1. `qemu-system-aarch64` - QEMU binary
 1. `hpsc-eclipse-cpp-2018-09-linux-gtk-x86_64.tar.gz` - HPSC Eclipse installer
 1. `tools` - a directory with host utility scripts and binaries
+
+and _non-relocatable_ SDKs in `${WORKING_DIR}/env`:
+
+1. `RSB-5` - RTEMS Source Builder SDK
+1. `RT-5` - RTEMS Tools
 
 
 Bare Metal Build
@@ -104,7 +110,7 @@ The build generates in `${WORKING_DIR}/sdk/toolchains`:
 
 and in `${WORKING_DIR}/deploy/ssw/trch`:
 
-1. `trch.elf` - TRCH firmware
+1. `trch.bin` - TRCH firmware
 1. `syscfg-schema.json` - schema for system configuration parsed by TRCH
 
 and in `${WORKING_DIR}/deploy/ssw/rtps/r52`:
@@ -117,15 +123,14 @@ The bare metal toolchain is also installed locally at `${WORKING_DIR}/env/gcc-ar
 RTEMS Build
 -----------
 
-To independently fetch and build the RTEMS SDK, R52 BSP, and dependent artifacts:
+To independently fetch and build the RTEMS TRCH and R52 BSPs, and dependent artifacts:
 
 	./build-hpsc-rtems.sh
 
-The build generates _non-relocatable_ toolchains/SDKs/BSPs in `${WORKING_DIR}/env`:
+The build generates _non-relocatable_ BSPs in `${WORKING_DIR}/env`:
 
-1. `RSB-5` - RTEMS Source Builder SDK
-1. `RT-5` - RTEMS Tools
 1. `RTEMS-5-RTPS-R52` - RTPS R52 RTEMS BSP for building RTEMS applications
+1. `RTEMS-5-TRCH` - RTPS R52 RTEMS BSP for building RTEMS applications
 
 and in `${WORKING_DIR}/deploy/ssw/rtps/r52`:
 
@@ -141,12 +146,12 @@ To independently fetch and build the Yocto SDK and dependent artifacts:
 
 The build generates in `${WORKING_DIR}/deploy/sdk/toolchains`:
 
-1. `poky-glibc-x86_64-core-image-hpsc-aarch64-toolchain-2.6.3.sh` - the Yocto SDK installer
+1. `poky-glibc-x86_64-core-image-hpsc-aarch64-hpsc-chiplet-toolchain-2.7.1.sh` - the Yocto SDK installer
 
 and in `${WORKING_DIR}/deploy/ssw/hpps/`:
 
 1. `arm-trusted-firmware.bin` - the Arm Trusted Firmware binary
-1. `core-image-minimal-hpsc-chiplet.cpio.gz.u-boot` - the Linux root file system for booting the dual A53 cluster
+1. `core-image-hpsc-hpsc-chiplet.cpio.gz.u-boot` - the Linux root file system for booting the dual A53 cluster
 1. `hpsc.dtb` - the Chiplet device tree for SMP Linux
 1. `Image.gz` - the Linux kernel binary image
 1. `u-boot.dtb` - the U-boot device tree
