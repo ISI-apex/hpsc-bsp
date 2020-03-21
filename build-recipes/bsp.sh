@@ -5,6 +5,7 @@ export DO_FETCH_ONLY=1
 
 DEPLOY_DIR_1=""
 DEPLOY_ARTIFACTS_1=(
+    "${REC_UTIL_DIR}/checkout.sh"
     "${REC_UTIL_DIR}/run-qemu.sh"
     "${REC_UTIL_DIR}/test.sh"
     "${REC_UTIL_DIR}/qemu-env.sh"
