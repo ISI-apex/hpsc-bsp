@@ -4,7 +4,7 @@
 # release of BSP obtained from a binary release tarball or built using
 # ./build-hpsc-bsp.sh. This script is NOT used to run the HPSC source release
 # built in-place in BUILD/src for development, according to instructions in
-# BUILD/src/ssw/hpsc-utils/doc/README.md
+# BUILD/src/README.md
 #
 # This script uses the launch-qemu tool from the Chiplet SDK.
 #

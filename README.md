@@ -14,7 +14,7 @@ components in place with dependency tracking for incremental builds that build
 only components needed for a given configuration, in all supported
 configurations (and to build on other distributions, or build without root),
 build from source in `BUILD/src` directory according to instructions in
-`BUILD/src/ssw/hpsc-utils/doc/README.md`.
+`BUILD/src/README.md`.
 
 This repository includes:
 
