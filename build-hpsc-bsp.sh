@@ -6,7 +6,7 @@
 function usage()
 {
     local rc=${1:-0}
-    echo "Usage: $0 [-a ACTION]... [-w DIR] [-h]"
+    echo "Usage: $0 [-a ACTION]... [-w DIR] [-hp]"
     echo "    -a ACTION: one of:"
     echo "       all: (default) execute all actions"
     echo "       fetch: download toolchains and sources"
@@ -14,6 +14,7 @@ function usage()
     echo "       stage: stage artifacts into a directory before packaging"
     echo "       package: create binary BSP archive from staged artifacts"
     echo "       package-sources: create source BSP archive"
+    echo "    -p: include private sourrces (default: no)"
     echo "    -w DIR: set the working directory (default=\"BUILD\")"
     echo "    -h: show this message and exit"
     exit "$rc"
@@ -27,8 +28,9 @@ IS_BUILD=0
 IS_STAGE=0
 IS_PACKAGE=0
 IS_PACKAGE_SOURCES=0
+PRIVATE=0
 WORKING_DIR="BUILD"
-while getopts "a:w:h?" o; do
+while getopts "a:w:h?p" o; do
     case "$o" in
         a)
             HAS_ACTION=1
@@ -48,6 +50,9 @@ while getopts "a:w:h?" o; do
                 echo "Error: no such action: ${OPTARG}"
                 usage 1
             fi
+            ;;
+        p)
+            PRIVATE=1
             ;;
         w)
             WORKING_DIR="${OPTARG}"
@@ -82,7 +87,8 @@ function action_fetch()
     "${BSP_DIR}/build-hpsc-host.sh" -w "$WORKING_DIR" -a fetch && \
     "${BSP_DIR}/build-hpsc-bare.sh" -w "$WORKING_DIR" -a fetch && \
     "${BSP_DIR}/build-hpsc-rtems.sh" -w "$WORKING_DIR" -a fetch && \
-    "${BSP_DIR}/build-hpsc-yocto.sh" -w "$WORKING_DIR" -a fetch
+    "${BSP_DIR}/build-hpsc-yocto.sh" -w "$WORKING_DIR" -a fetch && \
+    ( [ "$PRIVATE" -eq 0 ] || ./build-hpsc-private.sh -w "$WORKING_DIR" -a fetch )
 }
 
 function action_build()
