@@ -27,6 +27,7 @@ RECIPES=(
     ssw/rtps/r52/hpsc-rtems
     ssw/rtps/r52/rtems
     ssw/rtps/r52/u-boot
+    ssw/trch/rtems
 )
 
 THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
