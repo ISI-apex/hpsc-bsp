@@ -14,7 +14,7 @@ function usage()
     echo "       stage: stage artifacts into a directory before packaging"
     echo "       package: create binary BSP archive from staged artifacts"
     echo "       package-sources: create source BSP archive"
-    echo "    -p: include private sourrces (default: no)"
+    echo "    -p: include private sources (default: no)"
     echo "    -w DIR: set the working directory (default=\"BUILD\")"
     echo "    -h: show this message and exit"
     exit "$rc"
@@ -97,7 +97,8 @@ function action_build()
     "${BSP_DIR}/build-hpsc-host.sh" -w "$WORKING_DIR" -a build && \
     "${BSP_DIR}/build-hpsc-bare.sh" -w "$WORKING_DIR" -a build && \
     "${BSP_DIR}/build-hpsc-rtems.sh" -w "$WORKING_DIR" -a build && \
-    "${BSP_DIR}/build-hpsc-yocto.sh" -w "$WORKING_DIR" -a build
+    "${BSP_DIR}/build-hpsc-yocto.sh" -w "$WORKING_DIR" -a build && \
+    ( [ "$PRIVATE" -eq 0 ] || ./build-hpsc-private.sh -w "$WORKING_DIR" -a build )
 }
 
 function action_stage()
