@@ -130,8 +130,8 @@ function action_package_sources()
     # the user from having to specify -f for every make invocation. Needed to
     # build components in $srcdir not part of the binary release.
     local srcdir="${WORKING_DIR}/src"
-    ln -sf "ssw/hpsc-utils/doc/README.md" "${srcdir}/README.md " && \
-    ln -sf "ssw/hpsc-utils/make/env.sh" "${srcdir}/env.sh " && \
+    ln -sf "ssw/hpsc-utils/doc/README.md" "${srcdir}/README.md" && \
+    ln -sf "ssw/hpsc-utils/make/env.sh" "${srcdir}/env.sh" && \
     ln -sf "ssw/hpsc-utils/make/Makefile.hpsc" "${srcdir}/Makefile" && \
     ln -sf "hpsc-utils/make/Makefile.ssw" "${srcdir}/ssw/Makefile" && \
     ln -sf "hpsc-sdk-tools/make/Makefile.sdk" "${srcdir}/sdk/Makefile" \
