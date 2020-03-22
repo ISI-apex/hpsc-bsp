@@ -23,6 +23,7 @@ This repository includes:
 1. `build-hpsc-host.sh` - builds artifacts for the host development system, including QEMU and associated utilities, and developer tools like the HPSC Eclipse distribution.
 1. `build-hpsc-rtems.sh` - builds the RTEMS BSP and reference software for the RTPS Cortex-R52s, and an unused BSP for the TRCH.
 1. `build-hpsc-yocto.sh` - builds Yocto Linux SDK for the HPPS Cortex-A53 clusters, including the reference root filesystem and Linux test utilities.
+1. `build-hpsc-private.sh` - builds private sources.
 1. `build-recipe.sh` - build individual component recipes; wrapped by other build scripts.
 1. `run-qemu.sh` - runs QEMU using artifacts deployed by the build scripts (prior to packaging).
 
