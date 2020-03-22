@@ -6,7 +6,7 @@ run() {
 }
 
 BSP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-export RUN_DIR=$PWD/run # export for run-qemu.sh
+export RUN_DIR=$PWD # export for run-qemu.sh; note: NOT launch-qemu's dir
 
 # Some tests connect to the target via SSH. Must be configured in .ssh/config:
 #       Host hpsc-hpps-qemu
